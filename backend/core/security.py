@@ -19,7 +19,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    username: str
+    email: str
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
