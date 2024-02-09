@@ -5,7 +5,6 @@ from datetime import datetime
 
 # Base structure for User
 class UserBase(BaseModel):
-    username: str
     email: EmailStr
 
 
@@ -27,7 +26,6 @@ class UserInDB(UserBase):
 
 # Used for updating user information, optional fields
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
 
