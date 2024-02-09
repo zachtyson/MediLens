@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,8 +44,7 @@ class MainActivity : ComponentActivity() {
 
 // Define the Profile composable.
 @Composable
-fun Login(onNavigateToHome: () -> Unit) {
-
+fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
 
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -118,36 +118,131 @@ fun Login(onNavigateToHome: () -> Unit) {
                 text = "Log In",
                 color = Color.Blue,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { //nagviagte
-                }
+                modifier = Modifier.clickable { onNavigateToLogin() }
             )
         }
     }
 }
 
 @Composable
-fun Home(onNavigateToLogin: () -> Unit, ) {
+fun Login(onNavigateToHome: () -> Unit,onNavigateToSignUp: () -> Unit,) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "MediLens",
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            ),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Text(
+            text = "Log In",
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            ),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        OutlinedTextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Username") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Password
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        )
+
+        Button(
+            onClick = { onNavigateToHome() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Log In")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text("Don't have an account? ")
+            Text(
+                text = "Sign Up",
+                color = Color.Blue,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onNavigateToSignUp() }
+            )
+        }
+    }
+}
+
+@Composable
+fun Home(onNavigateToLogin: () -> Unit, onNavigateToSignUp: () -> Unit, ) {
 
     // Set padding for the icon button
     val iconButtonPadding = 16.dp
-    // Create a Compose Box
-    Box(
+
+    Column( // root container
         modifier = Modifier
             .fillMaxSize()
-            .padding(end = iconButtonPadding)
-            .padding(bottom = iconButtonPadding)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom
+    ){
 
-    ) {
-        IconButton(
-            onClick = { onNavigateToLogin() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+
         ) {
-            Icon(
-                Icons.Rounded.Settings,
-                contentDescription = "Settings",
-                tint = MaterialTheme.colorScheme.primary
-            )
+
+            IconButton(
+                onClick = { onNavigateToLogin() },
+
+            ) {
+                Icon(
+                    Icons.Rounded.Settings,
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            IconButton(
+                onClick = { onNavigateToSignUp() },
+
+            ){
+                Icon(
+                    Icons.Rounded.Person,
+                    contentDescription = "Person",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
@@ -158,8 +253,15 @@ fun Home(onNavigateToLogin: () -> Unit, ) {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = "Login") {
-        composable("Login") { Login(onNavigateToHome = { navController.navigate("Home") }) }
-        composable("Home") { Home(onNavigateToLogin= { navController.navigate("Login") }) }
+    NavHost(navController, startDestination = "SignUp") {
+        composable("SignUp") { SignUp(onNavigateToHome = { navController.navigate("Home") },
+                onNavigateToLogin = { navController.navigate("Login") } ) }
+
+        composable("Login") { Login(onNavigateToHome = { navController.navigate("Home") },
+                onNavigateToSignUp = { navController.navigate("SignUp") }) }
+
+        composable("Home") { Home(onNavigateToLogin= { navController.navigate("Login")},
+                onNavigateToSignUp = { navController.navigate("SignUp") }) }
+
     }
 }
