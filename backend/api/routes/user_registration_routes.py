@@ -35,17 +35,14 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 @router.post("/users", response_model=UserResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
-    existing_user = db.query(User).filter(User.username == user.username).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-
+    # used to have users register by username AND email, but I removed the username field from the User model
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     user.password = get_password_hash(user.password)
 
-    db_user = User(username=user.username, email=user.email, hashed_password=user.password)
+    db_user = User(email=user.email, hashed_password=user.password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -57,8 +54,6 @@ async def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    if user.username:
-        db_user.username = user.username
     if user.email:
         db_user.email = user.email
     if user.password:
