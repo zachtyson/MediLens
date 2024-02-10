@@ -68,6 +68,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     //
+    implementation ("androidx.compose.material:material-icons-extended:1.6.1")
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("androidx.compose.material3:material3-window-size-class:1.2.0")
     implementation("androidx.compose.material3:material3-adaptive:1.0.0-alpha06")
@@ -79,7 +80,6 @@ dependencies {
     // CameraX core library using the camera2 implementation
     val camerax_version = "1.4.0-alpha04"
     // The following line is optional, as the core library is included indirectly by camera-camera2
-    implementation("androidx.camera:camera-core:${camerax_version}")
     implementation("androidx.camera:camera-camera2:${camerax_version}")
     // If you want to additionally use the CameraX Lifecycle library
     implementation("androidx.camera:camera-lifecycle:${camerax_version}")
@@ -91,4 +91,6 @@ dependencies {
     implementation("androidx.camera:camera-mlkit-vision:${camerax_version}")
     // If you want to additionally use the CameraX Extensions library
     implementation("androidx.camera:camera-extensions:${camerax_version}")
+    //to take picture
+    implementation ("io.coil-kt:coil-compose:1.4.0")
 }

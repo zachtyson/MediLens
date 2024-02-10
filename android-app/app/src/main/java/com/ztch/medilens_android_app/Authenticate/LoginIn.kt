@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Login(onNavigateToHome: () -> Unit,onNavigateToSignUp: () -> Unit,) {
+fun Login(onNavigateToCamera: () -> Unit,onNavigateToSignUp: () -> Unit,) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -70,7 +70,7 @@ fun Login(onNavigateToHome: () -> Unit,onNavigateToSignUp: () -> Unit,) {
         )
 
         Button(
-            onClick = { onNavigateToHome() },
+            onClick = { onNavigateToCamera() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
