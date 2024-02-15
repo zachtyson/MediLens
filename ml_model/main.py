@@ -8,6 +8,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 import pandas as pd
+import torchvision.models as models
+import torch.nn as nn
 
 from pandas import json_normalize
 
@@ -30,6 +32,8 @@ def main():
     # print head of the dataset
     pd.set_option('display.max_columns', None)
     print(dataset.annotations.head())
+
+    resnet18 = models.resnet18(pretrained=True)
 
 
 if __name__ == '__main__':
