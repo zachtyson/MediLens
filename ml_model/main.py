@@ -2,38 +2,33 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import os
+from PIL import Image
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torchvision
-from torch.utils.data import DataLoader, Dataset
-from torchvision import datasets
-from torchvision.transforms import ToTensor
-import torchvision.transforms as transforms
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+import pandas as pd
+
+from pandas import json_normalize
+
+from CustomDataset import CustomDataset
 
 
 def main():
-    # Define transformations to apply to the images
     transform = transforms.Compose([
+        transforms.Resize((256, 256)),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    # Load the CIFAR-10 dataset, this is temporary until I decide what the pill dataset will be
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
-                                              shuffle=True, num_workers=2)
+    dataset = CustomDataset(csv_file='way_clean.csv', root_dir='pillbox_production_images_full_202008',
+                            transform=transform)
+    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                           download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
-                                             shuffle=False, num_workers=2)
-
-    classes = ('plane', 'car', 'bird', 'cat',
-               'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-
-    # Define the CNN model
+    # print when dataset is loaded
+    print('Dataset loaded')
+    # print head of the dataset
+    pd.set_option('display.max_columns', None)
+    print(dataset.annotations.head())
 
 
 if __name__ == '__main__':
