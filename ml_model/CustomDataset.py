@@ -24,8 +24,8 @@ class CustomDataset(Dataset):
         return len(self.annotations)
 
     def __getitem__(self, index):
-        img_path = os.path.join(self.root_dir, self.annotations.iloc[index, 0])
-        image = Image.open(img_path)
+        img_path = os.path.join(self.root_dir, self.annotations.iloc[index, 0]) + '.jpg'
+        image = Image.open(img_path).convert('RGB')
         # 3 labels: splshape_text, splimprint, splcolor_text
         splshape_text = self.label_encodings['splshape_text'][self.annotations.iloc[index, 1]]
         splimprint = self.label_encodings['splimprint'][self.annotations.iloc[index, 2]]
