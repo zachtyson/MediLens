@@ -20,6 +20,7 @@ def main():
         transforms.ToTensor(),
     ])
 
+    # pillbox dataset, download on your own cause there's too many files
     dataset = CustomDataset(csv_file='small_set.csv', root_dir='pillbox_production_images_full_202008',
                             transform=transform)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
