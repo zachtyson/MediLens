@@ -20,7 +20,7 @@ def main():
         transforms.ToTensor(),
     ])
 
-    dataset = CustomDataset(csv_file='way_clean.csv', root_dir='pillbox_production_images_full_202008',
+    dataset = CustomDataset(csv_file='small_set.csv', root_dir='pillbox_production_images_full_202008',
                             transform=transform)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
