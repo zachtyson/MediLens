@@ -5,7 +5,7 @@ import os
 import os
 from PIL import Image
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, Subset
 from torchvision import transforms
 import pandas as pd
 import torchvision.models as models
@@ -44,26 +44,26 @@ def main():
     dataset.annotations = dataset.annotations[~dataset.annotations['splshape_text'].isin(
         dataset.annotations['splshape_text'].value_counts().where(lambda x: x == 1).dropna().index)]
     pass
-    resnet18.fc = nn.Linear(num_features, num_shapes)
-
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(resnet18.parameters(), lr=0.001)
-
     dataset_size = len(dataset)
-    train_size = int(dataset_size * 0.8)
-    val_size = dataset_size - train_size
-
-    # stratified split based on splshape_text
     labels = dataset.annotations['splshape_text'].values
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
-    train_dataset, validation_dataset = random_split(dataset, [train_size, val_size])
-    for train_index, test_index in sss.split(np.zeros(dataset_size), labels):
-        train_dataset = torch.utils.data.Subset(dataset, train_index)
-        validation_dataset = torch.utils.data.Subset(dataset, test_index)
 
+    train_dataset = None
+    validation_dataset = None
+
+    # Stratified split based on 'splshape_text'
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
+    for train_index, test_index in sss.split(np.zeros(dataset_size), labels):
+        train_dataset = Subset(dataset, train_index)
+        validation_dataset = Subset(dataset, test_index)
+
+    # DataLoader setup
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
     validation_loader = DataLoader(validation_dataset, batch_size=32, shuffle=False, num_workers=4)
 
+    # Model, loss, and optimizer setup (assuming 'resnet18' and 'num_features' are predefined)
+    resnet18.fc = nn.Linear(num_features, num_shapes)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(resnet18.parameters(), lr=0.001)
     for epoch in range(10):
         resnet18.train()
         running_loss = 0.0
@@ -76,8 +76,21 @@ def main():
             optimizer.step()
             running_loss += loss.item()
             if i % 100 == 99:
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 100))
+                print(f'Epoch: {epoch + 1}, Batch: {i + 1}, Loss: {running_loss / 100}')
                 running_loss = 0.0
+
+    # validation
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in validation_loader:
+            images, labels = data['image'], data['splshape_text']
+            outputs = resnet18(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    print(f'Accuracy: {100 * correct / total}%')
 
     torch.save(resnet18, 'resnet18_splshape_text_10epochs.pth')
 
