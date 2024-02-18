@@ -79,6 +79,13 @@ def main():
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 100))
                 running_loss = 0.0
 
+    torch.save(resnet18, 'resnet18_splshape_text_10epochs.pth')
+
+
+    # save model
+    print('Finished Training')
+
+
 
 if __name__ == '__main__':
     main()
