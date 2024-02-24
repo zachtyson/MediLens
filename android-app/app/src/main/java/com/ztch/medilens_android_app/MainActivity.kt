@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp(applicationContext: Context) {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = "SignUp") {
+    NavHost(navController, startDestination = "Login") {
         composable("SignUp") { SignUp(onNavigateToHome = { navController.navigate("Home") },
                 onNavigateToLogin = { navController.navigate("Login") } ) }
 
@@ -64,6 +64,7 @@ fun MyApp(applicationContext: Context) {
 
         composable("Camera") { CameraXGuideTheme(onNavigateToLogin = { navController.navigate("Login") }, applicationContext = applicationContext) }
 
+      //  composable ("Home") { Home(onNavigateToLogin = { navController.navigate("Login") }) }
     }
 
 }

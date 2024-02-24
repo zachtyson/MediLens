@@ -114,6 +114,7 @@ fun CameraXGuideTheme(onNavigateToLogin: () -> Unit, applicationContext:Context,
                         contentDescription = "Open gallery"
                     )
                 }
+
                 IconButton(
                     onClick = {
                         takePhoto(controller = controller,
@@ -184,4 +185,4 @@ fun takePhoto(
         }
     )
 }
-
+// think about the pills hooking a database that a pharmacy maintains.

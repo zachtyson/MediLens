@@ -19,37 +19,52 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun Login(onNavigateToCamera: () -> Unit,onNavigateToSignUp: () -> Unit,) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = "MediLens",
+
+        Spacer(modifier = Modifier.height(100.dp))
+        Text( // repace with an logo
+            text = "*MediLens Logo*",
             style = TextStyle(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             ),
             modifier = Modifier.padding(bottom = 16.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+        Spacer(modifier = Modifier.height(80.dp))
+        Text(
+            text = "Login",
+            style = TextStyle(
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            ),
+            modifier = Modifier.padding(bottom = 16.dp)
+
         )
         Text(
-            text = "Log In",
+            text = "Please Sign in To Continue ",
             style = TextStyle(
-                fontSize = 24.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             ),
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        Spacer(modifier = Modifier.height(20.dp))
+
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
+            value = email,
+            onValueChange = { email = it },
             label = { Text("Email") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -72,13 +87,13 @@ fun Login(onNavigateToCamera: () -> Unit,onNavigateToSignUp: () -> Unit,) {
         Button(
             onClick = { onNavigateToCamera() },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
+                .size(150.dp, 50.dp)
+                .align(Alignment.End)
         ) {
-            Text("Log In")
+            Text("Login")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(180.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
