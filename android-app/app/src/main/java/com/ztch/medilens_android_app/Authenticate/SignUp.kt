@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Authenticate
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -19,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ztch.medilens_android_app.R
 
 @Composable
 fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
@@ -34,14 +37,19 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(colorResource(id = R.color.DarkestBlue))
             .padding(16.dp),
     ) {
         signupHeader { onNavigateToLogin() }
 
         OutlinedTextField(
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedContainerColor = colorResource(id = R.color.DarkBlue),
+            ),
             value = legalName,
             onValueChange = { legalName = it },
-            label = { Text("Full Name") },
+            label = { Text("Full Name",color = Color.White) },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email
             ),
@@ -52,9 +60,13 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
         )
 
         OutlinedTextField(
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedContainerColor = colorResource(id = R.color.DarkBlue),
+            ),
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text("Email",color = Color.White) },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email
             ),
@@ -65,9 +77,13 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
         )
 
         OutlinedTextField(
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedContainerColor = colorResource(id = R.color.DarkBlue),
+            ),
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text("Password",color = Color.White) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password
@@ -78,9 +94,13 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
         )
 
         OutlinedTextField(
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedContainerColor = colorResource(id = R.color.DarkBlue),
+            ),
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
+            label = { Text("Confirm Password",color = Color.White) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password
@@ -92,11 +112,12 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
 
         Button(
             onClick = { onNavigateToHome() },
+            colors = ButtonDefaults.buttonColors(colorResource(id = R.color.Purple)),
             modifier = Modifier
                 .size(150.dp, 50.dp)
                 .align(Alignment.End)
         ) {
-            Text("Sign Up")
+            Text("Sign Up",color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(250.dp))
@@ -105,7 +126,7 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            Text("Already have an account? ")
+            Text("Already have an account? ",color = Color.White)
             Text(
                 text = "Log In",
                 color = Color.Blue,
@@ -130,6 +151,7 @@ fun signupHeader(onNavigateToLogin: () -> Unit,) {
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBackIosNew,
+                tint = Color.White,
                 contentDescription = "Back"
             )
         }
@@ -138,6 +160,7 @@ fun signupHeader(onNavigateToLogin: () -> Unit,) {
 
         Text(
             text = "Create Account",
+            color = Color.White,
             style = TextStyle(
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
@@ -155,7 +178,9 @@ fun signupHeader(onNavigateToLogin: () -> Unit,) {
 @Preview(showSystemUi = true)
 @Composable
 fun signinPreview() {
-
+    SignUp(
+        onNavigateToHome = {},
+        onNavigateToLogin = {})
 }
 
 

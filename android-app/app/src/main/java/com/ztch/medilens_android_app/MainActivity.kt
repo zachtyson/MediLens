@@ -19,6 +19,7 @@ import com.ztch.medilens_android_app.Camera.*
 import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
 import com.ztch.medilens_android_app.Authenticate.Login
 import com.ztch.medilens_android_app.Authenticate.SignUp
+import com.ztch.medilens_android_app.Homepage.HomePage
 
 
 // camera permissions are
@@ -59,11 +60,13 @@ fun MyApp(applicationContext: Context) {
         composable("SignUp") { SignUp(onNavigateToHome = { navController.navigate("Home") },
                 onNavigateToLogin = { navController.navigate("Login") } ) }
 
-        composable("Login") { Login(onNavigateToCamera = { navController.navigate("Camera") },
+        composable("Login") { Login(onNavigateToHomePage = { navController.navigate("Home") },
                 onNavigateToSignUp = { navController.navigate("SignUp") }) }
 
         composable("Camera") { CameraXGuideTheme(onNavigateToLogin = { navController.navigate("Login") }, applicationContext = applicationContext) }
 
+        composable("Home") {
+            HomePage(onNavigateToCamera = { navController.navigate("Camera") })}
       //  composable ("Home") { Home(onNavigateToLogin = { navController.navigate("Login") }) }
     }
 
