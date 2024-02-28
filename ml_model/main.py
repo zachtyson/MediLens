@@ -142,8 +142,8 @@ def main():
             correct_color += (predicted_color == labels_color).sum().item()
             correct_shape += (predicted_shape == labels_shape).sum().item()
             total += labels_color.size(0)
-            if predicted_color == labels_color and predicted_shape == labels_shape:
-                correct += 1
+            if (predicted_color == labels_color).sum().item() and (predicted_shape == labels_shape).sum().item():
+                correct = correct + 1
 
     print(f'Accuracy of the network on the validation images: {100 * correct / total}%')
     print(f'Accuracy of the network on the color validation images: {100 * correct_color / total}%')
