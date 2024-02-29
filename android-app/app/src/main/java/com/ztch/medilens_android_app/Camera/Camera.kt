@@ -195,6 +195,8 @@ fun takePhoto(
                 rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
                 val byteArray = byteArrayOutputStream.toByteArray()
 
+                onPhotoTakenToBackend(byteArray)
+
                 onPhotoTaken(rotatedBitmap)
             }
 
@@ -208,9 +210,10 @@ fun takePhoto(
 
 
 fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
+
     val client = OkHttpClient()
-    val baseUrl = "idkzach"
-    val endpoint = "$baseUrl/idk"
+    val baseUrl = "https://127.0.0.1:8000"
+    val endpoint = "$baseUrl/upload-image"
 
     // Create a MultipartBody with the image byte array
     val requestBody = MultipartBody.Builder()
@@ -222,6 +225,7 @@ fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
     val request = Request.Builder()
         .url(endpoint)
         .post(requestBody)
+        .addHeader("Content-Type", "multipart/form-data")
         .build()
 
     // Execute the request asynchronously
@@ -234,11 +238,12 @@ fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
                 // HTTP status code indicates success (e.g., 2xx)
                 val responseBody = response.body?.string()
                 // might want to parse the JSON response and update the UI
-                if(responseBody != null)
+                //probably will be the medication name and information, UI Create a card with the information
+                if (responseBody != null)
                     Log.d("Camera Picture Success", responseBody)
 
             } else {
-               // might want to check specific status codes
+                // might want to check specific status codes
                 Log.e("Camera Picture Error", "Failed to upload picture: $statusCode")
             }
         }

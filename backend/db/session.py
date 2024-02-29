@@ -2,7 +2,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, MetaData
 from databases import Database
-from core.config import settings
+from backend.core.config import settings
 
 # Create the engine
 engine = create_engine(settings.DATABASE_URL, pool_size=5, max_overflow=1)
