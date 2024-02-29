@@ -63,7 +63,7 @@ fun MyApp(applicationContext: Context) {
         composable("Login") { Login(onNavigateToHomePage = { navController.navigate("Home") },
                 onNavigateToSignUp = { navController.navigate("SignUp") }) }
 
-        composable("Camera") { CameraXGuideTheme(onNavigateToLogin = { navController.navigate("Login") }, applicationContext = applicationContext) }
+        composable("Camera") { CameraXGuideTheme(onNavigateToHomePage = { navController.navigate("Home") }, applicationContext = applicationContext) }
 
         composable("Home") {
             HomePage(onNavigateToCamera = { navController.navigate("Camera") })}

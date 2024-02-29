@@ -1,9 +1,12 @@
 package com.ztch.medilens_android_app.Camera
 
+
 import android.content.Context
+
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
+
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
@@ -14,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.Modifier
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
@@ -38,13 +42,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import java.io.ByteArrayOutputStream
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CameraXGuideTheme(onNavigateToLogin: () -> Unit, applicationContext:Context,) {
+fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, applicationContext:Context,) {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val controller = remember {
@@ -79,26 +96,24 @@ fun CameraXGuideTheme(onNavigateToLogin: () -> Unit, applicationContext:Context,
                     .fillMaxSize()
             )
 
-            IconButton(
-                onClick = {
-                    controller.cameraSelector =
-                        if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-                            CameraSelector.DEFAULT_FRONT_CAMERA
-                        } else CameraSelector.DEFAULT_BACK_CAMERA
-                },
-                modifier = Modifier
-                    .offset(16.dp, 16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Cameraswitch,
-                    contentDescription = "Switch camera"
-                )
-            }
+                IconButton(
+                    onClick = { onNavigateToHomePage() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBackIosNew,
+                        tint = Color.White,
+                        contentDescription = "Back"
+                    )
+                }
+
+
+
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
+                    .background(Color.LightGray)
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
@@ -154,7 +169,7 @@ fun CameraPreview(
 fun takePhoto(
     controller: LifecycleCameraController,
     onPhotoTaken: (Bitmap) -> Unit,
-    applicationContext: android.content.Context
+    applicationContext:Context
 ) {
     controller.takePicture(
         ContextCompat.getMainExecutor(applicationContext),
@@ -175,6 +190,11 @@ fun takePhoto(
                     true
                 )
 
+                // Convert Bitmap to byte array
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+
                 onPhotoTaken(rotatedBitmap)
             }
 
@@ -185,4 +205,49 @@ fun takePhoto(
         }
     )
 }
-// think about the pills hooking a database that a pharmacy maintains.
+
+
+fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
+    val client = OkHttpClient()
+    val baseUrl = "idkzach"
+    val endpoint = "$baseUrl/idk"
+
+    // Create a MultipartBody with the image byte array
+    val requestBody = MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
+        .addFormDataPart("file", "image.jpg", RequestBody.create("image/jpeg".toMediaTypeOrNull(), imageByteArray))
+        .build()
+
+    // Create the request
+    val request = Request.Builder()
+        .url(endpoint)
+        .post(requestBody)
+        .build()
+
+    // Execute the request asynchronously
+    client.newCall(request).enqueue(object : okhttp3.Callback {
+        override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+
+            val statusCode = response.code
+
+            if (statusCode in 200..299) {
+                // HTTP status code indicates success (e.g., 2xx)
+                val responseBody = response.body?.string()
+                // might want to parse the JSON response and update the UI
+                if(responseBody != null)
+                    Log.d("Camera Picture Success", responseBody)
+
+            } else {
+               // might want to check specific status codes
+                Log.e("Camera Picture Error", "Failed to upload picture: $statusCode")
+            }
+        }
+
+
+        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+            // Note: This is executed on a background thread, so switch to the main thread if UI updates are required.
+            e.printStackTrace()
+
+        }
+    })
+}

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 
 
 import com.ztch.medilens_android_app.R
+import com.ztch.medilens_android_app.appbarBottom
 import java.time.format.DateTimeFormatter
 
 
@@ -38,9 +39,9 @@ fun HomePage(onNavigateToCamera: () -> Unit) {
 
         modifier = Modifier.fillMaxSize()
             .background(color = colorResource(R.color.DarkGrey))
-    ){
+    ) {
 
-        homepageHeader( data = calendarUiModel, onDateClickListener = { date ->
+        homepageHeader(data = calendarUiModel, onDateClickListener = { date ->
             // refresh the CalendarUiModel with new data
             // by changing only the `selectedDate` with the date selected by User
             calendarUiModel = calendarUiModel.copy(
@@ -54,7 +55,7 @@ fun HomePage(onNavigateToCamera: () -> Unit) {
         }) // end of header
 
         //Spacer(modifier = Modifier.height(425.dp))
-        BottomAppBar(onNavigateToCamera)
+        homeAppBar { onNavigateToCamera() }
     }
 }
 
@@ -169,136 +170,14 @@ fun RowOfDates(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date)
 
 //Start of bottom header
 @Composable
-fun BottomAppBar( onNavigateToCamera: () -> Unit){
+fun homeAppBar( onNavigateToCamera: () -> Unit){
     val colorPurple = colorResource(R.color.Purple)
     Scaffold(
         containerColor = colorResource(R.color.DarkGrey),
         modifier = Modifier.fillMaxSize(),
 
 
-        bottomBar = {
-            BottomAppBar(
-                containerColor = colorResource(R.color.DarkBlue),
-                actions = {
-
-                    Column(
-                        modifier = Modifier.padding(start = 24.dp)
-
-                    )
-                    {
-
-                        IconButton(
-                            onClick = { },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CardMembership,
-                                contentDescription = "medicar",
-                                tint = Color.White,
-                                modifier = Modifier.size(35.dp)
-                            )
-                        }
-                        Text(text = "MediCard", color = Color.White)
-                    }
-
-                    Column(
-                        modifier = Modifier.padding(start = 24.dp)
-
-                    )
-                    {
-
-                        IconButton(
-                            onClick = { },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "alerts",
-                                tint = Color.White,
-                                modifier = Modifier.size(35.dp)
-                            )
-                        }
-                        Text(text = "Alerts", color = Color.White)
-                    }
-
-
-                    Column(
-
-                        modifier = Modifier.padding(start = 24.dp)
-
-                    )
-                    {
-
-                        IconButton(
-                            onClick = { onNavigateToCamera()},
-                            modifier = Modifier.drawBehind{
-                                drawCircle(
-                                    color = colorPurple,
-                                    radius = this.size.maxDimension,
-
-                                )
-                            }.clickable(onClick = { onNavigateToCamera() })
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PhotoCamera,
-                                contentDescription = "alerts",
-                                tint = Color.White,
-                                modifier = Modifier.size(35.dp)
-                            )
-                        }
-                        Text(text = "")
-                    }
-
-                    Column(
-                        modifier = Modifier.padding(start = 24.dp)
-
-                    )
-                    {
-
-                        IconButton(
-                            onClick = { },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Medication,
-                                contentDescription = "refills",
-                                tint = Color.White,
-                                modifier = Modifier.size(35.dp)
-                            )
-                        }
-                        Text(text = "Refill", color = Color.White)
-                    }
-
-                    Column(
-                        modifier = Modifier.padding(start = 24.dp)
-
-                    )
-                    {
-
-                        IconButton(
-                            onClick = { },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Reorder,
-                                contentDescription = "settings",
-                                tint = Color.White,
-                                modifier = Modifier.size(35.dp)
-                            )
-                        }
-                        Text(text = "Settings", color = Color.White)
-                    }
-
-                },
-              /*  floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = { /* do something */ },
-                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                    ) {
-                        Icon(Icons.Filled.Add, "Localized description")
-                    }
-                }
-
-               */
-            )
-        },
+        bottomBar = { appbarBottom{ onNavigateToCamera() } },
     ){innerPadding ->
         Column(
             modifier = Modifier

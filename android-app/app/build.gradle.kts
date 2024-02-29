@@ -7,6 +7,11 @@ android {
     namespace = "com.ztch.medilens_android_app"
     compileSdk = 34
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId = "com.ztch.medilens_android_app"
         minSdk = 24
@@ -97,4 +102,7 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:1.4.0")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 }
