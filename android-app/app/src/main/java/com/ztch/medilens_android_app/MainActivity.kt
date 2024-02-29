@@ -1,46 +1,74 @@
 package com.ztch.medilens_android_app
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
+import androidx.compose.runtime.*
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
+
+import com.ztch.medilens_android_app.Camera.*
+
+import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
+import com.ztch.medilens_android_app.Authenticate.Login
+import com.ztch.medilens_android_app.Authenticate.SignUp
+import com.ztch.medilens_android_app.Homepage.HomePage
+
+
+// camera permissions are
 class MainActivity : ComponentActivity() {
+    companion object {
+        val CAMERAX_PERMISSIONS = arrayOf(
+            Manifest.permission.CAMERA)
+    }
+    fun hasRequiredPermissions(): Boolean {
+        return CAMERAX_PERMISSIONS.all {
+            ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // not a real permission handling, pictures wont be store on the phone
+            if(!hasRequiredPermissions()) {
+                ActivityCompat.requestPermissions(this, CAMERAX_PERMISSIONS, 0)
+            }
+
+
             MedilensandroidappTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
+                MyApp(applicationContext)
             }
         }
     }
 }
 
+// === Composable Functions ===//
+
+// === `NavController` and `NavHost`====//
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun MyApp(applicationContext: Context) {
+    val navController = rememberNavController()
+    NavHost(navController, startDestination = "Login") {
+        composable("SignUp") { SignUp(onNavigateToHome = { navController.navigate("Home") },
+                onNavigateToLogin = { navController.navigate("Login") } ) }
+
+        composable("Login") { Login(onNavigateToHomePage = { navController.navigate("Home") },
+                onNavigateToSignUp = { navController.navigate("SignUp") }) }
+
+        composable("Camera") { CameraXGuideTheme(onNavigateToHomePage = { navController.navigate("Home") }, applicationContext = applicationContext) }
+
+        composable("Home") {
+            HomePage(onNavigateToCamera = { navController.navigate("Camera") })}
+      //  composable ("Home") { Home(onNavigateToLogin = { navController.navigate("Login") }) }
+    }
+
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MedilensandroidappTheme {
-        Greeting("Android")
-    }
-}
