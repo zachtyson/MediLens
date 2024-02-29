@@ -51,6 +51,10 @@ def main():
 
     resnet18 = models.resnet18(pretrained=True)
 
+    # use gpu if available
+    if torch.cuda.is_available():
+        resnet18 = resnet18.cuda()
+
     num_features = resnet18.fc.in_features
 
     num_colors = len(dataset.annotations['splcolor_text'].unique())
@@ -110,7 +114,9 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(multi_task_model.parameters(), lr=0.001)
 
-    for epoch in range(10):
+    timestamp = pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+    for epoch in range(5):
         multi_task_model.train()
         running_loss = 0.0
         for i, data in enumerate(train_loader, 0):
@@ -139,16 +145,25 @@ def main():
             color_outputs, shape_outputs = multi_task_model(inputs)
             _, predicted_color = torch.max(color_outputs, 1)
             _, predicted_shape = torch.max(shape_outputs, 1)
-            correct_color += (predicted_color == labels_color).sum().item()
-            correct_shape += (predicted_shape == labels_shape).sum().item()
+
+            num_predictions_right = 0
+            if (predicted_shape == labels_shape).sum().item():
+                correct_shape = correct_shape + 1
+                num_predictions_right = num_predictions_right + 1
+            if (predicted_color == labels_color).sum().item():
+                correct_color = correct_color + 1
+                num_predictions_right = num_predictions_right + 1
             total += labels_color.size(0)
-            if (predicted_color == labels_color).sum().item() and (predicted_shape == labels_shape).sum().item():
+            if num_predictions_right == 2:
                 correct = correct + 1
 
     print(f'Accuracy of the network on the validation images: {100 * correct / total}%')
     print(f'Accuracy of the network on the color validation images: {100 * correct_color / total}%')
     print(f'Accuracy of the network on the shape validation images: {100 * correct_shape / total}%')
 
+    timestamp2 = pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+    print(f"Model trained from {timestamp} to {timestamp2}")
     # Save model
     torch.save(multi_task_model.state_dict(), 'multi_task_resnet18.pth')
     torch.save(multi_task_model, 'multi_task_resnet18_full.pth')
