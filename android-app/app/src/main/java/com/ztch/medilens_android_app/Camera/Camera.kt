@@ -6,8 +6,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
-
-import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -18,9 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.compose.ui.Modifier
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetScaffold
@@ -47,16 +43,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import java.io.ByteArrayOutputStream
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
-
-
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.security.KeyStore
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -212,20 +209,21 @@ fun takePhoto(
 fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
 
     val client = OkHttpClient()
-    val baseUrl = "https://127.0.0.1:8000"
-    val endpoint = "$baseUrl/upload-image"
+
+    //10.0.2.2 Refers to the development machine's localhost
+    //127.0.0.1 Refers to the emulator's localhost
+    val Url = "http://10.0.2.2:8000/upload-image"
 
     // Create a MultipartBody with the image byte array
     val requestBody = MultipartBody.Builder()
         .setType(MultipartBody.FORM)
-        .addFormDataPart("file", "image.jpg", RequestBody.create("image/jpeg".toMediaTypeOrNull(), imageByteArray))
+        .addFormDataPart("file", "image.jpg", imageByteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
         .build()
 
     // Create the request
     val request = Request.Builder()
-        .url(endpoint)
+        .url(Url)
         .post(requestBody)
-        .addHeader("Content-Type", "multipart/form-data")
         .build()
 
     // Execute the request asynchronously
@@ -256,3 +254,6 @@ fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
         }
     })
 }
+
+
+

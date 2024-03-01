@@ -7,12 +7,12 @@ app = FastAPI()
 app.include_router(camera.router)
 
 # gets the origins from the environment variable CORS_ORIGINS, if it exists, or defaults to the android studio emulator
-#origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5555,https://localhost:51426,http://localhost")
-#origins = origins_env.split(",")
+origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5555,https://localhost:5555,http://localhost")
+origins = origins_env.split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["POST", "GET", "PUT", "DELETE"],
     allow_headers=["*"],
