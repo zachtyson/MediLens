@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app.Camera
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 
 import android.graphics.Bitmap
@@ -11,7 +12,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.Modifier
 import androidx.camera.view.PreviewView
@@ -23,42 +23,35 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.security.KeyStore
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
+import java.io.IOException
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, applicationContext:Context,) {
+fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, applicationContext:Context) {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val controller = remember {
@@ -163,97 +156,104 @@ fun CameraPreview(
 }
 
 
+
+@SuppressLint("CoroutineCreationDuringComposition")
+
 fun takePhoto(
     controller: LifecycleCameraController,
     onPhotoTaken: (Bitmap) -> Unit,
-    applicationContext:Context
+    applicationContext: Context
 ) {
-    controller.takePicture(
-        ContextCompat.getMainExecutor(applicationContext),
-        object : OnImageCapturedCallback() {
-            override fun onCaptureSuccess(image: ImageProxy) {
-                super.onCaptureSuccess(image)
+    try {
+        val image = controller.takePicture(
+            ContextCompat.getMainExecutor(applicationContext),
+            object : OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    super.onCaptureSuccess(image)
 
-                val matrix = Matrix().apply {
-                    postRotate(image.imageInfo.rotationDegrees.toFloat())
+                    val matrix = Matrix().apply {
+                        postRotate(image.imageInfo.rotationDegrees.toFloat())
+                    }
+                    val rotatedBitmap = Bitmap.createBitmap(
+                        image.toBitmap(),
+                        0,
+                        0,
+                        image.width,
+                        image.height,
+                        matrix,
+                        true
+                    )
+
+                    onPhotoTaken(rotatedBitmap)
+                    // Call the non-composable function for backend handling
+                    onPhotoTakenToBackend(rotatedBitmap)
                 }
-                val rotatedBitmap = Bitmap.createBitmap(
-                    image.toBitmap(),
-                    0,
-                    0,
-                    image.width,
-                    image.height,
-                    matrix,
-                    true
-                )
 
-                // Convert Bitmap to byte array
-                val byteArrayOutputStream = ByteArrayOutputStream()
-                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-                val byteArray = byteArrayOutputStream.toByteArray()
-
-                onPhotoTakenToBackend(byteArray)
-
-                onPhotoTaken(rotatedBitmap)
+                override fun onError(exception: ImageCaptureException) {
+                    super.onError(exception)
+                    Log.e("Camera", "Couldn't take photo: ", exception)
+                }
             }
-
-            override fun onError(exception: ImageCaptureException) {
-                super.onError(exception)
-                Log.e("Camera", "Couldn't take photo: ", exception)
-            }
-        }
-    )
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }
+@SuppressLint("CoroutineCreationDuringComposition")
 
+fun onPhotoTakenToBackend(bitmap: Bitmap) = runBlocking {
+    try {
+        // Convert the bitmap to a byte array
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
 
-fun onPhotoTakenToBackend(imageByteArray: ByteArray) {
+        // Create a new OkHttpClient
+        val client = OkHttpClient()
 
-    val client = OkHttpClient()
+        // Use the lifecycle owner's lifecycle scope to launch a new coroutine
+        withContext(Dispatchers.IO) {
+            try {
+                // 10.0.2.2:8000 is the IP of the development machine in terms of the emulator
+                val url = "http://10.0.2.2:8000/upload-image"
 
-    //10.0.2.2 Refers to the development machine's localhost
-    //127.0.0.1 Refers to the emulator's localhost
-    val Url = "http://10.0.2.2:8000/upload-image"
+                // Send the image to the server using a POST request and MultiPartBody
+                val requestBody = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", "image.jpg", byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
+                    .build()
 
-    // Create a MultipartBody with the image byte array
-    val requestBody = MultipartBody.Builder()
-        .setType(MultipartBody.FORM)
-        .addFormDataPart("file", "image.jpg", imageByteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
-        .build()
+                // Post request
+                val request = Request.Builder()
+                    .url(url)
+                    .post(requestBody)
+                    .build()
 
-    // Create the request
-    val request = Request.Builder()
-        .url(Url)
-        .post(requestBody)
-        .build()
+                val response = client.newCall(request).execute()
 
-    // Execute the request asynchronously
-    client.newCall(request).enqueue(object : okhttp3.Callback {
-        override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                // Use 'use' to automatically close resources
+                response.use {
+                    val statusCode = response.code
 
-            val statusCode = response.code
+                    withContext(Dispatchers.Main) {
+                        val responseBody = response.body?.string()
+                        val logMessage = if (statusCode in 200..299) {
+                            "Camera Picture Success: $responseBody"
+                        } else {
+                            "Camera Picture Error: Failed to upload picture: $statusCode"
+                        }
 
-            if (statusCode in 200..299) {
-                // HTTP status code indicates success (e.g., 2xx)
-                val responseBody = response.body?.string()
-                // might want to parse the JSON response and update the UI
-                //probably will be the medication name and information, UI Create a card with the information
-                if (responseBody != null)
-                    Log.d("Camera Picture Success", responseBody)
-
-            } else {
-                // might want to check specific status codes
-                Log.e("Camera Picture Error", "Failed to upload picture: $statusCode")
+                        // Update UI or log the message
+                        println(logMessage)
+                    }
+                }
+            } catch (e: IOException) {
+                // Handle exceptions
+                e.printStackTrace()
             }
         }
-
-
-        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
-            // Note: This is executed on a background thread, so switch to the main thread if UI updates are required.
-            e.printStackTrace()
-
-        }
-    })
+    } catch (e: Exception) {
+        // Handle exceptions
+        e.printStackTrace()
+    }
 }
-
-
-

@@ -28,11 +28,12 @@ class MainActivity : ComponentActivity() {
         val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA)
     }
-    fun hasRequiredPermissions(): Boolean {
+    private fun hasRequiredPermissions(): Boolean {
         return CAMERAX_PERMISSIONS.all {
             ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

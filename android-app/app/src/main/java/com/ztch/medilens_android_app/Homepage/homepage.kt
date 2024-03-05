@@ -1,39 +1,47 @@
 package com.ztch.medilens_android_app.Homepage
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.lazy.LazyRow
+
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-
 import androidx.compose.ui.text.font.FontWeight
-
 import androidx.compose.ui.tooling.preview.Preview
-
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
+
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 
 @Composable
 fun HomePage(onNavigateToCamera: () -> Unit) {
+
+
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
+
+    //to offload calendar data to a background thread
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = Unit) {
+        coroutineScope.launch {
+            val newData = dataSource.getData(lastSelectedDate = dataSource.today)
+            calendarUiModel = newData
+        }
+    }
 
     Column(
 
@@ -42,18 +50,10 @@ fun HomePage(onNavigateToCamera: () -> Unit) {
     ) {
 
         homepageHeader(data = calendarUiModel, onDateClickListener = { date ->
-            // refresh the CalendarUiModel with new data
-            // by changing only the `selectedDate` with the date selected by User
-            calendarUiModel = calendarUiModel.copy(
-                selectedDate = date,
-                visibleDates = calendarUiModel.visibleDates.map {
-                    it.copy(
-                        isSelected = it.date.isEqual(date.date)
-                    )
-                }
-            )
-        }) // end of header
-
+            coroutineScope.launch {
+                calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+            }
+        })
         //Spacer(modifier = Modifier.height(425.dp))
         homeAppBar { onNavigateToCamera() }
     }
@@ -154,24 +154,43 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
         }
     }
 }
+/*
 @Composable
-fun RowOfDates(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
-  LazyRow {
-      items(items = data.visibleDates ) { date ->
-          DateCard(date,onDateClickListener)
+fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+    // Assuming you want to show 7 days in a week across multiple weeks
+    val weeks = data.visibleDates.chunked(7)
 
-
-      }
-  }
+    LazyColumn {
+        items(items = weeks, key = { week -> week.first().date }) { week ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                week.forEach { date ->
+                    DateCard(date, onDateClickListener)
+                }
+            }
+        }
+    }
 }
+*/
 
 
+@Composable
+fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+    LazyRow {
+        // Using the date as a key to optimize recompositions
+        items(items = data.visibleDates, key = { it.date }) { date ->
+            // Ensuring DateCard is only recomposed if necessary
+            DateCard(date, onDateClickListener)
+        }
+    }
+}
 
 
 //Start of bottom header
 @Composable
 fun homeAppBar( onNavigateToCamera: () -> Unit){
-    val colorPurple = colorResource(R.color.Purple)
     Scaffold(
         containerColor = colorResource(R.color.DarkGrey),
         modifier = Modifier.fillMaxSize(),
@@ -214,7 +233,9 @@ fun homeAppBar( onNavigateToCamera: () -> Unit){
                         fontSize = 16.sp,
                         color = Color.White
                     )
+                  //  NotificationDemo()
                 }
+
             }
         }
     }

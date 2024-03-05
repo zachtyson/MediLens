@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.R
 
 @Composable
-fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit,) {
+fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -79,7 +79,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit,) {
             ),
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email", color = Color.White,) },
+            label = { Text("Email", color = Color.White) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -92,7 +92,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit,) {
             ),
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password", color = Color.White,)},
+            label = { Text("Password", color = Color.White)},
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password
@@ -105,7 +105,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit,) {
 
         Button(
             onClick = { onNavigateToHomePage() },
-            colors = ButtonDefaults.buttonColors(colorResource(id = R.color.Purple)),
+            colors =buttonColors(colorResource(id = R.color.Purple)),
             modifier = Modifier
                 .size(150.dp, 50.dp)
                 .align(Alignment.End),
@@ -119,7 +119,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit,) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            Text("Don't have an account? ", color = Color.White,)
+            Text("Don't have an account? ", color = Color.White)
             Text(
                 text = "Sign Up",
                 color = Color.Blue,
