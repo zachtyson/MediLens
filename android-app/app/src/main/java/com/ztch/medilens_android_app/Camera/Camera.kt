@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import okhttp3.MultipartBody
@@ -51,11 +52,13 @@ import java.io.IOException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, applicationContext:Context) {
+fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
+    Log.d("camera", "Recomposed")
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val controller = remember {
-        LifecycleCameraController(applicationContext).apply {
+        LifecycleCameraController(context).apply {
             setEnabledUseCases(
                 CameraController.IMAGE_CAPTURE
             )
@@ -124,7 +127,7 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, applicationContext:Conte
                     onClick = {
                         takePhoto(controller = controller,
                             onPhotoTaken = viewModel::onTakePhoto,
-                            applicationContext = applicationContext)
+                            applicationContext = context)
                     }
                 ) {
                     Icon(

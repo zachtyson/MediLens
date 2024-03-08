@@ -2,6 +2,7 @@ package com.ztch.medilens_android_app.Camera
 
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ fun PhotoGalleryContents(
     bitmaps: List<Bitmap>,
     modifier: Modifier = Modifier
 ) {
+    Log.d("gallery", "Recomposed")
     if(bitmaps.isEmpty()) {
         Box(
             modifier = modifier

@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Homepage
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 
@@ -26,8 +27,7 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun HomePage(onNavigateToCamera: () -> Unit) {
-
+fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit) {
 
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -43,34 +43,76 @@ fun HomePage(onNavigateToCamera: () -> Unit) {
         }
     }
 
-    Column(
+    Scaffold(
+        topBar = {
+            // Assuming homepageHeader is your topBar content
+            homepageHeader(data = calendarUiModel, onDateClickListener = { date ->
+                coroutineScope.launch {
+                    calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+                }
+            })
+        },
+        bottomBar = {
 
-        modifier = Modifier.fillMaxSize()
-            .background(color = colorResource(R.color.DarkGrey))
-    ) {
-
-        homepageHeader(data = calendarUiModel, onDateClickListener = { date ->
-            coroutineScope.launch {
-                calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+          appbarBottom(onNavigateToCamera = onNavigateToCamera, onNavigateToAlarm = onNavigateToAlarm)
+        },
+        containerColor = colorResource(R.color.DarkGrey),
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .background(color = colorResource(R.color.DarkGrey))
+            ) {
+                // Your content goes here. For example, if you want to display a list of items:
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(R.color.DarkestBlue)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Medication",
+                            fontSize = 24.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "You have no medication today",
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                        // If NotificationDemo is a composable you want to display, include it here
+                        // NotificationDemo()
+                    }
+                }
+                // Add more components as needed
             }
-        })
-        //Spacer(modifier = Modifier.height(425.dp))
-        homeAppBar { onNavigateToCamera() }
-    }
+        }
+    )
 }
 
 
 @Preview(showSystemUi = true, device = "id:pixel_7_pro")
 @Composable
 fun homepagePreview() {
-    HomePage(onNavigateToCamera = {})
+    HomePage(onNavigateToCamera = {}, onNavigateToAlarm = {})
 }
 
 
 // Start of Header creation
 @Composable
 fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
-
+    Log.d("header", "Recomposed")
     Column(
         modifier = Modifier.fillMaxWidth()
             .background(color = colorResource(R.color.DarkBlue)),
@@ -118,6 +160,7 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
 
 @Composable
 fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+    Log.d("datecard", "Recomposed")
     Card(
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 4.dp),
@@ -132,7 +175,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
 
             }
         )
-  ) {
+    ) {
         Column(
             modifier = Modifier
                 .width(40.dp)
@@ -154,30 +197,10 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
         }
     }
 }
-/*
-@Composable
-fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
-    // Assuming you want to show 7 days in a week across multiple weeks
-    val weeks = data.visibleDates.chunked(7)
-
-    LazyColumn {
-        items(items = weeks, key = { week -> week.first().date }) { week ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                week.forEach { date ->
-                    DateCard(date, onDateClickListener)
-                }
-            }
-        }
-    }
-}
-*/
-
 
 @Composable
 fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+    Log.d("rowofdates", "Recomposed")
     LazyRow {
         // Using the date as a key to optimize recompositions
         items(items = data.visibleDates, key = { it.date }) { date ->
@@ -186,65 +209,4 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
         }
     }
 }
-
-
-//Start of bottom header
-@Composable
-fun homeAppBar( onNavigateToCamera: () -> Unit){
-    Scaffold(
-        containerColor = colorResource(R.color.DarkGrey),
-        modifier = Modifier.fillMaxSize(),
-
-
-        bottomBar = { appbarBottom{ onNavigateToCamera() } },
-    ){innerPadding ->
-        Column(
-            modifier = Modifier
-                .background(color = colorResource(R.color.DarkGrey))
-                .padding(innerPadding),
-
-
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-
-        ){
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colorResource(R.color.DarkestBlue)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(16.dp)
-
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Medication",
-                        fontSize = 24.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "You have no medication today",
-                        fontSize = 16.sp,
-                        color = Color.White
-                    )
-                  //  NotificationDemo()
-                }
-
-            }
-        }
-    }
-
-}
-
-
-
-
-
-
 

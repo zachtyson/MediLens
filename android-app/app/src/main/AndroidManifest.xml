@@ -5,8 +5,12 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
 
     <application
+
             android:enableOnBackInvokedCallback="true"
             android:usesCleartextTraffic="true"
             android:allowBackup="true"
@@ -21,7 +25,6 @@
         <activity
                 android:name=".MainActivity"
                 android:exported="true"
-                android:label="@string/app_name"
                 android:theme="@style/Theme.Medilensandroidapp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -29,6 +32,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <receiver android:name=".Notifications.AlarmScheduler" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app.Authenticate
 
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,7 @@ import com.ztch.medilens_android_app.R
 
 @Composable
 fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
+    Log.d("login", "Recomposed")
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
