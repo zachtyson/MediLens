@@ -3,10 +3,12 @@ package com.ztch.medilens_android_app
 import android.Manifest
 
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,7 +29,8 @@ import com.ztch.medilens_android_app.Authenticate.*
 import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
 
-// camera permissions are
+// camera permission
+@RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
     companion object {
         val CAMERAX_PERMISSIONS = arrayOf(
@@ -38,6 +41,7 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,64 +70,37 @@ fun MyApp() {
     NavHost(navController, startDestination = "Login") {
         composable("SignUp") {
             SignUp(
-                onNavigateToHome = {
-                    navController.navigate("HomePage") {
-                    }
-                },
-                onNavigateToLogin = {
-                    navController.navigate("Login")
-                }
-            )
+                onNavigateToHome = { navController.navigate("HomePage") {} }
+                , onNavigateToLogin = { navController.navigate("Login") })
         }
 
         composable("Login") {
             Login(
-                onNavigateToHomePage = {
-                    navController.navigate("Home") {
-                    }
-                },
-                onNavigateToSignUp = {
-                    navController.navigate("SignUp")
-                }
-            )
+                onNavigateToHomePage = { navController.navigate("Home") {}}
+                ,onNavigateToSignUp = { navController.navigate("SignUp") })
         }
 
         composable("Camera") {
-            CameraXGuideTheme(onNavigateToHomePage = {
-                navController.navigate("Home") {
-                }
-            })
+            CameraXGuideTheme(
+                onNavigateToHomePage = { navController.navigate("Home") {} })
         }
 
         composable("Home") {
             HomePage(
-                onNavigateToCamera = {
-                    navController.navigate("Camera")
-                },
-                onNavigateToAlarm = {
-                    navController.navigate("Alarm")
-                    {
-                    }
-                }
-            )
+                onNavigateToCamera = { navController.navigate("Camera") }
+                ,onNavigateToAlarm = { navController.navigate("Alarm") {} })
         }
 
         composable("Alarm") {
-            notificationScreen(onNavigateToHomePage = {
-                navController.navigate("Home")}
-                ,
-                onNavigateToAlarmAdd = {
-                    navController.navigate("AlarmAdd")
-                    {} })
-
+            notificationScreen(
+                onNavigateToHomePage = { navController.navigate("Home")},
+                onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {} })
         }
 
 
         composable("AlarmAdd") {
-            AddReminderScreen(onNavigateToAlert = {
-                navController.navigate("Alarm") {
-                }
-            })
+            AddReminderScreen(
+                onNavigateToAlert = { navController.navigate("Alarm") {} })
         }
 
   }

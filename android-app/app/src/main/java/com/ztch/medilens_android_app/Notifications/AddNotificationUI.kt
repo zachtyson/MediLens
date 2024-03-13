@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Notifications
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -15,9 +16,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.R
-import java.time.DateTimeException
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+
 
 
 @Preview(showSystemUi = true, device = "id:pixel_7_pro")
@@ -33,13 +33,9 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
     val scheduler = AlarmScheduler(context)
     var alarmItem: AlarmItem? = null
 
-    var dayText by remember { mutableStateOf("") }
     var hourText by remember { mutableStateOf("") }
     var minuteText by remember { mutableStateOf("") }
-    var yearText by remember { mutableStateOf("") }
-    var monthText by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
-
     var isDropdownVisible by remember { mutableStateOf(false) }
 
     // Add state to track the selected repetition option
@@ -68,7 +64,6 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         )
                     }
                 },
-
             )
         },
         containerColor = colorResource(R.color.DarkGrey),
@@ -86,77 +81,46 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // Your OutlinedTextField for hour, minute, and message remains unchanged
+
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                        ),
-                        value = dayText,
-                        onValueChange = { dayText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(text = "Day", color = Color.White  )
-                        }
-                    )
-                    OutlinedTextField(
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White
                         ),
                         value = hourText,
                         onValueChange = { hourText = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Hour", color = Color.White)
+                            Text(text = "Hour (1-24)", color = Color.White)
                         }
                     )
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                             // Change Color.Red to your desired focused border color
+                            focusedTextColor = Color.White
                         ),
                         value = minuteText,
                         onValueChange = { minuteText = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Minute", color = Color.White)
+                            Text(text = "Minute (1-60)", color = Color.White)
                         }
                     )
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                        ),
-                        value = monthText,
-                        onValueChange = { monthText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(text = "Month", color = Color.White)
-                        }
-                    )
-                    OutlinedTextField(
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                        ),
-                        value = yearText,
-                        onValueChange = { yearText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(text = "Year", color = Color.White)
-                        }
-                    )
-                    OutlinedTextField(
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White
+                            // Change Color.Red to your desired focused border color
                         ),
                         value = message,
                         onValueChange = { message = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Message", color = Color.White)
+                            Text(text = "Enter Message", color = Color.White)
                         }
                     )
 
@@ -215,30 +179,23 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Button(onClick = {
-                            val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-                            try {
-                                val dateTime = LocalDateTime.of(
-                                    yearText.toIntOrNull() ?: 0,
-                                    monthText.toIntOrNull() ?: 1,
-                                    dayText.toIntOrNull() ?: 1,
-                                    hourText.toIntOrNull() ?: 0,
-                                    minuteText.toIntOrNull() ?: 0
-                                )
+
+                                val scheduledTime = LocalDateTime.now()
+                                    .withHour(hourText.toIntOrNull() ?: 0)
+                                    .withMinute(minuteText.toIntOrNull() ?: 0)
+                                    .withSecond(0) // Ignore seconds
+
                                 alarmItem = AlarmItem(
-                                    time = dateTime,
+                                    time = scheduledTime,
                                     message = message,
                                     repetition = selectedRepetition
                                 )
                                 alarmItem?.let(scheduler::schedule)
-                                dayText = ""
-                                monthText = ""
-                                yearText = ""
+
+                                // Reset the input fields
                                 hourText = ""
                                 minuteText = ""
                                 message = ""
-                            } catch (e: DateTimeException) {
-                                // Handle parsing error, show a message to the user, etc.
-                            }
                         }) {
                             Text(text = "Schedule")
                         }
@@ -250,15 +207,15 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
 
                         Button(
                             onClick = {
-                                val currentDateTime = LocalDateTime.now()
+
 
                                 // Set the test alarm for the next minute
-                                val testAlarmTime = currentDateTime.plusMinutes(1)
+                                val testAlarmTime = LocalDateTime.now().plusSeconds(10)
 
                                 alarmItem = AlarmItem(
                                     time = testAlarmTime,
                                     message = "Test Alarm",
-                                    repetition = Repetition.NONE // Assuming you want this as a one-time alarm for testing
+                                    repetition = Repetition.ONCE // Assuming you want this as a one-time alarm for testing
                                 )
 
                                 // Schedule the test alarm
@@ -277,6 +234,4 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
 
         }
     )
-
 }
-

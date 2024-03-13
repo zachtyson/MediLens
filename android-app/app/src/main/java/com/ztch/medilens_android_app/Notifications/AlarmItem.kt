@@ -8,6 +8,4 @@ data class AlarmItem(
     val repetition: Repetition
 )
 
-enum class Repetition {
-    NONE, EVERY_DAY, ONCE, HOURLY, WEEKLY
-}
+enum class Repetition { EVERY_DAY, ONCE, HOURLY, WEEKLY }

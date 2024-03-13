@@ -7,25 +7,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.R
-import com.ztch.medilens_android_app.appbarBottom
-
-
-import java.time.LocalDateTime
-import java.time.LocalTime
 
 @Preview(showSystemUi = true, device = "id:pixel_7_pro")
 @Composable
@@ -102,11 +93,9 @@ fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : (
                             fontWeight = FontWeight.Bold
                         )
 
-                        // If NotificationDemo is a composable you want to display, include it here
-                        // NotificationDemo()
                     }
                 }
-                // Add more components as needed
+
             }
 
         }
