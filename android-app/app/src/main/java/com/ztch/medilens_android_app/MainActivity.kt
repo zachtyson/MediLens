@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app
 
 import android.Manifest
+import android.content.Context
 
 import android.content.pm.PackageManager
 import android.os.Build
@@ -32,6 +33,7 @@ import com.ztch.medilens_android_app.Notifications.*
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
+
     companion object {
         val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA)

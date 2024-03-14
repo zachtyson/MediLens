@@ -1,6 +1,11 @@
 package com.ztch.medilens_android_app.Notifications
 
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -15,6 +20,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.ztch.medilens_android_app.R
 import java.time.LocalDateTime
 
@@ -37,6 +43,24 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
     var minuteText by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var isDropdownVisible by remember { mutableStateOf(false) }
+
+    var hasNotificationPermission by remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mutableStateOf(
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        } else mutableStateOf(true)
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasNotificationPermission = isGranted
+        }
+    )
 
     // Add state to track the selected repetition option
     var selectedRepetition by remember { mutableStateOf(Repetition.EVERY_DAY) }
@@ -120,7 +144,7 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         onValueChange = { message = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Enter Message", color = Color.White)
+                            Text(text = "Enter Medication Name", color = Color.White)
                         }
                     )
 
@@ -196,6 +220,8 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                                 hourText = ""
                                 minuteText = ""
                                 message = ""
+
+
                         }) {
                             Text(text = "Schedule")
                         }
@@ -207,8 +233,6 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
 
                         Button(
                             onClick = {
-
-
                                 // Set the test alarm for the next minute
                                 val testAlarmTime = LocalDateTime.now().plusSeconds(10)
 

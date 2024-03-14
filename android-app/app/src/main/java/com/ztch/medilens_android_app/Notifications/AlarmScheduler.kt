@@ -9,18 +9,20 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.getSystemService
+import com.ztch.medilens_android_app.R
+import okhttp3.internal.notify
 
 import java.util.*
 
 
 class AlarmScheduler(
     private val context: Context
-) : AlarmSchedulerManager{
+) : AlarmSchedulerManager {
 
     val receiver = ComponentName(context, AlarmBroadcaster::class.java)
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-
 
     override fun schedule(item: AlarmItem) {
 
@@ -39,6 +41,7 @@ class AlarmScheduler(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
@@ -60,6 +63,7 @@ class AlarmScheduler(
                     calendar.timeInMillis,
                     pendingIntent
              )
+
             }
             Repetition.EVERY_DAY -> {
                 alarmManager.setInexactRepeating(
