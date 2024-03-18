@@ -3,7 +3,7 @@ package com.ztch.medilens_android_app.Homepage
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 
 import androidx.compose.foundation.lazy.items
@@ -14,11 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-
 
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
@@ -26,8 +23,12 @@ import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 
+import com.ztch.medilens_android_app.Notifications.AlarmItem
+import com.ztch.medilens_android_app.Notifications.AlarmViewModel
+import com.ztch.medilens_android_app.Notifications.Repetition
+
 @Composable
-fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit) {
+fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel) {
 
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -36,21 +37,16 @@ fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit) {
     //to offload calendar data to a background thread
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = Unit) {
-        coroutineScope.launch {
-            val newData = dataSource.getData(lastSelectedDate = dataSource.today)
-            calendarUiModel = newData
-        }
-    }
-
     Scaffold(
         topBar = {
-            // Assuming homepageHeader is your topBar content
-            homepageHeader(data = calendarUiModel, onDateClickListener = { date ->
-                coroutineScope.launch {
-                    calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+            homepageHeader(
+                data = calendarUiModel,
+                onDateClickListener = { date ->
+                    coroutineScope.launch {
+                        calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+                    }
                 }
-            })
+            )
         },
         bottomBar = {
 
@@ -65,47 +61,12 @@ fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit) {
                     .background(color = colorResource(R.color.DarkGrey))
             ) {
                 // Your content goes here. For example, if you want to display a list of items:
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(R.color.DarkestBlue)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Medication",
-                            fontSize = 24.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "You have no medication today",
-                            fontSize = 16.sp,
-                            color = Color.White
-                        )
-                        // If NotificationDemo is a composable you want to display, include it here
-                        // NotificationDemo()
-                    }
-                }
+                AlarmsList(viewModel = viewModel, data = calendarUiModel)
+
                 // Add more components as needed
             }
         }
     )
-}
-
-
-@Preview(showSystemUi = true, device = "id:pixel_7_pro")
-@Composable
-fun homepagePreview() {
-    HomePage(onNavigateToCamera = {}, onNavigateToAlarm = {})
 }
 
 
@@ -210,3 +171,77 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
     }
 }
 
+@Composable
+fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
+    val selectedDate = data.selectedDate.date
+
+    val alarmsForSelectedDate = remember(selectedDate, viewModel._alarms) {
+        viewModel._alarms.filter { alarm ->
+            alarm.time.toLocalDate() == selectedDate ||
+                    alarm.repetition == Repetition.EVERY_DAY ||
+                    (alarm.repetition == Repetition.WEEKLY && alarm.time.dayOfWeek == selectedDate.dayOfWeek)
+        }
+    }
+
+
+    LazyColumn {
+        items(alarmsForSelectedDate) { alarm ->
+            AlarmCard(alarm, viewModel::removeAlarm)
+        }
+    }
+
+    if (alarmsForSelectedDate.isEmpty()) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = colorResource(R.color.DarkestBlue)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "No Medications for today",
+                fontSize = 24.sp,
+                color = Color.White,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+@Composable
+fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(R.color.DarkestBlue)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Medication: ${alarm.message}",
+                fontSize = 24.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Time: ${alarm.time}",
+                fontSize = 16.sp,
+                color = Color.White
+            )
+            Button(
+                onClick = { onDeleteClicked(alarm) },
+            ) {
+                Text(text = "Delete")
+            }
+        }
+    }
+}

@@ -10,8 +10,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Calendar
 
 data class CalendarUiModel(
     val selectedDate: Date,
@@ -39,6 +41,12 @@ class CalendarDataSource {
         val endDayOfWeek = firstDayOfWeek.plusDays(6)
         val visibleDates = getDatesBetween(firstDayOfWeek, endDayOfWeek)
         return toUiModel(visibleDates, lastSelectedDate)
+    }
+
+    fun getDayWeekAhead(startDate: LocalDate = Calendar.getInstance().time.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()): LocalDate {
+        val firstDayOfWeek = startDate
+        val endDayOfWeek = firstDayOfWeek.plusDays(6)
+        return endDayOfWeek
     }
 
     private fun getDatesBetween(startDate: LocalDate, endDate: LocalDate): List<LocalDate> =

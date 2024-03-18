@@ -2,6 +2,7 @@ package com.ztch.medilens_android_app.Notifications
 
 
 import android.Manifest
+import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,15 +27,11 @@ import java.time.LocalDateTime
 
 
 
-@Preview(showSystemUi = true, device = "id:pixel_7_pro")
-@Composable
-fun notifcationADDPreview() {
-    AddReminderScreen(onNavigateToAlert = {})
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
+fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
     val context = LocalContext.current
     val scheduler = AlarmScheduler(context)
     var alarmItem: AlarmItem? = null
@@ -111,7 +108,8 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedTextColor = Color.White
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
                         ),
                         value = hourText,
                         onValueChange = { hourText = it },
@@ -124,7 +122,8 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedTextColor = Color.White
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
                         ),
                         value = minuteText,
                         onValueChange = { minuteText = it },
@@ -137,7 +136,8 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedTextColor = Color.White
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
                             // Change Color.Red to your desired focused border color
                         ),
                         value = message,
@@ -216,6 +216,7 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit) {
                                 )
                                 alarmItem?.let(scheduler::schedule)
 
+                                viewModel.addAlarm(alarmItem!!)
                                 // Reset the input fields
                                 hourText = ""
                                 minuteText = ""

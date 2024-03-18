@@ -12,21 +12,18 @@ import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
+import com.ztch.medilens_android_app.Homepage.AlarmsList
+import com.ztch.medilens_android_app.Homepage.CalendarDataSource
 import com.ztch.medilens_android_app.R
 
-@Preview(showSystemUi = true, device = "id:pixel_7_pro")
-@Composable
-fun notifcationPreview() {
-    notificationScreen(onNavigateToHomePage = {}, onNavigateToAlarmAdd = {})
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : ()-> Unit) {
+fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : ()-> Unit,viewModel: AlarmViewModel) {
+    val dataSource = CalendarDataSource()
+    // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
+    var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
 
 
     Scaffold(
@@ -72,29 +69,7 @@ fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : (
                     .background(color = colorResource(R.color.DarkGrey))
             ) {
                 // Your content goes here. For example, if you want to display a list of items:
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(R.color.DarkestBlue)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "No Notification set",
-                            fontSize = 24.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                    }
-                }
+                AlarmsList(viewModel = viewModel, data = calendarUiModel)
 
             }
 

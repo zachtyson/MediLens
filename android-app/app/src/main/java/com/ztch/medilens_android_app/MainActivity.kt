@@ -1,7 +1,8 @@
 package com.ztch.medilens_android_app
 
 import android.Manifest
-import android.content.Context
+import android.app.Application
+
 
 import android.content.pm.PackageManager
 import android.os.Build
@@ -9,8 +10,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -33,7 +36,7 @@ import com.ztch.medilens_android_app.Notifications.*
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
-
+    private val alarmViewModel: AlarmViewModel by viewModels()
     companion object {
         val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA)
@@ -48,14 +51,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Log.d("Inital Boot", "Recomposed")
-            // not a real permission handling, pictures wont be store on the phone
+            Log.d("Initial Boot", "Recomposed")
+            // not a real permission handling, pictures won't be store on the phone
             if(!hasRequiredPermissions()) {
                 ActivityCompat.requestPermissions(this, CAMERAX_PERMISSIONS, 0)
             }
 
             MedilensandroidappTheme{
-                MyApp()
+
+                MyApp( viewModel = alarmViewModel)
             }
         }
     }
@@ -65,7 +69,8 @@ class MainActivity : ComponentActivity() {
 
 // === `NavController` and `NavHost`====//
 @Composable
-fun MyApp() {
+fun MyApp(viewModel: AlarmViewModel = viewModel()) {
+
     Log.d("myapp", "Recomposed")
     val navController = rememberNavController()
 
@@ -88,21 +93,23 @@ fun MyApp() {
         }
 
         composable("Home") {
+
             HomePage(
                 onNavigateToCamera = { navController.navigate("Camera") }
-                ,onNavigateToAlarm = { navController.navigate("Alarm") {} })
+                ,onNavigateToAlarm = { navController.navigate("Alarm") {} },viewModel = viewModel)
+
         }
 
         composable("Alarm") {
             notificationScreen(
                 onNavigateToHomePage = { navController.navigate("Home")},
-                onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {} })
+                onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {}},viewModel = viewModel)
         }
 
 
         composable("AlarmAdd") {
             AddReminderScreen(
-                onNavigateToAlert = { navController.navigate("Alarm") {} })
+                onNavigateToAlert = { navController.navigate("Alarm") {} }, viewModel = viewModel)
         }
 
   }
