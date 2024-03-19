@@ -28,7 +28,9 @@ async def create_token(email: Annotated[str, Form()], password: Annotated[str, F
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=access_token_minutes)
-    access_token = create_access_token(user.email, expires_delta=access_token_expires)
+    # subject = email and user.id in json format
+    sub = {"email": user.email, "id": user.id}
+    access_token = create_access_token(sub, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
