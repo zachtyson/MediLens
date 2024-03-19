@@ -4,8 +4,7 @@ import os
 
 
 # add routes from /api/routes
-from api.routes import user_login_routes, user_registration_routes
-from backend.api.routes import ml_model_routes
+from api.routes import user_login_routes, user_registration_routes, ml_model_routes
 
 # add routes to the app
 app = FastAPI()
