@@ -14,7 +14,6 @@ class AlarmBroadcaster: BroadcastReceiver() {
 
             val message = intent?.getStringExtra("EXTRA_MESSAGE") ?: return
             println("Alarm triggered: $message")
-            val channelId = "alarm_id"
 
         context?.let { ctx ->
             val notificationManager =

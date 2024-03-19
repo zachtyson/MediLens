@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter
 import com.ztch.medilens_android_app.Notifications.AlarmItem
 import com.ztch.medilens_android_app.Notifications.AlarmViewModel
 import com.ztch.medilens_android_app.Notifications.Repetition
+import com.ztch.medilens_android_app.Notifications.formatLocalDateTimeWithAMPM
 
 @Composable
 fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel) {
@@ -211,6 +212,7 @@ fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
 }
 @Composable
 fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
+
     Card(
         colors = CardDefaults.cardColors(
             containerColor = colorResource(R.color.DarkestBlue)
@@ -226,19 +228,34 @@ fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
                 .padding(16.dp)
         ) {
             Text(
+                text = formatLocalDateTimeWithAMPM(alarm.time),
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+            Text(
                 text = "Medication: ${alarm.message}",
-                fontSize = 24.sp,
+                fontSize = 16.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Time: ${alarm.time}",
+                text = "Dosage: ${alarm.dosage}",
                 fontSize = 16.sp,
-                color = Color.White
+                color = Color.White,
+                fontWeight = FontWeight.Bold
             )
+            Text(
+                text = "Form: ${alarm.form}",
+                fontSize = 16.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+
             Button(
                 onClick = { onDeleteClicked(alarm) },
+                modifier = Modifier
+                    .align(Alignment.End)
             ) {
                 Text(text = "Delete")
             }

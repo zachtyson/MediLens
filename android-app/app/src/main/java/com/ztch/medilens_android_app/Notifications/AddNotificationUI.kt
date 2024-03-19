@@ -2,7 +2,8 @@ package com.ztch.medilens_android_app.Notifications
 
 
 import android.Manifest
-import android.app.Application
+
+import android.app.TimePickerDialog
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,14 +21,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.ztch.medilens_android_app.R
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
-
+import java.util.*
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,10 +42,15 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
     val scheduler = AlarmScheduler(context)
     var alarmItem: AlarmItem? = null
 
-    var hourText by remember { mutableStateOf("") }
-    var minuteText by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
+    var selectedTime by remember { mutableStateOf(LocalDateTime.now()) }
+    var mediName by remember { mutableStateOf("") }
+    var dose by remember { mutableStateOf("") }
+    var strength by remember { mutableStateOf("") }
+    var RX by remember { mutableStateOf("") }
+    var form by remember { mutableStateOf("") }
+    val forms: List<String> = listOf("Tablet", "Injectable", "Capsule", "Solution", "Cream", "Drops","Spray")
     var isDropdownVisible by remember { mutableStateOf(false) }
+    var isFormDropdownVisible by remember { mutableStateOf(false) }
 
     var hasNotificationPermission by remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -102,36 +113,27 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // Your OutlinedTextField for hour, minute, and message remains unchanged
 
-                    OutlinedTextField(
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        ),
-                        value = hourText,
-                        onValueChange = { hourText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(text = "Hour (1-24)", color = Color.White)
-                        }
+                    Text(
+                        text = "Selected Alarm Time : ${formatLocalDateTimeWithAMPM(selectedTime)}",
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(top = 16.dp)
                     )
-                    OutlinedTextField(
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        ),
-                        value = minuteText,
-                        onValueChange = { minuteText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(text = "Minute (1-60)", color = Color.White)
-                        }
-                    )
+
+                    // Button to open the time picker dialog
+                    Button(
+                        onClick = {
+                            showTimePickerDialog(context, selectedTime) {
+                                selectedTime = it
+                            }
+                        },
+                        modifier = Modifier.padding(top = 8.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(text = "Ajust Alarm Time")
+                    }
+
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -140,18 +142,97 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                             unfocusedTextColor = Color.White
                             // Change Color.Red to your desired focused border color
                         ),
-                        value = message,
-                        onValueChange = { message = it },
+                        value = mediName,
+                        onValueChange = { mediName = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Enter Medication Name", color = Color.White)
+                            Text(text = "Medication Name", color = Color.White)
                         }
                     )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = dose,
+                        onValueChange = { dose = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(text = "Dosage", color = Color.White)
+                        }
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = strength,
+                        onValueChange = { strength = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(text = "Strength (mg)", color = Color.White)
+                        }
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = RX,
+                        onValueChange = { RX = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(text = "RX Number", color = Color.White)
+                        }
+                    )
+
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = form,
+                        onValueChange = { form = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(text = "Form ", color = Color.White)
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { isFormDropdownVisible = true }) {
+                                Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Dropdown", tint = Color.White)
+                            }}
+
+                    )
+                    DropdownMenu(
+                        expanded = isFormDropdownVisible,
+                        onDismissRequest = { isFormDropdownVisible = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        forms.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    form = option
+                                    isFormDropdownVisible = false
+                                }
+                            )
+                        }
+                    }
+
 
                     Box(
                         modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.CenterStart
                     ) {
+
                         OutlinedButton(
                             onClick = { isDropdownVisible = true }
                         ) {
@@ -204,24 +285,25 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                     ) {
                         Button(onClick = {
 
-                                val scheduledTime = LocalDateTime.now()
-                                    .withHour(hourText.toIntOrNull() ?: 0)
-                                    .withMinute(minuteText.toIntOrNull() ?: 0)
-                                    .withSecond(0) // Ignore seconds
 
                                 alarmItem = AlarmItem(
-                                    time = scheduledTime,
-                                    message = message,
+                                    time = selectedTime,
+                                    message = mediName,
+                                    dosage = dose,
+                                    strength = strength,
+                                     RX = RX,
+                                    form = form,
                                     repetition = selectedRepetition
                                 )
                                 alarmItem?.let(scheduler::schedule)
 
                                 viewModel.addAlarm(alarmItem!!)
                                 // Reset the input fields
-                                hourText = ""
-                                minuteText = ""
-                                message = ""
-
+                                mediName = ""
+                                dose = ""
+                                strength = ""
+                                RX = ""
+                                form = ""
 
                         }) {
                             Text(text = "Schedule")
@@ -240,23 +322,47 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                                 alarmItem = AlarmItem(
                                     time = testAlarmTime,
                                     message = "Test Alarm",
+                                    dosage = "Test Dosage",
+                                    strength = "Test Strength",
+                                    RX = "Test RX",
+                                    form = "Test Form",
                                     repetition = Repetition.ONCE // Assuming you want this as a one-time alarm for testing
                                 )
 
                                 // Schedule the test alarm
                                 alarmItem?.let(scheduler::schedule)
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)
+                            modifier = Modifier.padding(top = 16.dp)
                         ) {
                             Text("Schedule Test Alarm Now")
                         }
                     }
                 }
-
             }
 
         }
     )
+}
+
+fun showTimePickerDialog(context: android.content.Context, initialTime: LocalDateTime, callback: (LocalDateTime) -> Unit) {
+    val calendar = Calendar.getInstance()
+    calendar.time = Date.from(initialTime.atZone(ZoneId.systemDefault()).toInstant())
+    val initialHour = initialTime.hour
+    val initialMinute = initialTime.minute
+
+    TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            val newDateTime = LocalDateTime.of(initialTime.toLocalDate(), LocalTime.of(hourOfDay, minute))
+            callback(newDateTime)
+        },
+        initialHour,
+        initialMinute,
+        false // Set to false to use AM/PM format
+    ).show()
+}
+
+fun formatLocalDateTimeWithAMPM(localDateTime: LocalDateTime): String {
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+    return localDateTime.format(formatter)
 }
