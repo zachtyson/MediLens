@@ -49,4 +49,4 @@ def verify_token(token: str) -> bool:
 def get_id_from_token(token: str) -> Any | None:
     if not verify_token(token):
         return None
-    return jwt.decode(token, secret_key, algorithms=[algorithm])["sub"]
+    return jwt.decode(token, secret_key, algorithms=[algorithm])["sub"]["id"]
