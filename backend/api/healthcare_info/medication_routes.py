@@ -50,3 +50,13 @@ async def add_medication(token: str = Form(...), medication_info: MedicationCrea
         return {"message": f"Error adding medication: {e}"}
 
 
+@router.get("/medication/get_medications")
+async def get_medications(token: str):
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    db = get_db()
+    user_id = get_id_from_token(token)
+    if not db.query(User).filter(User.id == user_id).first():
+        raise HTTPException(status_code=404, detail="User not found")
+    medications = db.query(Medication).filter(Medication.owner_id == user_id).all()
+    return medications
