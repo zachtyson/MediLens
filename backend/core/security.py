@@ -38,3 +38,15 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+def verify_token(token: str) -> bool:
+    try:
+        jwt.decode(token, secret_key, algorithms=[algorithm])
+        return True
+    except:
+        return False
+
+def get_id_from_token(token: str) -> Any | None:
+    if not verify_token(token):
+        return None
+    return jwt.decode(token, secret_key, algorithms=[algorithm])["sub"]
