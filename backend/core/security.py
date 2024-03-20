@@ -1,3 +1,5 @@
+import json
+
 from jose import jwt
 from datetime import datetime, timedelta
 from typing import Union, Any
@@ -43,10 +45,15 @@ def verify_token(token: str) -> bool:
     try:
         jwt.decode(token, secret_key, algorithms=[algorithm])
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 def get_id_from_token(token: str) -> Any | None:
     if not verify_token(token):
         return None
-    return jwt.decode(token, secret_key, algorithms=[algorithm])["sub"]["id"]
+    sub = jwt.decode(token, secret_key, algorithms=[algorithm])["sub"]
+    data_dict = eval(sub)
+    id = data_dict["id"]
+    return id
+
