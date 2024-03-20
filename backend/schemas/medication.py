@@ -14,6 +14,3 @@ class MedicationCreate(BaseModel):
     description: Optional[str]
     schedule_start: Optional[datetime]
     interval_milliseconds: Optional[int]
-
-    class Config:
-        orm_mode = True

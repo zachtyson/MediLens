@@ -1,12 +1,17 @@
 from db.session import SessionLocal
-from fastapi import APIRouter, HTTPException, Form
-from models.medication import Medication
+from fastapi import APIRouter, HTTPException, Form, Depends
 from models.user import User
+from models.medication import Medication
+
 from schemas.medication import MedicationCreate
+from typing import Annotated, List
+
+from sqlalchemy.orm import Session
 
 from backend.core.security import verify_token, get_id_from_token
 
 router = APIRouter()
+
 
 def get_db():
     db = SessionLocal()
@@ -18,16 +23,23 @@ def get_db():
 
 # Simple route for adding medicine to the database, should return simple success message or error message
 @router.post("/medication/add_medication")
-async def add_medication(token: str = Form(...), medication_info: MedicationCreate = Form(...)):
+async def add_medication(token: Annotated[str, Form()], name: str = Form(...), color: str = Form(...),
+                         imprint: str = Form(...),
+                         shape: str = Form(...), dosage: str = Form(...), intake_method: str = Form(...),
+                         description: str = Form(...), schedule_start: str = Form(...),
+                         interval_milliseconds: int = Form(...), db: Session = Depends(get_db)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
-    # Try to find the user in the database
-    db = get_db()
     # get user id from token
     user_id = get_id_from_token(token)
+    print(user_id)
     if not db.query(User).filter(User.id == user_id).first():
         raise HTTPException(status_code=404, detail="User not found")
-    try :
+    try:
+        medication_info = MedicationCreate(name=name, color=color, imprint=imprint, shape=shape, dosage=dosage,
+                                           intake_method=intake_method, description=description,
+                                           schedule_start=schedule_start,
+                                           interval_milliseconds=interval_milliseconds)
         new_name = medication_info.name
         new_color = medication_info.color
         new_imprint = medication_info.imprint
@@ -40,8 +52,8 @@ async def add_medication(token: str = Form(...), medication_info: MedicationCrea
         new_medication = Medication(name=new_name, color=new_color, imprint=new_imprint,
                                     shape=new_shape, dosage=new_dosage, intake_method=new_intake_method,
                                     description=new_description, schedule_start=new_schedule_start,
-                                    interval_milliseconds=new_interval_milliseconds, owner_id=user_id)\
-        # Add the new medication to the database
+                                    interval_milliseconds=new_interval_milliseconds, owner_id=user_id) \
+            # Add the new medication to the database
         db.add(new_medication)
         db.commit()
         db.refresh(new_medication)
