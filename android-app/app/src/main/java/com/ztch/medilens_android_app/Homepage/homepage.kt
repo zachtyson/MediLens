@@ -1,76 +1,80 @@
 package com.ztch.medilens_android_app.Homepage
 
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-
 import androidx.compose.ui.text.font.FontWeight
-
-import androidx.compose.ui.tooling.preview.Preview
-
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 
+import com.ztch.medilens_android_app.Notifications.AlarmItem
+import com.ztch.medilens_android_app.Notifications.AlarmViewModel
+import com.ztch.medilens_android_app.Notifications.Repetition
+import com.ztch.medilens_android_app.Notifications.formatLocalDateTimeWithAMPM
+
 @Composable
-fun HomePage(onNavigateToCamera: () -> Unit) {
+fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel) {
+
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
 
-    Column(
+    //to offload calendar data to a background thread
+    val coroutineScope = rememberCoroutineScope()
 
-        modifier = Modifier.fillMaxSize()
-            .background(color = colorResource(R.color.DarkGrey))
-    ) {
-
-        homepageHeader(data = calendarUiModel, onDateClickListener = { date ->
-            // refresh the CalendarUiModel with new data
-            // by changing only the `selectedDate` with the date selected by User
-            calendarUiModel = calendarUiModel.copy(
-                selectedDate = date,
-                visibleDates = calendarUiModel.visibleDates.map {
-                    it.copy(
-                        isSelected = it.date.isEqual(date.date)
-                    )
+    Scaffold(
+        topBar = {
+            homepageHeader(
+                data = calendarUiModel,
+                onDateClickListener = { date ->
+                    coroutineScope.launch {
+                        calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+                    }
                 }
             )
-        }) // end of header
+        },
+        bottomBar = {
 
-        //Spacer(modifier = Modifier.height(425.dp))
-        homeAppBar { onNavigateToCamera() }
-    }
-}
+          appbarBottom(onNavigateToCamera = onNavigateToCamera, onNavigateToAlarm = onNavigateToAlarm)
+        },
+        containerColor = colorResource(R.color.DarkGrey),
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .background(color = colorResource(R.color.DarkGrey))
+            ) {
+                // Your content goes here. For example, if you want to display a list of items:
+                AlarmsList(viewModel = viewModel, data = calendarUiModel)
 
-
-@Preview(showSystemUi = true, device = "id:pixel_7_pro")
-@Composable
-fun homepagePreview() {
-    HomePage(onNavigateToCamera = {})
+                // Add more components as needed
+            }
+        }
+    )
 }
 
 
 // Start of Header creation
 @Composable
 fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
-
+    Log.d("header", "Recomposed")
     Column(
         modifier = Modifier.fillMaxWidth()
             .background(color = colorResource(R.color.DarkBlue)),
@@ -118,6 +122,7 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
 
 @Composable
 fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+    Log.d("datecard", "Recomposed")
     Card(
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 4.dp),
@@ -132,7 +137,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
 
             }
         )
-  ) {
+    ) {
         Column(
             modifier = Modifier
                 .width(40.dp)
@@ -154,76 +159,106 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
         }
     }
 }
+
 @Composable
-fun RowOfDates(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
-  LazyRow {
-      items(items = data.visibleDates ) { date ->
-          DateCard(date,onDateClickListener)
-
-
-      }
-  }
+fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+    Log.d("rowofdates", "Recomposed")
+    LazyRow {
+        // Using the date as a key to optimize recompositions
+        items(items = data.visibleDates, key = { it.date }) { date ->
+            // Ensuring DateCard is only recomposed if necessary
+            DateCard(date, onDateClickListener)
+        }
+    }
 }
 
-
-
-
-//Start of bottom header
 @Composable
-fun homeAppBar( onNavigateToCamera: () -> Unit){
-    val colorPurple = colorResource(R.color.Purple)
-    Scaffold(
-        containerColor = colorResource(R.color.DarkGrey),
-        modifier = Modifier.fillMaxSize(),
+fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
+    val selectedDate = data.selectedDate.date
 
-
-        bottomBar = { appbarBottom{ onNavigateToCamera() } },
-    ){innerPadding ->
-        Column(
-            modifier = Modifier
-                .background(color = colorResource(R.color.DarkGrey))
-                .padding(innerPadding),
-
-
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-
-        ){
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colorResource(R.color.DarkestBlue)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(16.dp)
-
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Medication",
-                        fontSize = 24.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "You have no medication today",
-                        fontSize = 16.sp,
-                        color = Color.White
-                    )
-                }
-            }
+    val alarmsForSelectedDate = remember(selectedDate, viewModel._alarms) {
+        viewModel._alarms.filter { alarm ->
+            alarm.time.toLocalDate() == selectedDate ||
+                    alarm.repetition == Repetition.EVERY_DAY ||
+                    (alarm.repetition == Repetition.WEEKLY && alarm.time.dayOfWeek == selectedDate.dayOfWeek)
         }
     }
 
+
+    LazyColumn {
+        items(alarmsForSelectedDate) { alarm ->
+            AlarmCard(alarm, viewModel::removeAlarm)
+        }
+    }
+
+    if (alarmsForSelectedDate.isEmpty()) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = colorResource(R.color.DarkestBlue)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "No Medications for today",
+                fontSize = 24.sp,
+                color = Color.White,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
 }
+@Composable
+fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
 
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(R.color.DarkestBlue)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = formatLocalDateTimeWithAMPM(alarm.time),
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+            Text(
+                text = "Medication: ${alarm.message}",
+                fontSize = 16.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Dosage: ${alarm.dosage}",
+                fontSize = 16.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Form: ${alarm.form}",
+                fontSize = 16.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
 
-
-
-
-
-
+            Button(
+                onClick = { onDeleteClicked(alarm) },
+                modifier = Modifier
+                    .align(Alignment.End)
+            ) {
+                Text(text = "Delete")
+            }
+        }
+    }
+}

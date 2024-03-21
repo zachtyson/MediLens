@@ -1,10 +1,9 @@
 package com.ztch.medilens_android_app.Authenticate
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -24,15 +23,12 @@ import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.R
 
 @Composable
-fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
-
+fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
+    Log.d("signup", "Recomposed")
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var legalName by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-
-
-
 
     Column(
         modifier = Modifier
@@ -139,7 +135,7 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit,) {
 
 
 @Composable
-fun signupHeader(onNavigateToLogin: () -> Unit,) {
+fun signupHeader(onNavigateToLogin: () -> Unit) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
