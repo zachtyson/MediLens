@@ -11,4 +11,11 @@ interface ApiService {
         @Field("password") password: String
     ): Call<LoginTokenResponse> // TokenResponse is a data class you'll define to match the JSON response
 
+    @FormUrlEncoded
+    @POST("users/")
+    fun createUser(
+        @Field("email") email: String,
+        @Field("password") password: String,
+    ): Call<RegisterResponse> // TokenResponse is a data class you'll define to match the JSON response
+
 }
