@@ -20,6 +20,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ztch.medilens_android_app.ApiUtils.ApiService
+import com.ztch.medilens_android_app.ApiUtils.LoginTokenResponse
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 
 import com.ztch.medilens_android_app.R
 
@@ -106,14 +109,36 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
         )
 
         Button(
-            onClick = { onNavigateToHomePage() },
-            colors =buttonColors(colorResource(id = R.color.Purple)),
+            onClick = {
+                // Call login API
+                val service = RetrofitClient.apiService
+                service.loginUser(email, password).enqueue(object : retrofit2.Callback<LoginTokenResponse> {
+                    override fun onResponse(call: retrofit2.Call<LoginTokenResponse>, response: retrofit2.Response<LoginTokenResponse>) {
+                        if (response.isSuccessful) {
+                            Log.d("Login Success", "Token: ${response.body()?.access_token}")
+                            // Navigate to home page or save the token as needed
+                            onNavigateToHomePage()
+                        } else {
+                            Log.d("Login Failure", "Incorrect email or password")
+                            // display on the UI
+
+                        }
+                    }
+
+                    override fun onFailure(call: retrofit2.Call<LoginTokenResponse>, t: Throwable) {
+                        Log.d("Login Error", t.message ?: "An error occurred")
+                    }
+                })
+
+            },
+            colors = buttonColors(colorResource(id = R.color.Purple)),
             modifier = Modifier
                 .size(150.dp, 50.dp)
                 .align(Alignment.End),
         ) {
             Text("Login")
         }
+
 
         Spacer(modifier = Modifier.height(165.dp))
 
