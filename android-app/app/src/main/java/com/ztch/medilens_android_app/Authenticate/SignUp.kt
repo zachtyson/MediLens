@@ -20,6 +20,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ztch.medilens_android_app.ApiUtils.LoginTokenResponse
+import com.ztch.medilens_android_app.ApiUtils.RegisterResponse
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.R
 
 @Composable
@@ -107,13 +110,34 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
         )
 
         Button(
-            onClick = { onNavigateToHome() },
+            onClick = {
+                // Call Register API
+                val service = RetrofitClient.apiService
+                service.createUser(email, password).enqueue(object : retrofit2.Callback<RegisterResponse> {
+                    override fun onResponse(
+                        call: retrofit2.Call<RegisterResponse>,
+                        response: retrofit2.Response<RegisterResponse>
+                    ) {
+                        if (response.isSuccessful) {
+                            val registerResponse = response.body()
+                            Log.d("Register", "Response: $registerResponse")
+                            onNavigateToHome()
+                        } else {
+                            Log.d("Register", "Error: ${response.errorBody()}")
+                        }
+                    }
+
+                    override fun onFailure(call: retrofit2.Call<RegisterResponse>, t: Throwable) {
+                        Log.d("Register", "Error: $t")
+                    }
+                })
+            },
             colors = ButtonDefaults.buttonColors(colorResource(id = R.color.Purple)),
             modifier = Modifier
                 .size(150.dp, 50.dp)
-                .align(Alignment.End)
+                .align(Alignment.End),
         ) {
-            Text("Sign Up",color = Color.White)
+            Text("Register")
         }
 
         Spacer(modifier = Modifier.height(250.dp))
