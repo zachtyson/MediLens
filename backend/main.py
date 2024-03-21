@@ -1,16 +1,45 @@
-# This is a sample Python script.
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from api.routes import camera
+import os
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# add routes from /api/routes
+from api.routes import user_login_routes, user_registration_routes, ml_model_routes
+from api.healthcare_info import medication_routes
+
+# add routes to the app
+app = FastAPI()
+app.include_router(user_login_routes.router)
+app.include_router(user_registration_routes.router)
+app.include_router(ml_model_routes.router)
+app.include_router(medication_routes.router)
+app.include_router(camera.router)
+
+# gets the origins from the environment variable CORS_ORIGINS, if it exists, or defaults to the android studio emulator
+origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5555,https://localhost:5555,http://localhost")
+origins = origins_env.split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["POST", "GET", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+@app.on_event("startup")
+async def startup():
+    # await database.connect()
+    pass
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+@app.on_event("shutdown")
+async def shutdown():
+    # await database.disconnect()
+    pass
