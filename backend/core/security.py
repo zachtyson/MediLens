@@ -1,3 +1,5 @@
+import json
+
 from jose import jwt
 from datetime import datetime, timedelta
 from typing import Union, Any
@@ -38,3 +40,20 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+def verify_token(token: str) -> bool:
+    try:
+        jwt.decode(token, secret_key, algorithms=[algorithm])
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+def get_id_from_token(token: str) -> Any | None:
+    if not verify_token(token):
+        return None
+    sub = jwt.decode(token, secret_key, algorithms=[algorithm])["sub"]
+    data_dict = eval(sub)
+    id = data_dict["id"]
+    return id
+
