@@ -2,3 +2,8 @@
 /mediLens.iml
 /.idea/
 /backend/.idea/
+/ml_model/ml_model.iml
+/ml_model/venv/
+/pillbox_production_images_full_202008/
+/ml_model/pillbox_production_images_full_202008/
+/ml_model/data/
