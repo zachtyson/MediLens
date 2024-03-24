@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
@@ -53,7 +54,7 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
             )
         }
     }
-    data class ImageAndPrediction(val bitmap: Bitmap? = null, var prediction: PredictionResponse? = null)
+    data class ImageAndPrediction(val bitmap: Bitmap? = null, var prediction: PredictionResponse? = null, var displayPrediction: Boolean = false)
 
     val images = remember { mutableStateListOf<ImageAndPrediction>() }
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -165,11 +166,24 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
+                            .clickable {
+                                // show text if it exists
+                                images[image].prediction?.let {
+                                    images[image].displayPrediction = !images[image].displayPrediction
+                                }
+                                // weird hack to trigger recomposition, add to the list again and then remove it
+                                val temp = images[image]
+                                images.add(temp)
+                                images.remove(temp)
+
+                            }
                     )
                 }
                 // display the prediction if it exists
-                images[image].prediction?.let {
-                    Text(text = it.toString())
+                if (images[image].displayPrediction) {
+                    images[image].prediction?.let {
+                        Text(text = it.toString())
+                    }
                 }
             }
         }
