@@ -27,4 +27,9 @@ object LoginAuth {
         val sharedPref = context.getSharedPreferences("medilens", Context.MODE_PRIVATE)
         return sharedPref.contains(token)
     }
+
+    fun getToken(context: Context, token: String): String {
+        val sharedPref = context.getSharedPreferences("medilens", Context.MODE_PRIVATE)
+        return sharedPref.getString(token, "").toString()
+    }
 }
