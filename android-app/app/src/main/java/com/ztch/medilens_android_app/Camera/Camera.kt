@@ -53,14 +53,16 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
             )
         }
     }
+    data class ImageAndPrediction(val bitmap: Bitmap? = null, var prediction: PredictionResponse? = null)
 
-    val images = remember { mutableStateListOf<Bitmap>() }
+    val images = remember { mutableStateListOf<ImageAndPrediction>() }
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val imageUri: Uri? = result.data?.data
             imageUri?.let { uri ->
                 val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-                images.add(bitmap)
+                val curImage = ImageAndPrediction(bitmap = bitmap)
+                images.add(curImage)
                 // Convert bitmap to byte array then convert byte array to multipart body
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
@@ -73,6 +75,11 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
                     override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
                         if (response.isSuccessful) {
                             Log.d("Prediction Success", "Prediction: ${response.body()}")
+                            curImage.prediction = response.body()
+                            // weird hack to trigger recomposition, add to the list again and then remove it
+                            val temp = images.last()
+                            images.add(temp)
+                            images.remove(temp)
                         } else {
                             Log.d("Prediction Failure", "Failed to predict")
                         }
@@ -85,15 +92,13 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
             }
         }
     }
-    val viewModel = viewModel<MainViewModel>()
-    val bitmaps by viewModel.bitmaps.collectAsState()
-
     // Rather than preview the camera, use the android camera api and then just display a gallery of the images taken
     val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             (result.data
                 ?.extras?.get("data") as? Bitmap)?.let { bitmap ->
-                images.add(bitmap)
+                val curImage = ImageAndPrediction(bitmap = bitmap)
+                images.add(curImage)
                 // Convert bitmap to byte array then convert byte array to multipart body
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
@@ -106,6 +111,12 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
                     override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
                         if (response.isSuccessful) {
                             Log.d("Prediction Success", "Prediction: ${response.body()}")
+                            curImage.prediction = response.body()
+                            // weird hack to trigger recomposition, add to the list again and then remove it
+                            val temp = images.last()
+                            images.add(temp)
+                            images.remove(temp)
+
                         } else {
                             Log.d("Prediction Failure", "Failed to predict")
                         }
@@ -147,15 +158,23 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
         }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(images.size) { image ->
-                Image(
-                    bitmap = images[image].asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
+                images[image].bitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                }
+                // display the prediction if it exists
+                images[image].prediction?.let {
+                    Text(text = it.toString())
+                }
             }
         }
     }
+
+
 }
 
