@@ -48,8 +48,12 @@ import okhttp3.Request
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-
-
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import com.ztch.medilens_android_app.ApiUtils.ApiService
+import com.ztch.medilens_android_app.ApiUtils.PredictionResponse
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,10 +195,31 @@ fun takePhoto(
                         matrix,
                         true
                     )
-
+                    Toast.makeText(applicationContext, "Photo taken!", Toast.LENGTH_SHORT).show()
                     onPhotoTaken(rotatedBitmap)
                     // Call the non-composable function for backend handling
-                    onPhotoTakenToBackend(rotatedBitmap)
+                    val service = RetrofitClient.apiService
+                    // Convert bitmap to byte array then convert byte array to multipart body
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                    val byteArray = byteArrayOutputStream.toByteArray()
+                    val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                    val imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestBody)
+
+                    // Send the image to the server using a POST request and MultiPartBody
+                    service.uploadImageAndGetPrediction(imagePart).enqueue(object : retrofit2.Callback<PredictionResponse> {
+                        override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
+                            if (response.isSuccessful) {
+                                Log.d("Prediction Success", "Prediction: ${response.body()}")
+                            } else {
+                                Log.d("Prediction Failure", "Failed to predict")
+                            }
+                        }
+
+                        override fun onFailure(call: retrofit2.Call<PredictionResponse>, t: Throwable) {
+                            Log.d("Prediction Error", t.message ?: "An error occurred")
+                        }
+                    })
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -207,61 +232,4 @@ fun takePhoto(
         e.printStackTrace()
     }
 }
-@SuppressLint("CoroutineCreationDuringComposition")
 
-fun onPhotoTakenToBackend(bitmap: Bitmap) = runBlocking {
-    try {
-        // Convert the bitmap to a byte array
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-        val byteArray = byteArrayOutputStream.toByteArray()
-
-        // Create a new OkHttpClient
-        val client = OkHttpClient()
-
-        // Use the lifecycle owner's lifecycle scope to launch a new coroutine
-        withContext(Dispatchers.IO) {
-            try {
-                // 10.0.2.2:8000 is the IP of the development machine in terms of the emulator
-                val url = "http://10.0.2.2:8000/upload-image"
-
-                // Send the image to the server using a POST request and MultiPartBody
-                val requestBody = MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("file", "image.jpg", byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
-                    .build()
-
-                // Post request
-                val request = Request.Builder()
-                    .url(url)
-                    .post(requestBody)
-                    .build()
-
-                val response = client.newCall(request).execute()
-
-                // Use 'use' to automatically close resources
-                response.use {
-                    val statusCode = response.code
-
-                    withContext(Dispatchers.Main) {
-                        val responseBody = response.body?.string()
-                        val logMessage = if (statusCode in 200..299) {
-                            "Camera Picture Success: $responseBody"
-                        } else {
-                            "Camera Picture Error: Failed to upload picture: $statusCode"
-                        }
-
-                        // Update UI or log the message
-                        println(logMessage)
-                    }
-                }
-            } catch (e: IOException) {
-                // Handle exceptions
-                e.printStackTrace()
-            }
-        }
-    } catch (e: Exception) {
-        // Handle exceptions
-        e.printStackTrace()
-    }
-}
