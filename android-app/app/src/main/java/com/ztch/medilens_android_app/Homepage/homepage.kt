@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Homepage
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,8 +30,15 @@ import com.ztch.medilens_android_app.Notifications.AlarmViewModel
 import com.ztch.medilens_android_app.Notifications.Repetition
 import com.ztch.medilens_android_app.Notifications.formatLocalDateTimeWithAMPM
 
+import com.ztch.medilens_android_app.ApiUtils.LoginAuth
+
 @Composable
-fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel) {
+fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel, onNavigateToLogin: () -> Unit) {
+    val context = LocalContext.current
+    if(!LoginAuth.isLoggedIn(context)) {
+        // if user is not logged in, navigate to login page
+        onNavigateToLogin()
+    }
 
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition

@@ -95,8 +95,10 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("Home") {
 
             HomePage(
-                onNavigateToCamera = { navController.navigate("Camera") }
-                ,onNavigateToAlarm = { navController.navigate("Alarm") {} },viewModel = viewModel)
+                onNavigateToCamera = { navController.navigate("Camera") },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToLogin = { navController.navigate("Login") {} },
+                viewModel = viewModel)
 
         }
 

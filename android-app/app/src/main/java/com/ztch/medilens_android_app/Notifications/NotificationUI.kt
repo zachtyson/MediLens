@@ -11,8 +11,10 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.ztch.medilens_android_app.ApiUtils.LoginAuth
 import com.ztch.medilens_android_app.Homepage.AlarmsList
 import com.ztch.medilens_android_app.Homepage.CalendarDataSource
 import com.ztch.medilens_android_app.R
@@ -21,6 +23,11 @@ import com.ztch.medilens_android_app.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : ()-> Unit,viewModel: AlarmViewModel) {
+    val context = LocalContext.current
+    if(!LoginAuth.isLoggedIn(context)) {
+        // if user is not logged in, navigate to home page, which will redirect to login page
+        onNavigateToHomePage()
+    }
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }

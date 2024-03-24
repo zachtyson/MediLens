@@ -39,6 +39,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.ztch.medilens_android_app.ApiUtils.LoginAuth
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import okhttp3.MultipartBody
@@ -55,6 +56,10 @@ import java.io.IOException
 fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
     Log.d("camera", "Recomposed")
     val context = LocalContext.current
+    if(!LoginAuth.isLoggedIn(context)) {
+        // if user is not logged in, navigate to home page, which will redirect to login page
+        onNavigateToHomePage()
+    }
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val controller = remember {
