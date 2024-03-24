@@ -25,8 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ztch.medilens_android_app.ApiUtils.LoginAuth
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.ApiUtils.PredictionResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -41,7 +40,7 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
 
     Log.d("camera", "Recomposed")
     val context = LocalContext.current
-    if(!LoginAuth.isLoggedIn(context)) {
+    if(!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }

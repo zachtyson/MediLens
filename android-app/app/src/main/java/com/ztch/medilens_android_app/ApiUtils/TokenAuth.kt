@@ -1,7 +1,7 @@
 package com.ztch.medilens_android_app.ApiUtils
 
 import android.content.Context
-object LoginAuth {
+object TokenAuth {
     fun isLoggedIn(context: Context): Boolean {
         return hasToken(context, "access_token")
     }
