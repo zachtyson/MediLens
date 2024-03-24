@@ -128,7 +128,11 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                                 Log.d("Login Error", "Token is null")
                                 return
                             }
-                            LoginAuth.logIn(context, token)
+                            if(LoginAuth.logIn(context, token)) {
+                                onNavigateToHomePage()
+                            } else {
+                                Log.d("Login Error", "Failed to save token")
+                            }
 
                         } else {
                             Log.d("Login Failure", "Incorrect email or password")

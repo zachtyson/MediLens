@@ -6,8 +6,12 @@ object LoginAuth {
         return hasToken(context, "access_token")
     }
 
-    fun logIn(context: Context, token: String) {
+    fun logIn(context: Context, token: String): Boolean {
+        if (token == "") {
+            return false
+        }
         saveToken(context, "access_token", token)
+        return true;
     }
 
     fun saveToken(context: Context, token_name: String, token: String) {
