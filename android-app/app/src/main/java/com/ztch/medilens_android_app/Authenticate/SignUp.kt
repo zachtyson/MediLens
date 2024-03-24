@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.ApiUtils.LoginTokenResponse
 import com.ztch.medilens_android_app.ApiUtils.RegisterResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
+import com.ztch.medilens_android_app.ApiUtils.UserRegistrationCredentials
 import com.ztch.medilens_android_app.R
 
 @Composable
@@ -113,7 +114,12 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             onClick = {
                 // Call Register API
                 val service = RetrofitClient.apiService
-                service.createUser(email, password).enqueue(object : retrofit2.Callback<RegisterResponse> {
+                // data class UserRegistrationCredentials(
+                //    val email: String,
+                //    val password: String,
+                //)
+                val userToCreate = UserRegistrationCredentials(email, password)
+                service.createUser(userToCreate).enqueue(object : retrofit2.Callback<RegisterResponse> {
                     override fun onResponse(
                         call: retrofit2.Call<RegisterResponse>,
                         response: retrofit2.Response<RegisterResponse>
@@ -121,7 +127,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
                         if (response.isSuccessful) {
                             val registerResponse = response.body()
                             Log.d("Register", "Response: $registerResponse")
-                            onNavigateToHome()
+                            // Navigate to Login page
+                            onNavigateToLogin()
                         } else {
                             Log.d("Register", "Error: ${response.errorBody()}")
                         }
