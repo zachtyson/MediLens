@@ -26,10 +26,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ztch.medilens_android_app.ApiUtils.LoginAuth
+import com.ztch.medilens_android_app.ApiUtils.PredictionResponse
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
+    val service = RetrofitClient.apiService
+
     Log.d("camera", "Recomposed")
     val context = LocalContext.current
     if(!LoginAuth.isLoggedIn(context)) {
@@ -53,6 +61,27 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
             imageUri?.let { uri ->
                 val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
                 images.add(bitmap)
+                // Convert bitmap to byte array then convert byte array to multipart body
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                val imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestBody)
+
+                // Send the image to the server using a POST request and MultiPartBody
+                service.uploadImageAndGetPrediction(imagePart).enqueue(object : retrofit2.Callback<PredictionResponse> {
+                    override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
+                        if (response.isSuccessful) {
+                            Log.d("Prediction Success", "Prediction: ${response.body()}")
+                        } else {
+                            Log.d("Prediction Failure", "Failed to predict")
+                        }
+                    }
+
+                    override fun onFailure(call: retrofit2.Call<PredictionResponse>, t: Throwable) {
+                        Log.d("Prediction Error", t.message ?: "An error occurred")
+                    }
+                })
             }
         }
     }
@@ -63,9 +92,29 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
     val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             (result.data
-
                 ?.extras?.get("data") as? Bitmap)?.let { bitmap ->
                 images.add(bitmap)
+                // Convert bitmap to byte array then convert byte array to multipart body
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                val imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestBody)
+
+                // Send the image to the server using a POST request and MultiPartBody
+                service.uploadImageAndGetPrediction(imagePart).enqueue(object : retrofit2.Callback<PredictionResponse> {
+                    override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
+                        if (response.isSuccessful) {
+                            Log.d("Prediction Success", "Prediction: ${response.body()}")
+                        } else {
+                            Log.d("Prediction Failure", "Failed to predict")
+                        }
+                    }
+
+                    override fun onFailure(call: retrofit2.Call<PredictionResponse>, t: Throwable) {
+                        Log.d("Prediction Error", t.message ?: "An error occurred")
+                    }
+                })
             }
         }
     }
@@ -108,5 +157,5 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
             }
         }
     }
-
 }
+
