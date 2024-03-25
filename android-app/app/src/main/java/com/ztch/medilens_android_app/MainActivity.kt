@@ -1,7 +1,6 @@
 package com.ztch.medilens_android_app
 
 import android.Manifest
-import android.app.Application
 
 
 import android.content.pm.PackageManager
@@ -13,7 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -74,6 +72,8 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
     Log.d("myapp", "Recomposed")
     val navController = rememberNavController()
 
+    val sharedCameraImageViewerModel: SharedViewModel = SharedViewModel()
+
     NavHost(navController, startDestination = "Login") {
         composable("SignUp") {
             SignUp(
@@ -89,7 +89,9 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
 
         composable("Camera") {
             CameraXGuideTheme(
-                onNavigateToHomePage = { navController.navigate("Home") {} })
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
+                sharedViewModel = sharedCameraImageViewerModel)
         }
 
         composable("Home") {
@@ -106,6 +108,14 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
             notificationScreen(
                 onNavigateToHomePage = { navController.navigate("Home")},
                 onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {}},viewModel = viewModel)
+        }
+
+        composable("ImageViewer") {
+            ImageViewer(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToCamera = { navController.navigate("Camera") },
+                sharedViewModel = sharedCameraImageViewerModel
+            )
         }
 
 

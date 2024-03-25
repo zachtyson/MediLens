@@ -38,7 +38,7 @@ data class ImageAndPrediction(var bitmap: Bitmap? = null, var prediction: Predic
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
+fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer: () -> Unit, sharedViewModel: SharedViewModel) {
     val service = RetrofitClient.apiService
 
     Log.d("camera", "Recomposed")
@@ -184,6 +184,8 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
                                 images.add(temp)
                                 images.remove(temp)
 
+                                sharedViewModel.imageAndPrediction = images[image]
+                                onNavigateToImageViewer()
                             }
                     )
                 }
