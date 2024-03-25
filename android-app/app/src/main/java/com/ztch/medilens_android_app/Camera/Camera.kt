@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.ApiUtils.PredictionResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
@@ -32,6 +33,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
+
+data class ImageAndPrediction(var bitmap: Bitmap? = null, var prediction: PredictionResponse? = null, var displayPrediction: Boolean = false,var base64String: String? = null)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,18 +47,22 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
-    val scope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val controller = remember {
-        LifecycleCameraController(context).apply {
-            setEnabledUseCases(
-                CameraController.IMAGE_CAPTURE
-            )
-        }
-    }
-    data class ImageAndPrediction(val bitmap: Bitmap? = null, var prediction: PredictionResponse? = null, var displayPrediction: Boolean = false)
-
+    //fun getImagesAndPredictions(context: Context): List<ImageAndPrediction>? {
+    //        val sharedPref = context.getSharedPreferences("medilens", Context.MODE_PRIVATE)
+    //        val json = sharedPref.getString("images", null)
+    //        return if (json != null) {
+    //            val type = object : TypeToken<List<ImageAndPrediction>>() {}.type
+    //            Gson().fromJson(json, type)
+    //        } else {
+    //            null
+    //        }
+    //    }
+    var imagesGet = TokenAuth.getImagesAndPredictions(context)
     val images = remember { mutableStateListOf<ImageAndPrediction>() }
+    if (imagesGet != null) {
+        images.addAll(imagesGet)
+    }
+
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val imageUri: Uri? = result.data?.data
@@ -80,6 +87,8 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit,) {
                             val temp = images.last()
                             images.add(temp)
                             images.remove(temp)
+                            // save the prediction to the preferences
+                            //TokenAuth.saveImagesAndPredictions(context, images)
                         } else {
                             Log.d("Prediction Failure", "Failed to predict")
                         }
