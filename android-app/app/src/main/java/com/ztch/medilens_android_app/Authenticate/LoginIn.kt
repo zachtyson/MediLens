@@ -20,13 +20,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ztch.medilens_android_app.ApiUtils.ApiService
 import com.ztch.medilens_android_app.ApiUtils.LoginTokenResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.ui.platform.LocalContext
-import com.ztch.medilens_android_app.ApiUtils.LoginAuth
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 
 
 import com.ztch.medilens_android_app.R
@@ -128,7 +125,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                                 Log.d("Login Error", "Token is null")
                                 return
                             }
-                            if(LoginAuth.logIn(context, token)) {
+                            if(TokenAuth.logIn(context, token)) {
                                 onNavigateToHomePage()
                             } else {
                                 Log.d("Login Error", "Failed to save token")

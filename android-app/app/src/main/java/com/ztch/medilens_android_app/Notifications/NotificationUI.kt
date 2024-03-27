@@ -3,7 +3,6 @@ package com.ztch.medilens_android_app.Notifications
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.ztch.medilens_android_app.ApiUtils.LoginAuth
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.Homepage.AlarmsList
 import com.ztch.medilens_android_app.Homepage.CalendarDataSource
 import com.ztch.medilens_android_app.R
@@ -24,7 +23,7 @@ import com.ztch.medilens_android_app.R
 @Composable
 fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : ()-> Unit,viewModel: AlarmViewModel) {
     val context = LocalContext.current
-    if(!LoginAuth.isLoggedIn(context)) {
+    if(!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
