@@ -1,0 +1,106 @@
+package com.ztch.medilens_android_app.Camera
+
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
+import android.util.Log
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+
+//PillViewer(
+//                onNavigateToHomePage = { navController.navigate("Home") {} },
+//                onNavigateToCamera = { navController.navigate("Camera") },
+//                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
+//                sharedViewModel = sharedCameraImageViewerModel
+//            )
+@Composable
+fun PillViewer(
+    onNavigateToHomePage: () -> Unit,
+    onNavigateToCamera: () -> Unit,
+    onNavigateToImageViewer: () -> Unit,
+    sharedViewModel: SharedViewModel
+) {
+    // Display an individual pill's information
+    // Display the image of the pill by getting the image from the sharedViewModel's imageAndPrediction
+    // Crop to the pill's bounding box using the sharedViewModel's currentPillInfo which has the index value
+
+    // Immediately use the pillFromImprintDemo to display the pill's information,
+    // but allow the user to modify the pill's information and re-submit the pill's information
+    // since the AI model isn't perfect and the user may want to correct the pill's information
+
+    val service = RetrofitClient.apiService
+    Log.d("imageviewer", "Recomposed")
+    val context = LocalContext.current
+    if (!TokenAuth.isLoggedIn(context)) {
+        // if user is not logged in, navigate to home page, which will redirect to login page
+        onNavigateToHomePage()
+    }
+    // Display the image overlay the prediction on the image
+    if (sharedViewModel.imageAndPrediction == null) {
+        onNavigateToCamera()
+    }
+    if (sharedViewModel.currentPillInfo == null) {
+        onNavigateToImageViewer()
+    }
+
+    val imageAndPrediction = sharedViewModel.imageAndPrediction!!
+    val bitmap = imageAndPrediction.bitmap!!
+    if (imageAndPrediction.prediction == null) {
+        onNavigateToCamera()
+    }
+    if(imageAndPrediction.prediction == null) {
+        onNavigateToCamera()
+    }
+    val prediction = imageAndPrediction.prediction!!
+    val displayPrediction = imageAndPrediction.displayPrediction
+
+    val originalHeightOfImage = bitmap.height
+    val originalWidthOfImage = bitmap.width
+    val heightOfImageDp = 300.dp
+    val heightOfImage = with(LocalDensity.current) { heightOfImageDp.toPx() }
+    var widthOfImagePx = remember { mutableStateOf(0) }
+
+    val textPaint = remember {
+        Paint().apply {
+            color = Color.WHITE
+            textSize = 40f // Adjust text size as needed
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+    }
+
+    // Display current pill's information
+    val currentPillInfo = sharedViewModel.currentPillInfo!!
+    val imprint = currentPillInfo.imprint
+    val color = currentPillInfo.color
+    val shape = currentPillInfo.shape
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Display the pill's information
+        LazyColumn {
+            item {
+                Text(text = "Imprint: $imprint", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Color: $color", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Shape: $shape", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+
+}
