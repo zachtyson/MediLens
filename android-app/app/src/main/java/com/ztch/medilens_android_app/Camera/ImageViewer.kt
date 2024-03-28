@@ -108,11 +108,16 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                                 if (offset.x in x1..x2 && offset.y in y1..y2) {
                                     var imprint = ""
                                     if (p.ocr != null) {
+                                        Log.d("ImageViewer", p.ocr.toString())
                                         Log.d("ImageViewer", p.ocrParsed.toString())
-                                        for(ocr in p.ocrParsed!!) {
-                                            imprint += ocr.text
+                                        if (p.ocrParsed == null) {
+                                            p.ocrParsed = p.getOCRParsed()
                                         }
-                                        imprint = p.ocrParsed?.get(0)?.text ?: ""
+                                        if (p.ocrParsed != null) {
+                                            for(ocrDetection in p.ocrParsed!!) {
+                                                imprint += ocrDetection.getText()
+                                            }
+                                        }
                                     }
                                     sharedViewModel.currentPillInfo = PillInfo(
                                         imprint = imprint,
