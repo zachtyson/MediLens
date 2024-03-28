@@ -6,10 +6,12 @@ import android.graphics.Typeface
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,13 +94,71 @@ fun PillViewer(
     val color = currentPillInfo.color
     val shape = currentPillInfo.shape
 
+
+    val imprintState = remember { mutableStateOf(imprint) }
+    // colorState is an enum of ColorValuesDC
+    val initialColor = ColorValuesDC.ANY_COLOR
+    val initialShape = ShapeValuesDC.ANY_SHAPE
+    val colorState = remember { mutableStateOf(initialColor) }
+    val shapeState = remember { mutableStateOf(initialShape) }
+    val expanded = remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         // Display the pill's information
         LazyColumn {
             item {
-                Text(text = "Imprint: $imprint", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Color: $color", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Shape: $shape", style = MaterialTheme.typography.bodySmall)
+                TextField(
+                    value = imprintState.value,
+                    onValueChange = { imprintState.value = it },
+                    label = { Text("Imprint") }
+                )
+                TextField(
+                    value = colorState.value.toString().replace('_', ' '),
+                    onValueChange = {},
+                    readOnly = true, // Make TextField read-only
+                    label = { Text("Color") },
+                    trailingIcon = {
+                        Icon(Icons.Default.ArrowDropDown, "Dropdown", Modifier.clickable { expanded.value = true })
+                    }
+                )
+                DropdownMenu(
+                    expanded = expanded.value,
+                    onDismissRequest = { expanded.value = false }
+                ) {
+                    ColorValuesDC.values().forEach { color ->
+                        DropdownMenuItem(
+                            text = { Text(color.name.replace('_', ' ')) },
+                            onClick = {
+                                colorState.value = color
+                                expanded.value = false
+                            }
+                        )
+                    }
+                }
+                TextField(
+                    value = shapeState.value.toString().replace('_', ' '),
+                    onValueChange = {},
+                    readOnly = true, // Make TextField read-only
+                    label = { Text("Shape") },
+                    trailingIcon = {
+                        Icon(Icons.Default.ArrowDropDown, "Dropdown", Modifier.clickable { expanded.value = true })
+                    }
+                )
+                DropdownMenu(
+                    expanded = expanded.value,
+                    onDismissRequest = { expanded.value = false }
+                ) {
+                    ShapeValuesDC.values().forEach { shape ->
+                        DropdownMenuItem(
+                            text = { Text(shape.name.replace('_', ' ')) },
+                            onClick = {
+                                shapeState.value = shape
+                                expanded.value = false
+                            }
+                        )
+                    }
+                }
+
             }
         }
     }
