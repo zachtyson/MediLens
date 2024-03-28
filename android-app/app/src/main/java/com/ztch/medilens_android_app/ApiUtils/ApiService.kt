@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app.ApiUtils
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -54,21 +55,30 @@ data class Prediction(
     val color: String?,
     val shape: String?,
     val ocr: List<List<Any>>?,
-    val ocrParsed: List<OcrDetection>? = parseOCRResult(ocr.toString())
-)
+    var ocrParsed: List<OcrDetection>? = parseOCRResult(ocr.toString())
+) {
+    fun getOCRParsed(): List<OcrDetection>? {
+        return parseOCRResult(ocr.toString())
+    }
+}
 
 fun parseOCRResult(input: String): List<OcrDetection>? {
     val detections = mutableListOf<OcrDetection>()
-    val regex = Regex("""\[\(\[\[(\d+), (\d+)\], \[(\d+), (\d+)\], \[(\d+), (\d+)\], \[(\d+), (\d+)\]\], '(.+)', (\d+\.\d+)\)""")
-    regex.findAll(input).forEach {
-        val (x1, y1, x2, y2, x3, y3, x4, y4, text, confidence) = it.destructured
-        val boundingBox = BoundingBox(
-            topLeft = Pair(x1.toInt(), y1.toInt()),
-            topRight = Pair(x2.toInt(), y2.toInt()),
-            bottomRight = Pair(x3.toInt(), y3.toInt()),
-            bottomLeft = Pair(x4.toInt(), y4.toInt())
-        )
-        detections.add(OcrDetection(boundingBox, text, confidence.toDouble()))
+    val inputAsList = Gson().fromJson(input, List::class.java)
+    for(item in inputAsList) {
+        val parsedItem = Gson().fromJson(item.toString(), List::class.java)
+        //List<List<Int>>, text: Any, confidence: Double
+        val ocrDetection = parsedItem[1]?.let {
+            OcrDetection(
+                boundingBoxAsList = parsedItem[0] as List<List<Int>>,
+                text = it,
+                confidence = parsedItem[2] as Double
+            )
+        }
+        if(ocrDetection != null) {
+            detections.add(ocrDetection)
+        }
+
     }
     if(detections.isEmpty()) {
         return null
@@ -78,17 +88,65 @@ fun parseOCRResult(input: String): List<OcrDetection>? {
 }
 
 data class BoundingBox(
-    val topLeft: Pair<Int, Int>,
-    val topRight: Pair<Int, Int>,
-    val bottomRight: Pair<Int, Int>,
-    val bottomLeft: Pair<Int, Int>
-)
+    val topLeft: Pair<Int,Int>,
+    val topRight: Pair<Int,Int>,
+    val bottomRight: Pair<Int,Int>,
+    val bottomLeft: Pair<Int,Int>
+) {
+
+}
 
 data class OcrDetection(
     val boundingBox: BoundingBox,
-    val text: String,
+    // text is a generic type, it can be a string or a number
+    val text: Any,
     val confidence: Double
-)
+) {
+    constructor(boundingBoxAsList: List<List<Int>>, text: Any, confidence: Double) : this(
+        boundingBox = BoundingBox(
+            topLeft = Pair(boundingBoxAsList[0][0], boundingBoxAsList[0][1]),
+            topRight = Pair(boundingBoxAsList[1][0], boundingBoxAsList[1][1]),
+            bottomRight = Pair(boundingBoxAsList[2][0], boundingBoxAsList[2][1]),
+            bottomLeft = Pair(boundingBoxAsList[3][0], boundingBoxAsList[3][1])
+        ),
+        text = text,
+        confidence = confidence
+    ) {}
+    //toString() method to print the object
+    override fun toString(): String {
+        //OcrDetection
+        //{
+        //boundingBox {
+        //  topLeft=[48, 86]
+        //  topRight=[208, 86]
+        //  bottomRight=[208, 166]
+        //  bottomLeft=[48, 166]
+        //  }
+        //text=512.0
+        //confidence=0.7369789298534946
+        //}
+        val topLeft = boundingBox.topLeft.first.toString() + ", " + boundingBox.topLeft.second.toString()
+        val topRight = boundingBox.topRight.first.toString() + ", " + boundingBox.topRight.second.toString()
+        val bottomRight = boundingBox.bottomRight.first.toString() + ", " + boundingBox.bottomRight.second.toString()
+        val bottomLeft = boundingBox.bottomLeft.first.toString() + ", " + boundingBox.bottomLeft.second.toString()
+        return "OcrDetection\n{\nboundingBox {\n  topLeft=$topLeft\n  topRight=$topRight\n  bottomRight=$bottomRight\n  bottomLeft=$bottomLeft\n  }\ntext=$text \nconfidence=$confidence\n}"
+    }
+
+    fun getText(): String {
+        val formattedText = when (text) {
+            is Double -> {
+                val intValue = text.toInt()
+                if (text == intValue.toDouble()) {
+                    intValue.toString()
+                } else {
+                    text.toString()
+                }
+            }
+            else -> text.toString()
+        }
+        return formattedText
+    }
+}
 
 data class PredictionResponse(
     val predictions: List<Prediction>
