@@ -87,13 +87,6 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 ,onNavigateToSignUp = { navController.navigate("SignUp") })
         }
 
-        composable("Camera") {
-            CameraXGuideTheme(
-                onNavigateToHomePage = { navController.navigate("Home") {} },
-                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
-                sharedViewModel = sharedCameraImageViewerModel)
-        }
-
         composable("Home") {
 
             HomePage(
@@ -110,10 +103,27 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {}},viewModel = viewModel)
         }
 
+        composable("Camera") {
+            CameraXGuideTheme(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
+                sharedViewModel = sharedCameraImageViewerModel)
+        }
+
         composable("ImageViewer") {
             ImageViewer(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToCamera = { navController.navigate("Camera") },
+                onNavigateToPillViewer = { navController.navigate("PillViewer") },
+                sharedViewModel = sharedCameraImageViewerModel
+            )
+        }
+
+        composable("PillViewer") {
+            PillViewer(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToCamera = { navController.navigate("Camera") },
+                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
                 sharedViewModel = sharedCameraImageViewerModel
             )
         }
