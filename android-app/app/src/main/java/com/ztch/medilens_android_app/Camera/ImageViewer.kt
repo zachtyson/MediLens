@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
@@ -22,6 +23,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -32,7 +34,7 @@ import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 
 @Composable
-fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit, sharedViewModel: SharedViewModel) {
+fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit, onNavigateToPillViewer: () -> Unit, sharedViewModel: SharedViewModel) {
     //class SharedViewModel: ViewModel() {
     //    var imageAndPrediction: ImageAndPrediction? = null
     //}
@@ -94,7 +96,36 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                 val scaleX = widthOfImagePx.value.toFloat() / originalWidthOfImage
                 val scaleY = heightOfImage / originalHeightOfImage
 
-                Canvas(modifier = Modifier.matchParentSize()) { // Ensure Canvas fills the Box exactly like the Image
+                Canvas(modifier = Modifier.matchParentSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            prediction.predictions.forEachIndexed { index, p ->
+                                val x1 = (p.x1 * scaleX)
+                                val y1 = (p.y1 * scaleY)
+                                val x2 = (p.x2 * scaleX)
+                                val y2 = (p.y2 * scaleY)
+                                // todo fix
+                                if (offset.x in x1..x2 && offset.y in y1..y2) {
+                                    var imprint = ""
+                                    if (p.ocr != null) {
+                                        Log.d("ImageViewer", p.ocrParsed.toString())
+                                        for(ocr in p.ocrParsed!!) {
+                                            imprint += ocr.text
+                                        }
+                                        imprint = p.ocrParsed?.get(0)?.text ?: ""
+                                    }
+                                    sharedViewModel.currentPillInfo = PillInfo(
+                                        imprint = imprint,
+                                        color = prediction.predictions[index].color ?: "",
+                                        shape = prediction.predictions[index].shape ?: "",
+                                        index = index
+                                    )
+                                    onNavigateToPillViewer()
+                                }
+                            }
+                        }
+                    }
+                ) { // Ensure Canvas fills the Box exactly like the Image
                     prediction.predictions.forEach { p ->
                         val x1 = (p.x1 * scaleX)
                         val y1 = (p.y1 * scaleY)
@@ -141,6 +172,7 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
             //    val predictions: List<Prediction>
             //)
         }
+
         LazyColumn {
             items(prediction.predictions.size) { p ->
                 Text(
@@ -182,7 +214,7 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                 )
                 if (prediction.predictions[p].ocr != null) {
                     Text(
-                        text = "OCR: ${prediction.predictions[p].ocr}",
+                        text = "OCR: ${prediction.predictions[p].ocr.toString()}",
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
