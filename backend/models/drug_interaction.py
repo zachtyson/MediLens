@@ -11,7 +11,7 @@ class DrugInteraction(Base):
     drug_b = Column(String(100), primary_key=True)
     severity = Column(String(100), nullable=False)
     description = Column(String(100), nullable=True)
-    extended_description = Column(String, nullable=True)
+    extended_description = Column(String(1000), nullable=True)
 
     # composite unique constraint for drug_a and drug_b so that a-b and b-a are not repeated
     __table_args__ = (UniqueConstraint('drug_a', 'drug_b', name='uq_drug_interaction'),)
