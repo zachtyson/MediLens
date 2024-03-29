@@ -34,7 +34,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 
-data class ImageAndPrediction(var bitmap: Bitmap? = null, var prediction: PredictionResponse? = null, var displayPrediction: Boolean = false,var base64String: String? = null)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

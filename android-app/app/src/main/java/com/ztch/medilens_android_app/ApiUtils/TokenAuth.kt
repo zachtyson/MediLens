@@ -26,6 +26,10 @@ object TokenAuth {
         return true;
     }
 
+    fun getLogInToken(context: Context): String {
+        return getToken(context, "access_token")
+    }
+
     fun saveToken(context: Context, token_name: String, token: String) {
         val sharedPref = context.getSharedPreferences("medilens", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {

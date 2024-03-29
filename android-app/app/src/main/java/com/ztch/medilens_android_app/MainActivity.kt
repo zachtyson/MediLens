@@ -30,6 +30,7 @@ import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
 import com.ztch.medilens_android_app.Authenticate.*
 import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
+import com.ztch.medilens_android_app.Refill.Cabinet
 
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
@@ -87,19 +88,13 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 ,onNavigateToSignUp = { navController.navigate("SignUp") })
         }
 
-        composable("Camera") {
-            CameraXGuideTheme(
-                onNavigateToHomePage = { navController.navigate("Home") {} },
-                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
-                sharedViewModel = sharedCameraImageViewerModel)
-        }
-
         composable("Home") {
 
             HomePage(
                 onNavigateToCamera = { navController.navigate("Camera") },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToLogin = { navController.navigate("Login") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
                 viewModel = viewModel)
 
         }
@@ -110,10 +105,27 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {}},viewModel = viewModel)
         }
 
+        composable("Camera") {
+            CameraXGuideTheme(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
+                sharedViewModel = sharedCameraImageViewerModel)
+        }
+
         composable("ImageViewer") {
             ImageViewer(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToCamera = { navController.navigate("Camera") },
+                onNavigateToPillViewer = { navController.navigate("PillViewer") },
+                sharedViewModel = sharedCameraImageViewerModel
+            )
+        }
+
+        composable("PillViewer") {
+            PillViewer(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToCamera = { navController.navigate("Camera") },
+                onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
                 sharedViewModel = sharedCameraImageViewerModel
             )
         }
@@ -122,6 +134,13 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("AlarmAdd") {
             AddReminderScreen(
                 onNavigateToAlert = { navController.navigate("Alarm") {} }, viewModel = viewModel)
+        }
+
+        composable("Cabinet") {
+            Cabinet(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} }
+            )
         }
 
   }
