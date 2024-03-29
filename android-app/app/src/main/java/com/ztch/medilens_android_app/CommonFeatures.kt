@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun appbarBottom(onNavigateToCamera: () -> Unit,onNavigateToAlarm: () -> Unit)
+fun appbarBottom(onNavigateToCamera: () -> Unit,onNavigateToAlarm: () -> Unit, onNavigateToCabinet: () -> Unit)
 {
     val colorPurple = colorResource(R.color.Purple)
 
@@ -106,16 +106,16 @@ fun appbarBottom(onNavigateToCamera: () -> Unit,onNavigateToAlarm: () -> Unit)
             {
 
                 IconButton(
-                    onClick = { },
+                    onClick = { onNavigateToCabinet() },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Medication,
-                        contentDescription = "refills",
+                        contentDescription = "Cabinet",
                         tint = Color.White,
                         modifier = Modifier.size(35.dp)
                     )
                 }
-                Text(text = "Refill", color = Color.White)
+                Text(text = "Cabinet", color = Color.White)
             }
 
             Column(
