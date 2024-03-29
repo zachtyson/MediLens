@@ -1,9 +1,6 @@
 package com.ztch.medilens_android_app
 
 import android.Manifest
-import android.app.Application
-
-
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -13,17 +10,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 
 import com.ztch.medilens_android_app.Camera.*
@@ -75,6 +70,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
     val navController = rememberNavController()
 
     NavHost(navController, startDestination = "Login") {
+
         composable("SignUp") {
             SignUp(
                 onNavigateToHome = { navController.navigate("HomePage") {} }
@@ -103,24 +99,45 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("Alarm") {
             notificationScreen(
                 onNavigateToHomePage = { navController.navigate("Home")},
-                onNavigateToAlarmAdd = { navController.navigate("AlarmAdd") {}},viewModel = viewModel)
+                onNavigateToPillInformation = { navController.navigate("PillInformation") {}} ,viewModel = viewModel)
         }
 
 
-        composable("AlarmAdd") {
-            AddReminderScreen(
-                onNavigateToAlert = { navController.navigate("Alarm") {} }, viewModel = viewModel)
+
+        composable("PillInformation") {
+            PillInformationScreen(
+                onNavigateToAlarmTimes = { mediName, dose, strength, RX, form ->
+                    navController.navigate("AlarmTimes/$mediName/$dose/$strength/$RX/$form")
+                },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+            )
         }
 
-  }
+        composable(
+            route = "AlarmTimes/{mediName}/{dose}/{strength}/{RX}/{form}",
 
-}
+            arguments = listOf(
+                navArgument("mediName") { type = NavType.StringType ; defaultValue = ""},
+                navArgument("dose") { type = NavType.StringType ; defaultValue = ""  },
+                navArgument("strength") { type = NavType.StringType ; nullable = true ; defaultValue = ""},
+                navArgument("RX") { type = NavType.StringType ; nullable = true ; defaultValue = ""},
+                navArgument("form") { type = NavType.StringType ; nullable = true ; defaultValue = ""}
+            )
+        ) { backStackEntry ->
+            AlarmTimesScreen(
+                mediName = backStackEntry.arguments?.getString("mediName") ?: "",
+                dose = backStackEntry.arguments?.getString("dose") ?: "",
+                strength = backStackEntry.arguments?.getString("strength") ?: "",
+                RX = backStackEntry.arguments?.getString("RX") ?: "",
+                form = backStackEntry.arguments?.getString("form") ?: "",
+                onNavigateBack = { navController.popBackStack() },
+                alarmViewModel = viewModel,
+                onNavigateToAlarm = { navController.navigate("Alarm") {} }
+            )
+        }
 
-@Composable
-inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
-    val navGraphRoute = destination.parent?.route ?: return viewModel()
-    val parentEntry = remember(this) {
-        navController.getBackStackEntry(navGraphRoute)
+
     }
-    return viewModel(parentEntry)
+
 }
+

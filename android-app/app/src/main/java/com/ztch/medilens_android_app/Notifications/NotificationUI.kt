@@ -20,7 +20,7 @@ import com.ztch.medilens_android_app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : ()-> Unit,viewModel: AlarmViewModel) {
+fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToPillInformation : ()-> Unit,viewModel: AlarmViewModel) {
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
@@ -50,7 +50,7 @@ fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToAlarmAdd : (
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToAlarmAdd() }) {
+                    IconButton(onClick = { onNavigateToPillInformation() }) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             tint = Color.White,

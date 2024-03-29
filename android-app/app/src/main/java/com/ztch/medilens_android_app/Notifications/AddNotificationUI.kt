@@ -1,14 +1,15 @@
 package com.ztch.medilens_android_app.Notifications
 
-
-import android.Manifest
-
+import android.app.Activity
 import android.app.TimePickerDialog
-import android.content.pm.PackageManager
-import android.os.Build
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
@@ -21,57 +22,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
-
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.ztch.medilens_android_app.R
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
-
 import java.util.*
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
-    val context = LocalContext.current
-    val scheduler = AlarmScheduler(context)
-    var alarmItem: AlarmItem? = null
+fun PillInformationScreen(
+    onNavigateToAlarm: () -> Unit,
+    onNavigateToAlarmTimes: (String, String, String, String, String) -> Unit,
+) {
 
-    var selectedTime by remember { mutableStateOf(LocalDateTime.now()) }
+
     var mediName by remember { mutableStateOf("") }
     var dose by remember { mutableStateOf("") }
     var strength by remember { mutableStateOf("") }
     var RX by remember { mutableStateOf("") }
     var form by remember { mutableStateOf("") }
     val forms: List<String> = listOf("Tablet", "Injectable", "Capsule", "Solution", "Cream", "Drops","Spray")
-    var isDropdownVisible by remember { mutableStateOf(false) }
     var isFormDropdownVisible by remember { mutableStateOf(false) }
-
-    var hasNotificationPermission by remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            mutableStateOf(
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-            )
-        } else mutableStateOf(true)
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            hasNotificationPermission = isGranted
-        }
-    )
-
-    // Add state to track the selected repetition option
-    var selectedRepetition by remember { mutableStateOf(Repetition.EVERY_DAY) }
+    var showError by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -88,7 +63,7 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { onNavigateToAlert() }) {
+                    IconButton(onClick = { onNavigateToAlarm() }) {
                         Icon(
                             tint = Color.White,
                             imageVector = Icons.Filled.ArrowBackIosNew,
@@ -113,26 +88,6 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-
-                    Text(
-                        text = "Selected Alarm Time : ${formatLocalDateTimeWithAMPM(selectedTime)}",
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-
-                    // Button to open the time picker dialog
-                    Button(
-                        onClick = {
-                            showTimePickerDialog(context, selectedTime) {
-                                selectedTime = it
-                            }
-                        },
-                        modifier = Modifier.padding(top = 8.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Text(text = "Ajust Alarm Time")
-                    }
 
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
@@ -207,8 +162,13 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                         },
                         trailingIcon = {
                             IconButton(onClick = { isFormDropdownVisible = true }) {
-                                Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Dropdown", tint = Color.White)
-                            }}
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Dropdown",
+                                    tint = Color.White
+                                )
+                            }
+                        }
 
                     )
                     DropdownMenu(
@@ -227,121 +187,324 @@ fun AddReminderScreen(onNavigateToAlert: () -> Unit,viewModel: AlarmViewModel) {
                         }
                     }
 
-
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-
-                        OutlinedButton(
-                            onClick = { isDropdownVisible = true }
+                    if (showError) {
+                        Snackbar(
+                            modifier = Modifier.padding(top = 8.dp),
+                            action = {
+                                Button(
+                                    onClick = { showError = false },
+                                ) {
+                                    Text(text = "Close", color = Color.White)
+                                }
+                            }
                         ) {
-                            Text("Select Repetition: ${selectedRepetition.name}", color = Color.White)
-                        }
-
-                        DropdownMenu(
-                            expanded = isDropdownVisible,
-                            onDismissRequest = { isDropdownVisible = false },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.background)
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Every Day")},
-                                onClick = {
-                                    selectedRepetition = Repetition.EVERY_DAY
-                                    isDropdownVisible = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Once" ) },
-                                onClick = {
-                                    selectedRepetition = Repetition.ONCE
-                                    isDropdownVisible = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Hourly" ) },
-                                onClick = {
-                                    selectedRepetition = Repetition.HOURLY
-                                    isDropdownVisible = false
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = { Text("Weekly" ) },
-                                onClick = {
-                                    selectedRepetition = Repetition.WEEKLY
-                                    isDropdownVisible = false
-                                }
-                            )
+                            Text(text = "All text fields required!", color = Color.White)
                         }
                     }
 
-                    // Buttons to schedule or cancel the alarm
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                    Button(
+                        onClick = {
+                            if (mediName.isNotEmpty() && dose.isNotEmpty() && strength.isNotEmpty() && RX.isNotEmpty() && form.isNotEmpty()) {
+                                onNavigateToAlarmTimes(mediName, dose, strength, RX, form)
+                            } else {
+                                showError = true
+                            }
+                        },
+                        modifier = Modifier.padding(top = 8.dp)
+                            .fillMaxWidth()
                     ) {
-                        Button(onClick = {
-
-
-                                alarmItem = AlarmItem(
-                                    time = selectedTime,
-                                    message = mediName,
-                                    dosage = dose,
-                                    strength = strength,
-                                     RX = RX,
-                                    form = form,
-                                    repetition = selectedRepetition
-                                )
-                                alarmItem?.let(scheduler::schedule)
-
-                                viewModel.addAlarm(alarmItem!!)
-                                // Reset the input fields
-                                mediName = ""
-                                dose = ""
-                                strength = ""
-                                RX = ""
-                                form = ""
-
-                        }) {
-                            Text(text = "Schedule")
-                        }
-                        Button(onClick = {
-                            alarmItem?.let(scheduler::cancel)
-                        }) {
-                            Text(text = "Cancel")
-                        }
-
-                        Button(
-                            onClick = {
-                                // Set the test alarm for the next minute
-                                val testAlarmTime = LocalDateTime.now().plusSeconds(10)
-
-                                alarmItem = AlarmItem(
-                                    time = testAlarmTime,
-                                    message = "Test Alarm",
-                                    dosage = "Test Dosage",
-                                    strength = "Test Strength",
-                                    RX = "Test RX",
-                                    form = "Test Form",
-                                    repetition = Repetition.ONCE // Assuming you want this as a one-time alarm for testing
-                                )
-
-                                // Schedule the test alarm
-                                alarmItem?.let(scheduler::schedule)
-                            },
-                            modifier = Modifier.padding(top = 16.dp)
-                        ) {
-                            Text("Schedule Test Alarm Now")
-                        }
+                        Text(text = "Set Alarm Times")
                     }
                 }
             }
-
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AlarmTimesScreen(
+    mediName: String,
+    dose: String,
+    strength: String,
+    RX: String,
+    form: String,
+
+    onNavigateBack: () -> Unit,
+    alarmViewModel: AlarmViewModel,
+    onNavigateToAlarm: () -> Unit
+) {
+    val context = LocalContext.current
+    val scheduler = AlarmScheduler(context)
+    var alarmItem: AlarmItem?
+    val forms: List<String> = listOf("Once", "Hourly", "Weekly", "Every Day")
+    var selectedRepetition by remember { mutableStateOf(Repetition.EVERY_DAY) }
+    var isDropdownVisible by remember { mutableStateOf(false) }
+    var addAdditionalAlarmsPrompt by remember { mutableStateOf(if (dose.toInt() >= 2) true else false) }
+    var addAdditionalAlarms by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            selectedImageUri = data?.data
+        }
+    }
+
+    fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        pickImageLauncher.launch(intent)
+    }
+
+    val additionalAlarmTimes: MutableList<MutableState<LocalDateTime>> = remember {
+        mutableListOf<MutableState<LocalDateTime>>().apply {
+            // Initialize the list with the current time for each alarm
+            repeat(dose.toInt()) {
+                add(mutableStateOf(LocalDateTime.now()))
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.DarkBlue),
+                    titleContentColor = Color.White
+                ),
+                title = {
+                    Text(
+                        "Add Alarm Details",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(
+                            tint = Color.White,
+                            imageVector = Icons.Filled.ArrowBackIosNew,
+                            contentDescription = "backAlert"
+                        )
+                    }
+                },
+            )
+        },
+        containerColor = colorResource(R.color.DarkGrey)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                .background(color = colorResource(R.color.DarkGrey))
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+
+
+                if (addAdditionalAlarmsPrompt) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            addAdditionalAlarms = false
+                            addAdditionalAlarmsPrompt = false
+                        },
+                        title = { Text("Add Additional Alarms") },
+                        text = { Text("Would you like to add additional alarms per each dosage?") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    // Add your logic here for adding additional alarms per dosage
+                                    addAdditionalAlarms = true
+                                    addAdditionalAlarmsPrompt = false
+                                }
+                            ) {
+                                Text("Yes")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = {
+                                    addAdditionalAlarms = false
+                                    addAdditionalAlarmsPrompt = false
+                                }
+                            ) {
+                                Text("No")
+                            }
+                        }
+                    )
+                }
+
+
+
+                if (addAdditionalAlarms) {
+                    additionalAlarmTimes.forEachIndexed { index, alarmTimeState ->
+
+
+                        Text(
+                            text = "Alarm ${ index+1}",
+                            fontSize = 26.sp,
+                            color = Color.White,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        ) {
+                            Text(
+                                text = formatLocalDateTimeWithAMPM(alarmTimeState.value),
+                                fontSize = 32.sp,
+                                color = Color.White,
+                                modifier = Modifier.padding(top = 16.dp)
+                                    .clickable(onClick = {
+                                        showTimePickerDialog(context, alarmTimeState.value) { newTime ->
+                                            // Update the alarm time state with the new time
+                                            alarmTimeState.value = newTime
+                                        }
+                                    })
+                            )
+                            Switch(
+                                checked = true,
+                                onCheckedChange = { isChecked ->
+                                },
+                                modifier = Modifier.padding(start = 160.dp)
+                            )
+                        }
+                    }
+                }else{
+                    Text(
+                        text = "Alarm 1",
+                        fontSize = 26.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = formatLocalDateTimeWithAMPM(additionalAlarmTimes[0].value),
+                            fontSize = 32.sp,
+                            color = Color.White,
+                            modifier = Modifier.padding(top = 16.dp)
+                                .clickable(onClick = {
+                                    showTimePickerDialog(context, additionalAlarmTimes[0].value) { newTime ->
+                                        // Update the alarm time state with the new time
+                                        additionalAlarmTimes[0].value = newTime
+                                    }
+                                })
+                        )
+                        Switch(
+                            checked = true,
+                            onCheckedChange = { isChecked ->
+                            },
+                            modifier = Modifier.padding(start = 200.dp)
+                        )
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                ) {
+                    Text(
+                        text = "Add Image for Medication",
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(top = 16.dp)
+
+                        )
+                    Switch(
+                        checked = true,
+                        onCheckedChange = { isChecked ->
+                            openGallery()
+                        },
+                        modifier = Modifier.padding(start = 70.dp)
+                    )
+                }
+
+
+
+                DropdownMenu(
+                    expanded = isDropdownVisible,
+                    onDismissRequest = { isDropdownVisible = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    forms.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                selectedRepetition = when (option) {
+                                    "Every Day" -> Repetition.EVERY_DAY
+                                    "Once" -> Repetition.ONCE
+                                    "Hourly" -> Repetition.HOURLY
+                                    "Weekly" -> Repetition.WEEKLY
+                                    else -> selectedRepetition // Fallback to current selected repetition
+                                }
+                                isDropdownVisible = false
+                            }
+                        )
+                    }
+                }
+
+
+            // Buttons to schedule or select repitition
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom, // Align vertically
+            ) {
+                Button(
+                    onClick = { isDropdownVisible = true }
+
+                ) {
+                    Text("Repetition: ${selectedRepetition.name}", color = Color.White)
+                }
+
+                Button(
+                    onClick = {
+                        if (addAdditionalAlarms) {
+                            additionalAlarmTimes.forEach {
+                                Log.d("Alarm","${it.value}")
+                                alarmItem = AlarmItem(
+                                    time = it.value,
+                                    message = mediName,
+                                    dosage = dose,
+                                    strength = strength,
+                                    RX = RX,
+                                    form = form,
+                                    repetition = selectedRepetition,
+                                    imageUri = selectedImageUri
+                                )
+                                alarmItem?.let(scheduler::schedule)
+                                alarmViewModel.addAlarm(alarmItem!!)
+                            }
+                        } else {
+                            alarmItem = AlarmItem(
+                                time = additionalAlarmTimes[0].value,
+                                message = mediName,
+                                dosage = dose,
+                                strength = strength,
+                                RX = RX,
+                                form = form,
+                                repetition = selectedRepetition,
+                                imageUri = selectedImageUri
+                            )
+                            alarmItem?.let(scheduler::schedule)
+                            alarmViewModel.addAlarm(alarmItem!!)
+                        }
+                        onNavigateToAlarm()
+                    }
+                ) {
+                    Text(text = "Set Alarms")
+                } }
+            }
+        }
+    }
 }
 
 fun showTimePickerDialog(context: android.content.Context, initialTime: LocalDateTime, callback: (LocalDateTime) -> Unit) {
@@ -358,7 +521,7 @@ fun showTimePickerDialog(context: android.content.Context, initialTime: LocalDat
         },
         initialHour,
         initialMinute,
-        false // Set to false to use AM/PM format
+        false // false to use AM/PM format
     ).show()
 }
 

@@ -81,6 +81,8 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             value = email,
             onValueChange = { email = it },
@@ -94,6 +96,8 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             value = password,
             onValueChange = { password = it },
@@ -109,8 +113,8 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
         )
 
         Button(
-            onClick = {
-                // Call login API
+            onClick = {onNavigateToHomePage()
+              /*  // Call login API
                 val service = RetrofitClient.apiService
                 service.loginUser(email, password).enqueue(object : retrofit2.Callback<LoginTokenResponse> {
                     override fun onResponse(call: retrofit2.Call<LoginTokenResponse>, response: retrofit2.Response<LoginTokenResponse>) {
@@ -129,7 +133,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                         Log.d("Login Error", t.message ?: "An error occurred")
                     }
                 })
-
+*/
             },
             colors = buttonColors(colorResource(id = R.color.Purple)),
             modifier = Modifier

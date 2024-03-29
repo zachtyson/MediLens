@@ -1,21 +1,25 @@
 package com.ztch.medilens_android_app.Homepage
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
@@ -50,7 +54,6 @@ fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewM
             )
         },
         bottomBar = {
-
           appbarBottom(onNavigateToCamera = onNavigateToCamera, onNavigateToAlarm = onNavigateToAlarm)
         },
         containerColor = colorResource(R.color.DarkGrey),
@@ -219,7 +222,7 @@ fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(215.dp)
             .padding(16.dp)
     ) {
         Column(
@@ -233,24 +236,32 @@ fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
             )
-            Text(
-                text = "Medication: ${alarm.message}",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Dosage: ${alarm.dosage}",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Form: ${alarm.form}",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Row  (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(85.dp)
+                    .padding(8.dp)
+            ){
+                alarm.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(75.dp) // Set the width of the image
+                            .height(75.dp) // Set the height of the image
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Text(
+                    text = "Medication: ${alarm.message} " +
+                            "\nDosage: ${alarm.dosage} " +
+                            "\nForm: ${alarm.form} ",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             Button(
                 onClick = { onDeleteClicked(alarm) },
