@@ -49,16 +49,17 @@ async def pill_from_imprint(imprint: str, color: int, shape: int):
             obj = {}
             if img_url == '/img/pillid/no-image-placeholder.png':
                 img_url = None
-            obj['Image URL'] = img_url
+            obj['imageURL'] = img_url
 
             div_smaller = div.find_all('div', class_='ddc-card-content ddc-card-content-pid')
             for d in div_smaller:
                 dt_dd_pairs = d.find_all(['dt', 'dd'])
                 # extract the content of the <a> tag
-                obj['Pill Name'] = d.find('a').get_text().strip()
+                obj['pillName'] = d.find('a').get_text().strip()
                 for i in range(0, len(dt_dd_pairs), 2):
-                    key = dt_dd_pairs[i].get_text().strip()
+                    key = dt_dd_pairs[i].get_text().strip().lower()
                     value = dt_dd_pairs[i + 1].get_text().strip()
                     obj[key] = value
                 extracted_info.append(obj)
+    print(extracted_info)
     return extracted_info
