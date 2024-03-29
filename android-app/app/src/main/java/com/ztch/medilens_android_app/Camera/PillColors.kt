@@ -77,90 +77,86 @@ enum class ColorValuesDC {
     YELLOW_AND_GRAY,
     YELLOW_AND_WHITE
 }
-data class PillColors(
-    val color: ColorValuesDC
-) {
-    fun encodeColor(color: ColorValuesDC): Int {
-        val colorString = color.toString()
-        when(colorString.lowercase()) {
-            "any color" -> return -1
-            "white" -> return 12
-            "beige" -> return 14
-            "black" -> return 73
-            "blue" -> return 1
-            "brown" -> return 2
-            "clear" -> return 3
-            "gold" -> return 4
-            "gray" -> return 5
-            "grey" -> return 5
-            "green" -> return 6
-            "maroon" -> return 44
-            "orange" -> return 7
-            "peach" -> return 74
-            "pink" -> return 8
-            "purple" -> return 9
-            "red" -> return 10
-            "tan" -> return 11
-            "yellow" -> return 13
-            "beige & red" -> return 69
-            "black & green" -> return 55
-            "black & teal" -> return 70
-            "black & yellow" -> return 48
-            "blue & brown" -> return 52
-            "blue & gray" -> return 45
-            "blue & green" -> return 75
-            "blue & orange" -> return 71
-            "blue & peach" -> return 53
-            "blue & pink" -> return 34
-            "blue & white" -> return 19
-            "blue & white specks" -> return 26
-            "blue & yellow" -> return 21
-            "brown & clear" -> return 47
-            "brown & orange" -> return 54
-            "brown & peach" -> return 28
-            "brown & red" -> return 16
-            "brown & white" -> return 57
-            "brown & yellow" -> return 27
-            "clear & green" -> return 49
-            "dark & light green" -> return 46
-            "gold & white" -> return 51
-            "gray & peach" -> return 61
-            "gray & pink" -> return 39
-            "gray & red" -> return 58
-            "gray & white" -> return 67
-            "gray & yellow" -> return 68
-            "green & orange" -> return 65
-            "green & peach" -> return 63
-            "green & pink" -> return 56
-            "green & purple" -> return 43
-            "green & turquoise" -> return 62
-            "green & white" -> return 30
-            "green & yellow" -> return 22
-            "lavender & white" -> return 42
-            "maroon & pink" -> return 40
-            "orange & turquoise" -> return 50
-            "orange & white" -> return 64
-            "orange & yellow" -> return 23
-            "peach & purple" -> return 60
-            "peach & red" -> return 66
-            "peach & white" -> return 18
-            "pink & purple" -> return 15
-            "pink & red specks" -> return 37
-            "pink & turquoise" -> return 29
-            "pink & white" -> return 25
-            "pink & yellow" -> return 72
-            "red & turquoise" -> return 17
-            "red & white" -> return 35
-            "red & yellow" -> return 20
-            "tan & white" -> return 33
-            "turquoise & white" -> return 59
-            "turquoise & yellow" -> return 24
-            "white & blue specks" -> return 32
-            "white & red specks" -> return 41
-            "white & yellow" -> return 38
-            "yellow & gray" -> return 31
-            "yellow & white" -> return 36
-            else -> return -1
-        }
+fun encodeColor(color: ColorValuesDC): Int {
+    val colorString = color.toString()
+    when(colorString.lowercase()) {
+        "any color" -> return -1
+        "white" -> return 12
+        "beige" -> return 14
+        "black" -> return 73
+        "blue" -> return 1
+        "brown" -> return 2
+        "clear" -> return 3
+        "gold" -> return 4
+        "gray" -> return 5
+        "grey" -> return 5
+        "green" -> return 6
+        "maroon" -> return 44
+        "orange" -> return 7
+        "peach" -> return 74
+        "pink" -> return 8
+        "purple" -> return 9
+        "red" -> return 10
+        "tan" -> return 11
+        "yellow" -> return 13
+        "beige & red" -> return 69
+        "black & green" -> return 55
+        "black & teal" -> return 70
+        "black & yellow" -> return 48
+        "blue & brown" -> return 52
+        "blue & gray" -> return 45
+        "blue & green" -> return 75
+        "blue & orange" -> return 71
+        "blue & peach" -> return 53
+        "blue & pink" -> return 34
+        "blue & white" -> return 19
+        "blue & white specks" -> return 26
+        "blue & yellow" -> return 21
+        "brown & clear" -> return 47
+        "brown & orange" -> return 54
+        "brown & peach" -> return 28
+        "brown & red" -> return 16
+        "brown & white" -> return 57
+        "brown & yellow" -> return 27
+        "clear & green" -> return 49
+        "dark & light green" -> return 46
+        "gold & white" -> return 51
+        "gray & peach" -> return 61
+        "gray & pink" -> return 39
+        "gray & red" -> return 58
+        "gray & white" -> return 67
+        "gray & yellow" -> return 68
+        "green & orange" -> return 65
+        "green & peach" -> return 63
+        "green & pink" -> return 56
+        "green & purple" -> return 43
+        "green & turquoise" -> return 62
+        "green & white" -> return 30
+        "green & yellow" -> return 22
+        "lavender & white" -> return 42
+        "maroon & pink" -> return 40
+        "orange & turquoise" -> return 50
+        "orange & white" -> return 64
+        "orange & yellow" -> return 23
+        "peach & purple" -> return 60
+        "peach & red" -> return 66
+        "peach & white" -> return 18
+        "pink & purple" -> return 15
+        "pink & red specks" -> return 37
+        "pink & turquoise" -> return 29
+        "pink & white" -> return 25
+        "pink & yellow" -> return 72
+        "red & turquoise" -> return 17
+        "red & white" -> return 35
+        "red & yellow" -> return 20
+        "tan & white" -> return 33
+        "turquoise & white" -> return 59
+        "turquoise & yellow" -> return 24
+        "white & blue specks" -> return 32
+        "white & red specks" -> return 41
+        "white & yellow" -> return 38
+        "yellow & gray" -> return 31
+        "yellow & white" -> return 36
+        else -> return -1
     }
 }
