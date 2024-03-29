@@ -30,6 +30,7 @@ import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
 import com.ztch.medilens_android_app.Authenticate.*
 import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
+import com.ztch.medilens_android_app.Refill.Cabinet
 
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
@@ -93,6 +94,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToCamera = { navController.navigate("Camera") },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToLogin = { navController.navigate("Login") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
                 viewModel = viewModel)
 
         }
@@ -132,6 +134,13 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("AlarmAdd") {
             AddReminderScreen(
                 onNavigateToAlert = { navController.navigate("Alarm") {} }, viewModel = viewModel)
+        }
+
+        composable("Cabinet") {
+            Cabinet(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} }
+            )
         }
 
   }
