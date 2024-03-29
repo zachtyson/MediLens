@@ -14,6 +14,11 @@ import retrofit2.Call
 import retrofit2.http.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 interface ApiService {
     @FormUrlEncoded
@@ -37,6 +42,114 @@ interface ApiService {
         @Query("color") color: Int,
         @Query("shape") shape: Int
     ): Call<List<PillInfoResponse>>
+
+    @FormUrlEncoded
+    @POST("medication/add_medication/")
+    fun addMedication(
+        @Field("token") token: String,
+        @Field("name") name: String,
+        @Field("color") color: String,
+        @Field("imprint") imprint: String,
+        @Field("shape") shape: String,
+        @Field("dosage") dosage: String,
+        @Field("intake_method") intakeMethod: String,
+        @Field("description") description: String,
+        @Field("schedule_start") scheduleStart: String,
+        @Field("interval_milliseconds") intervalMilliseconds: Int
+    ): Call<Map<String, String>>
+
+    @GET("medication/get_medications")
+    fun getMedications(
+        @Query("token") token: String
+    ): Call<List<Medication>>
+
+}
+
+data class Medication(
+    val id: Int,
+    val created_date: Date,
+    val owner_id: Int,
+    val name: String,
+    val description: String?,
+    val color: String?,
+    val imprint: String?,
+    val shape: String?,
+    val dosage: String?,
+    val intake_method: String?,
+    val schedule_start: Date?,
+    val interval_milliseconds: Int?
+)
+
+fun convertToLocalDateTime(date: Date): LocalDateTime {
+    val instant = date.toInstant()
+    return instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+}
+
+fun formatDateTime(localDateTime: LocalDateTime): String {
+    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, 'at' hh:mm a", Locale.US)
+    return formatter.format(localDateTime)
+}
+
+fun convertMillisecondsToHumanReadableTime(milliseconds: Int): String {
+    val years = milliseconds / 31536000000
+    val months = (milliseconds % 31536000000) / 2628000000
+    val days = ((milliseconds % 31536000000) % 2628000000) / 86400000
+    val hours = (((milliseconds % 31536000000) % 2628000000) % 86400000) / 3600000
+    val minutes = ((((milliseconds % 31536000000) % 2628000000) % 86400000) % 3600000) / 60000
+    val seconds = (((((milliseconds % 31536000000) % 2628000000) % 86400000) % 3600000) % 60000) / 1000
+    var ret = ""
+    if (years > 0) {
+        ret += "$years year"
+        if (years > 1) {
+            ret += "s"
+        }
+    }
+    if (months > 0) {
+        if (ret.isNotEmpty()) {
+            ret += ", "
+        }
+        ret += "$months month"
+        if (months > 1) {
+            ret += "s"
+        }
+    }
+    if (days > 0) {
+        if (ret.isNotEmpty()) {
+            ret += ", "
+        }
+        ret += "$days day"
+        if (days > 1) {
+            ret += "s"
+        }
+    }
+    if (hours > 0) {
+        if (ret.isNotEmpty()) {
+            ret += ", "
+        }
+        ret += "$hours hour"
+        if (hours > 1) {
+            ret += "s"
+        }
+    }
+    if (minutes > 0) {
+        if (ret.isNotEmpty()) {
+            ret += ", "
+        }
+        ret += "$minutes minute"
+        if (minutes > 1) {
+            ret += "s"
+        }
+    }
+    if (seconds > 0) {
+        if (ret.isNotEmpty()) {
+            ret += ", "
+        }
+        ret += "$seconds second"
+        if (seconds > 1) {
+            ret += "s"
+        }
+    }
+    return ret
 }
 
 data class UserRegistrationCredentials(
