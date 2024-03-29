@@ -4,4 +4,6 @@ import androidx.lifecycle.ViewModel
 
 class SharedViewModel: ViewModel() {
     var imageAndPrediction: ImageAndPrediction? = null
+
+    var currentPillInfo: PillInfo? = null
 }
