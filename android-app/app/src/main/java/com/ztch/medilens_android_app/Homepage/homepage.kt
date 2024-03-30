@@ -8,18 +8,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
 
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
@@ -32,8 +30,20 @@ import com.ztch.medilens_android_app.Notifications.AlarmViewModel
 import com.ztch.medilens_android_app.Notifications.Repetition
 import com.ztch.medilens_android_app.Notifications.formatLocalDateTimeWithAMPM
 
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+
 @Composable
-fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel) {
+fun HomePage(onNavigateToCamera: () -> Unit,
+             onNavigateToAlarm: () -> Unit,
+             onNavigateToLogin: () -> Unit,
+             onNavigateToCabinet: () -> Unit,
+             viewModel: AlarmViewModel,
+             ) {
+    val context = LocalContext.current
+    if(!TokenAuth.isLoggedIn(context)) {
+        // if user is not logged in, navigate to login page
+        onNavigateToLogin()
+    }
 
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -54,7 +64,11 @@ fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewM
             )
         },
         bottomBar = {
-          appbarBottom(onNavigateToCamera = onNavigateToCamera, onNavigateToAlarm = onNavigateToAlarm)
+
+          appbarBottom(
+              onNavigateToCamera = onNavigateToCamera,
+              onNavigateToAlarm = onNavigateToAlarm,
+              onNavigateToCabinet = onNavigateToCabinet)
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->

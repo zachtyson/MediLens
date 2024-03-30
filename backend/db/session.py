@@ -18,6 +18,7 @@ database = Database(settings.DATABASE_URL)
 # Create tables
 UserBase.metadata.create_all(bind=engine)
 MedicationBase.metadata.create_all(bind=engine)
+DrugInteractionBase.metadata.create_all(bind=engine)
 
 def get_db() -> Session:
     db = SessionLocal()

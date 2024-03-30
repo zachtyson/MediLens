@@ -20,14 +20,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ztch.medilens_android_app.ApiUtils.ApiService
 import com.ztch.medilens_android_app.ApiUtils.LoginTokenResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
+import androidx.compose.ui.platform.LocalContext
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+
 
 import com.ztch.medilens_android_app.R
 
 @Composable
 fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
+    val context = LocalContext.current
     Log.d("login", "Recomposed")
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -120,8 +123,18 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                     override fun onResponse(call: retrofit2.Call<LoginTokenResponse>, response: retrofit2.Response<LoginTokenResponse>) {
                         if (response.isSuccessful) {
                             Log.d("Login Success", "Token: ${response.body()?.access_token}")
-                            // Navigate to home page or save the token as needed
-                            onNavigateToHomePage()
+                            // Save the token and try to navigate to the home page
+                            val token = response.body()?.access_token
+                            if(token == null) {
+                                Log.d("Login Error", "Token is null")
+                                return
+                            }
+                            if(TokenAuth.logIn(context, token)) {
+                                onNavigateToHomePage()
+                            } else {
+                                Log.d("Login Error", "Failed to save token")
+                            }
+
                         } else {
                             Log.d("Login Failure", "Incorrect email or password")
                             // display on the UI

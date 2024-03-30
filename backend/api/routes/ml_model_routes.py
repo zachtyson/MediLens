@@ -34,6 +34,8 @@ class MultiTaskResNet(nn.Module):
 model = MultiTaskResNet(models.resnet18(pretrained=True), 512, 105, 16)
 model.load_state_dict(torch.load('ml/multi_task_resnet18.pth'))
 model.eval()  # Set the model to evaluation mode
+# try cuda
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 shape_labels = pd.read_csv('ml/splshape_text_encoding.csv')
 shape_labels = {row[1]: row[0] for row in shape_labels.values}
