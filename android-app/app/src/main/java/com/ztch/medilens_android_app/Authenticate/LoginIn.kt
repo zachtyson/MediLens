@@ -116,7 +116,7 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
         )
 
         Button(
-            onClick = {onNavigateToHomePage()
+            onClick = { onNavigateToHomePage()
               /*  // Call login API
                 val service = RetrofitClient.apiService
                 service.loginUser(email, password).enqueue(object : retrofit2.Callback<LoginTokenResponse> {

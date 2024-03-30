@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from db.session import SessionLocal
+from backend.db.session import SessionLocal
 from fastapi import APIRouter, HTTPException, Form, Depends
-from models.user import User
-from models.medication import Medication
+from backend.models.user import User
+from backend.models.medication import Medication
 from zoneinfo import ZoneInfo
 
-from schemas.medication import MedicationCreate
+from backend.schemas.medication import MedicationCreate
 from typing import Annotated, List
 
 from sqlalchemy.orm import Session

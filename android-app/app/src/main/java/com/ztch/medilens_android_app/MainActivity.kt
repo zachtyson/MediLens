@@ -12,7 +12,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -76,14 +79,14 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
 
         composable("SignUp") {
             SignUp(
-                onNavigateToHome = { navController.navigate("HomePage") {} }
-                , onNavigateToLogin = { navController.navigate("Login") })
+                onNavigateToHome = { navController.navigate("HomePage") {} },
+                onNavigateToLogin = { navController.navigate("Login") })
         }
 
         composable("Login") {
             Login(
-                onNavigateToHomePage = { navController.navigate("Home") {}}
-                ,onNavigateToSignUp = { navController.navigate("SignUp") })
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToSignUp = { navController.navigate("SignUp") })
         }
 
         composable("Home") {
@@ -93,21 +96,24 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToLogin = { navController.navigate("Login") {} },
                 onNavigateToCabinet = { navController.navigate("Cabinet") {} },
-                viewModel = viewModel)
+                viewModel = viewModel
+            )
 
         }
 
         composable("Alarm") {
             notificationScreen(
-                onNavigateToHomePage = { navController.navigate("Home")},
-                onNavigateToPillInformation = { navController.navigate("PillInformation") {}} ,viewModel = viewModel)
+                onNavigateToHomePage = { navController.navigate("Home") },
+                onNavigateToPillInformation = { navController.navigate("PillInformation") {} }, viewModel = viewModel
+            )
         }
 
         composable("Camera") {
             CameraXGuideTheme(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
-                sharedViewModel = sharedCameraImageViewerModel)
+                sharedViewModel = sharedCameraImageViewerModel
+            )
         }
 
         composable("ImageViewer") {
@@ -143,11 +149,11 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
             route = "AlarmTimes/{mediName}/{dose}/{strength}/{RX}/{form}",
 
             arguments = listOf(
-                navArgument("mediName") { type = NavType.StringType ; defaultValue = ""},
-                navArgument("dose") { type = NavType.StringType ; defaultValue = ""  },
-                navArgument("strength") { type = NavType.StringType ; nullable = true ; defaultValue = ""},
-                navArgument("RX") { type = NavType.StringType ; nullable = true ; defaultValue = ""},
-                navArgument("form") { type = NavType.StringType ; nullable = true ; defaultValue = ""}
+                navArgument("mediName") { type = NavType.StringType; defaultValue = "" },
+                navArgument("dose") { type = NavType.StringType; defaultValue = "" },
+                navArgument("strength") { type = NavType.StringType; nullable = true; defaultValue = "" },
+                navArgument("RX") { type = NavType.StringType; nullable = true; defaultValue = "" },
+                navArgument("form") { type = NavType.StringType; nullable = true; defaultValue = "" }
             )
         ) { backStackEntry ->
             AlarmTimesScreen(
@@ -168,7 +174,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
             )
         }
 
-  }
+    }
 
 }
 
