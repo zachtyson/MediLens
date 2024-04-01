@@ -423,7 +423,7 @@ fun AlarmTimesScreen(
                         onCheckedChange = { isChecked ->
                             openGallery()
                         },
-                        modifier = Modifier.padding(start = 70.dp)
+                        modifier = Modifier.padding(start = 85.dp)
                     )
                 }
 

@@ -11,7 +11,7 @@ from typing import Annotated, List
 
 from sqlalchemy.orm import Session
 
-from backend.core.security import verify_token, get_id_from_token
+from core.security import verify_token, get_id_from_token
 
 router = APIRouter()
 
