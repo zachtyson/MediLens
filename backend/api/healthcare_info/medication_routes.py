@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Form, Depends
 from models.user import User
 from models.medication import Medication
 from zoneinfo import ZoneInfo
+from core.security import get_token_from_header
 
 from schemas.medication import MedicationCreate
 from typing import Annotated, List
@@ -26,11 +27,12 @@ def get_db():
 
 # Simple route for adding medicine to the database, should return simple success message or error message
 @router.post("/medication/add_medication")
-async def add_medication(token: Annotated[str, Form()], name: str = Form(...), color: str = Form(...),
+async def add_medication(name: str = Form(...), color: str = Form(...),
                          imprint: str = Form(...),
                          shape: str = Form(...), dosage: str = Form(...), intake_method: str = Form(...),
                          description: str = Form(...), schedule_start: str = Form(...),
-                         interval_milliseconds: int = Form(...), db: Session = Depends(get_db)):
+                         interval_milliseconds: int = Form(...), db: Session = Depends(get_db),
+                         token: str = Depends(get_token_from_header)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
     # get user id from token
@@ -71,10 +73,7 @@ async def add_medication(token: Annotated[str, Form()], name: str = Form(...), c
 
 
 @router.get("/medication/get_medications")
-# todo: why did i ever let the token be
-#  passed as a query parameter instead of a
-#  header or in the body HAHAHAHAHA ill fix this later
-async def get_medications(token: str, db: Session = Depends(get_db)):
+async def get_medications(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
     user_id = get_id_from_token(token)
