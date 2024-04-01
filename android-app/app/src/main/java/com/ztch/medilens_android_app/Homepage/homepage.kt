@@ -32,7 +32,12 @@ import com.ztch.medilens_android_app.Notifications.formatLocalDateTimeWithAMPM
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 
 @Composable
-fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewModel: AlarmViewModel, onNavigateToLogin: () -> Unit) {
+fun HomePage(onNavigateToCamera: () -> Unit,
+             onNavigateToAlarm: () -> Unit,
+             onNavigateToLogin: () -> Unit,
+             onNavigateToCabinet: () -> Unit,
+             viewModel: AlarmViewModel,
+             ) {
     val context = LocalContext.current
     if(!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to login page
@@ -59,7 +64,10 @@ fun HomePage(onNavigateToCamera: () -> Unit, onNavigateToAlarm: () -> Unit,viewM
         },
         bottomBar = {
 
-          appbarBottom(onNavigateToCamera = onNavigateToCamera, onNavigateToAlarm = onNavigateToAlarm)
+          appbarBottom(
+              onNavigateToCamera = onNavigateToCamera,
+              onNavigateToAlarm = onNavigateToAlarm,
+              onNavigateToCabinet = onNavigateToCabinet)
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->

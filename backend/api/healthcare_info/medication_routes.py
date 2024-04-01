@@ -1,7 +1,11 @@
+from datetime import datetime
+
 from db.session import SessionLocal
 from fastapi import APIRouter, HTTPException, Form, Depends
 from models.user import User
 from models.medication import Medication
+from zoneinfo import ZoneInfo
+from core.security import get_token_from_header
 
 from schemas.medication import MedicationCreate
 from typing import Annotated, List
@@ -23,15 +27,21 @@ def get_db():
 
 # Simple route for adding medicine to the database, should return simple success message or error message
 @router.post("/medication/add_medication")
-async def add_medication(token: Annotated[str, Form()], name: str = Form(...), color: str = Form(...),
+async def add_medication(name: str = Form(...), color: str = Form(...),
                          imprint: str = Form(...),
                          shape: str = Form(...), dosage: str = Form(...), intake_method: str = Form(...),
                          description: str = Form(...), schedule_start: str = Form(...),
-                         interval_milliseconds: int = Form(...), db: Session = Depends(get_db)):
+                         interval_milliseconds: int = Form(...), db: Session = Depends(get_db),
+                         token: str = Depends(get_token_from_header)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
     # get user id from token
     user_id = get_id_from_token(token)
+
+    # store schedule_start as a datetime object with timezone, might be needed later
+    # schedule_start = datetime.fromisoformat(schedule_start)
+    # schedule_start = schedule_start.replace(tzinfo=ZoneInfo("UTC"))
+
     print(user_id)
     if not db.query(User).filter(User.id == user_id).first():
         raise HTTPException(status_code=404, detail="User not found")
@@ -63,12 +73,23 @@ async def add_medication(token: Annotated[str, Form()], name: str = Form(...), c
 
 
 @router.get("/medication/get_medications")
-async def get_medications(token: str):
+async def get_medications(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
-    db = get_db()
     user_id = get_id_from_token(token)
+    print(user_id)
     if not db.query(User).filter(User.id == user_id).first():
         raise HTTPException(status_code=404, detail="User not found")
     medications = db.query(Medication).filter(Medication.owner_id == user_id).all()
+    # convert created_date to ISO8601 format with timezone
+
+    for med in medications:
+        if med.created_date:  # Check if created_date is not None
+            med.created_date = med.created_date.replace(tzinfo=ZoneInfo("UTC")).isoformat()
+        if med.schedule_start:  # Check if schedule_start is not None
+            med.schedule_start = med.schedule_start.replace(tzinfo=ZoneInfo("UTC")).isoformat()
+
+    # convert to dictionary
+    medications = [med.__dict__ for med in medications]
+    print(medications)
     return medications

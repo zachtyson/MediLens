@@ -5,6 +5,7 @@ from databases import Database
 from core.config import settings
 from models.user import User, Base as UserBase
 from models.medication import Medication, Base as MedicationBase
+from models.drug_interaction import DrugInteraction, Base as DrugInteractionBase
 
 # Create the engine
 engine = create_engine(settings.DATABASE_URL, pool_size=5, max_overflow=1)
@@ -18,6 +19,7 @@ database = Database(settings.DATABASE_URL)
 # Create tables
 UserBase.metadata.create_all(bind=engine)
 MedicationBase.metadata.create_all(bind=engine)
+DrugInteractionBase.metadata.create_all(bind=engine)
 
 def get_db() -> Session:
     db = SessionLocal()
