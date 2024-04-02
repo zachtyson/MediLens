@@ -12,6 +12,7 @@ import torch.nn as nn
 from ultralytics import YOLO
 import easyocr
 from bs4 import BeautifulSoup
+from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter()
 
@@ -31,6 +32,10 @@ async def pill_from_imprint(imprint: str, color: int, shape: int):
     }
     url = f"https://www.drugs.com/imprints.php?imprint={imprint}&color={color}&shape={shape}"
     response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        # return code 500 if the request fails
+        raise HTTPException(status_code=500, detail="Request failed")
+
     res = response.text
 
     soup = BeautifulSoup(res, 'html.parser')
@@ -38,10 +43,13 @@ async def pill_from_imprint(imprint: str, color: int, shape: int):
     # Find all divs with the specific class
     div_content = soup.find_all('div', class_='ddc-card')
 
-    # Initialize a dictionary to store the extracted information
-    extracted_info = []
-
     # Extract and print the desired information
+    extracted_info = extract_info(div_content)
+    return extracted_info
+
+
+def extract_info(div_content):
+    extracted_info = []
     if div_content:
         for div in div_content:
             # Get URL: data-image-src
@@ -61,5 +69,4 @@ async def pill_from_imprint(imprint: str, color: int, shape: int):
                     value = dt_dd_pairs[i + 1].get_text().strip()
                     obj[key] = value
                 extracted_info.append(obj)
-    print(extracted_info)
     return extracted_info

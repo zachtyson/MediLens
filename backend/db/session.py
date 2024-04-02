@@ -1,3 +1,5 @@
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
@@ -20,6 +22,7 @@ database = Database(settings.DATABASE_URL)
 UserBase.metadata.create_all(bind=engine)
 MedicationBase.metadata.create_all(bind=engine)
 DrugInteractionBase.metadata.create_all(bind=engine)
+
 
 def get_db() -> Session:
     db = SessionLocal()

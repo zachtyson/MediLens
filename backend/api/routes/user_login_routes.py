@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from backend.models.user import User
-from backend.db.session import SessionLocal
+from models.user import User
+from db.session import SessionLocal
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-from backend.core.security import Token, verify_password, access_token_minutes, create_access_token
+from core.security import Token, verify_password, access_token_minutes, create_access_token
 
 router = APIRouter()
 
@@ -19,7 +19,7 @@ def get_db():
 
 
 @router.post("/login/e", response_model=Token)
-async def create_token(email: Annotated[str, Form()], password: Annotated[str, Form()]):
+async def login_with_email(email: Annotated[str, Form()], password: Annotated[str, Form()]):
     user = authenticate_user_email(email, password, SessionLocal())
     if not user:
         raise HTTPException(
