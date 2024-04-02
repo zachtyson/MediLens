@@ -61,6 +61,9 @@ interaction_5 = {
     "extended_description": "drug_e interacts with drug_a extended"
 }
 
+def get_interactions_arr():
+    return [interaction_1, interaction_2, interaction_3, interaction_4, interaction_5]
+
 @pytest.mark.asyncio
 async def test_get_medication_interaction_1(async_client: AsyncClient, test_db: AsyncSession):
     # clear the testing interaction table
@@ -70,7 +73,7 @@ async def test_get_medication_interaction_1(async_client: AsyncClient, test_db: 
     # verify that the table is empty
     i = await test_db.execute(select(DrugInteraction))
     i = i.all()
-    interactions_arr = [interaction_1, interaction_2, interaction_3, interaction_4, interaction_5]
+    interactions_arr = get_interactions_arr()
 
     assert len(i) == 0
 
@@ -161,6 +164,155 @@ async def test_get_medication_interaction_1(async_client: AsyncClient, test_db: 
 
     response = await async_client.get("/medication/interactions?drug_a=drug_a&drug_b=drug_c")
     assert response.status_code == 204
+
+    # delete all interactions from the table
+    await test_db.execute("DELETE FROM drug_interactions")
+    await test_db.commit()
+
+    # verify that the table is empty
+    interactions = await test_db.execute(select(DrugInteraction))
+    interactions = interactions.all()
+
+    assert len(interactions) == 0
+
+@pytest.mark.asyncio
+async def test_get_medication_interaction_case_insensitive(async_client: AsyncClient, test_db: AsyncSession):
+    # clear the testing interaction table
+    await test_db.execute("DELETE FROM drug_interactions")
+    await test_db.commit()
+
+    # verify that the table is empty
+    i = await test_db.execute(select(DrugInteraction))
+    i = i.all()
+
+    assert len(i) == 0
+
+    # add all five interactions to the table
+    interactions_arr = get_interactions_arr()
+    async with test_db as db:
+        for interaction in interactions_arr:
+            await db.execute(DrugInteraction.__table__.insert().values(drug_a=interaction["drug_a"],
+                                                                       drug_b=interaction["drug_b"],
+                                                                       severity=interaction["severity"],
+                                                                       description=interaction["description"],
+                                                                       extended_description=interaction[
+                                                                           "extended_description"]))
+        await db.commit()
+
+    # verify that the table has five interactions
+    i = await test_db.execute(select(DrugInteraction))
+    i = i.all()
+
+    assert len(i) == 5
+
+    # Verify that the interactions are case insensitive
+
+    # test the first interaction between drug_a and drug_b
+
+    response = await async_client.get("/medication/interactions?drug_a=DRUG_A&drug_b=DruG_B")
+    assert response.status_code == 200
+
+    interaction = response.json()
+
+    assert interaction["drug_a"] == "drug_a"
+    assert interaction["drug_b"] == "drug_b"
+    assert interaction["severity"] == "mild"
+    assert interaction["description"] == "drug_a interacts with drug_b"
+    assert interaction["extended_description"] == "drug_a interacts with drug_b extended"
+
+    # delete all interactions from the table
+    await test_db.execute("DELETE FROM drug_interactions")
+    await test_db.commit()
+
+    # verify that the table is empty
+    interactions = await test_db.execute(select(DrugInteraction))
+    interactions = interactions.all()
+
+    assert len(interactions) == 0
+
+@pytest.mark.asyncio
+async def test_get_medication_interaction_no_interaction(async_client: AsyncClient, test_db: AsyncSession):
+    # clear the testing interaction table
+    await test_db.execute("DELETE FROM drug_interactions")
+    await test_db.commit()
+
+    # verify that the table is empty
+    i = await test_db.execute(select(DrugInteraction))
+    i = i.all()
+
+    assert len(i) == 0
+
+    # add all five interactions to the table
+    interactions_arr = get_interactions_arr()
+    async with test_db as db:
+        for interaction in interactions_arr:
+            await db.execute(DrugInteraction.__table__.insert().values(drug_a=interaction["drug_a"],
+                                                                       drug_b=interaction["drug_b"],
+                                                                       severity=interaction["severity"],
+                                                                       description=interaction["description"],
+                                                                       extended_description=interaction[
+                                                                           "extended_description"]))
+        await db.commit()
+
+    # verify that the table has five interactions
+    i = await test_db.execute(select(DrugInteraction))
+    i = i.all()
+
+    assert len(i) == 5
+
+    # test an interaction that does not exist, such as drug_a and drug_c
+
+    response = await async_client.get("/medication/interactions?drug_a=drug_a&drug_b=drug_c")
+    assert response.status_code == 204
+
+    # delete all interactions from the table
+    await test_db.execute("DELETE FROM drug_interactions")
+    await test_db.commit()
+
+    # verify that the table is empty
+    interactions = await test_db.execute(select(DrugInteraction))
+    interactions = interactions.all()
+
+    assert len(interactions) == 0
+
+@pytest.mark.asyncio
+async def test_get_medication_interaction_invalid_query(async_client: AsyncClient, test_db: AsyncSession):
+    # clear the testing interaction table
+    await test_db.execute("DELETE FROM drug_interactions")
+    await test_db.commit()
+
+    # verify that the table is empty
+    i = await test_db.execute(select(DrugInteraction))
+    i = i.all()
+
+    assert len(i) == 0
+
+    # add all five interactions to the table
+    interactions_arr = get_interactions_arr()
+    async with test_db as db:
+        for interaction in interactions_arr:
+            await db.execute(DrugInteraction.__table__.insert().values(drug_a=interaction["drug_a"],
+                                                                       drug_b=interaction["drug_b"],
+                                                                       severity=interaction["severity"],
+                                                                       description=interaction["description"],
+                                                                       extended_description=interaction[
+                                                                           "extended_description"]))
+        await db.commit()
+
+    # verify that the table has five interactions
+    i = await test_db.execute(select(DrugInteraction))
+    i = i.all()
+
+    assert len(i) == 5
+
+    response = await async_client.get("/medication/interactions?drug_a=drug_a")
+    assert response.status_code == 422
+
+    response = await async_client.get("/medication/interactions?drug_b=drug_b")
+    assert response.status_code == 422
+
+    response = await async_client.get("/medication/interactions")
+    assert response.status_code == 422
 
     # delete all interactions from the table
     await test_db.execute("DELETE FROM drug_interactions")
