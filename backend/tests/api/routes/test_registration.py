@@ -154,3 +154,69 @@ async def test_get_user(async_client: AsyncClient, test_db: AsyncSession):
         await db.delete(db_user)
         await db.commit()
 
+
+@pytest.mark.asyncio
+async def test_update_user(async_client: AsyncClient, test_db: AsyncSession):
+    user_data = {"email": "update@email.com", "password": "password123"}
+
+    # verify that the user is not already in the database
+    async with test_db as db:
+        query = select(User).filter(User.email == user_data["email"])
+        db_user = await db.execute(query)
+        db_user = db_user.scalars().first()
+        assert db_user is None
+
+    # create the user
+    async with test_db as db:
+        db_user = User(email=user_data["email"], hashed_password=get_password_hash(user_data["password"]))
+        db.add(db_user)
+        await db.commit()
+        await db.refresh(db_user)
+
+    """@router.post("/login/e", response_model=Token)
+async def create_token(email: Annotated[str, Form()], password: Annotated[str, Form()]):
+    user = authenticate_user_email(email, password, SessionLocal())
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=access_token_minutes)
+    # subject = email and user.id in json format
+    sub = {"email": user.email, "id": user.id}
+    access_token = create_access_token(sub, expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "bearer"}"""
+    # testing this function DOES require the creation of a token, so this can't be tested in isolation
+    # email and password in request body
+    response = await async_client.post(f"/login/e",
+                                      data={"email": user_data["email"], "password": user_data["password"]})
+    assert response.status_code == 200
+    # get token from access_token
+    token = response.json()["access_token"]
+    # update the user
+    new_email = "updated2@email.com"
+    new_password = "newpassword123"
+    response = await async_client.put(f"/users/{db_user.id}",
+                                      json={"email": new_email, "password": new_password},
+                                      headers={"token": f"{token}"})
+    assert response.status_code == 200
+    user = response.json()
+    assert user["email"] == new_email
+    # verify the user is actually updated in the database
+    async with test_db as db:
+        query = select(User).filter(User.id == db_user.id)
+        db_user = await db.execute(query)
+        db_user = db_user.scalars().first()
+        assert db_user.email == new_email
+        assert db_user.hashed_password != new_password
+
+    # delete the user directly from the database
+    async with test_db as db:
+        query = select(User).filter(User.email == new_email)
+        db_user = await db.execute(query)
+        db_user = db_user.scalars().first()
+        await db.delete(db_user)
+        await db.commit()
+
+
