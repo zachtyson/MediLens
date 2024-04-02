@@ -12,6 +12,7 @@ import torch.nn as nn
 from ultralytics import YOLO
 import easyocr
 from bs4 import BeautifulSoup
+from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter()
 
@@ -31,6 +32,10 @@ async def pill_from_imprint(imprint: str, color: int, shape: int):
     }
     url = f"https://www.drugs.com/imprints.php?imprint={imprint}&color={color}&shape={shape}"
     response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        # return code 500 if the request fails
+        raise HTTPException(status_code=500, detail="Request failed")
+
     res = response.text
 
     soup = BeautifulSoup(res, 'html.parser')
