@@ -23,12 +23,6 @@ UserBase.metadata.create_all(bind=engine)
 MedicationBase.metadata.create_all(bind=engine)
 DrugInteractionBase.metadata.create_all(bind=engine)
 
-# pytest replace
-
-TEST_URL = settings.DATABASE_URL.replace("pymysql", "aiomysql")
-async_engine = create_async_engine(TEST_URL, echo=True)
-AsyncSessionLocal = sessionmaker(autocommit=False, autoflush=False,
-                                 bind=async_engine, class_=AsyncSession, expire_on_commit=False)
 
 def get_db() -> Session:
     db = SessionLocal()
