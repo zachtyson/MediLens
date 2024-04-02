@@ -25,9 +25,16 @@ async def get_users(db: Session = Depends(get_db)):
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, db: Session = Depends(get_db)):
+async def get_user(user_id: int, db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
+    # if current_user_id is None then the token is invalid
+    current_user_id = get_id_from_token(token)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    if current_user_id != user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
+        # honestly this should never happen since the token is valid
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
