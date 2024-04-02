@@ -137,7 +137,7 @@ async def test_authenticate(async_client: AsyncClient, test_db: AsyncSession):
         assert db_medication.dosage == medication_one["dosage"]
         assert db_medication.intake_method == medication_one["intake_method"]
         assert db_medication.description == medication_one["description"]
-        assert db_medication.schedule_start == medication_one["schedule_start"]
+        assert db_medication.schedule_start.strftime("%Y-%m-%dT%H:%M:%S") == medication_one["schedule_start"]
         assert db_medication.interval_milliseconds == medication_one["interval_milliseconds"]
 
     # delete all entries in medication table
