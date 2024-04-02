@@ -67,9 +67,11 @@ async def add_medication(name: str = Form(...), color: str = Form(...),
         db.add(new_medication)
         db.commit()
         db.refresh(new_medication)
+        # return success message 200
         return {"message": "Medication added successfully"}
     except Exception as e:
-        return {"message": f"Error adding medication: {e}"}
+        # return
+        raise HTTPException(status_code=400, detail="Failed to add medication")
 
 
 @router.get("/medication/get_medications")
