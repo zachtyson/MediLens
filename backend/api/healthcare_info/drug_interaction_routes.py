@@ -29,6 +29,11 @@ def get_db():
 async def get_medication_interaction(drug_a: str, drug_b: str, db: Session = Depends(get_db)):
     # sort the drugs alphabetically
     drug_a, drug_b = sorted([drug_a, drug_b])
+
+    # put drugs in lowercase
+    drug_a = drug_a.lower()
+    drug_b = drug_b.lower()
+
     interaction = db.query(DrugInteraction).filter(DrugInteraction.drug_a == drug_a,
                                                    DrugInteraction.drug_b == drug_b).first()
     if interaction is None:
