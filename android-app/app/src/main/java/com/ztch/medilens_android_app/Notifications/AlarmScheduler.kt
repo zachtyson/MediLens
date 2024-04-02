@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getSystemService
@@ -55,7 +56,7 @@ class AlarmScheduler(
             set(Calendar.MINUTE, item.time.minute)
             set(Calendar.SECOND, item.time.second)
         }
-
+        Log.d("time in alarm", "calendar time: ${calendar.time}")
         when (item.repetition) {
             Repetition.ONCE -> {
              alarmManager.setExactAndAllowWhileIdle(
@@ -66,7 +67,7 @@ class AlarmScheduler(
 
             }
             Repetition.EVERY_DAY -> {
-                alarmManager.setInexactRepeating(
+                alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP,
                     calendar.timeInMillis,
                     AlarmManager.INTERVAL_DAY,
@@ -74,7 +75,7 @@ class AlarmScheduler(
                 )
             }
             Repetition.HOURLY -> {
-                alarmManager.setInexactRepeating(
+                alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP,
                     calendar.timeInMillis,
                     AlarmManager.INTERVAL_HOUR,

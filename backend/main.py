@@ -16,7 +16,6 @@ app.include_router(medication_routes.router)
 app.include_router(pill_from_imprint_demo.router)
 app.include_router(drug_interaction_routes.router)
 
-
 # gets the origins from the environment variable CORS_ORIGINS, if it exists, or defaults to the android studio emulator
 origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5555,https://localhost:5555,http://localhost")
 origins = origins_env.split(",")

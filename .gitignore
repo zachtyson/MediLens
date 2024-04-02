@@ -7,3 +7,5 @@
 /pillbox_production_images_full_202008/
 /ml_model/pillbox_production_images_full_202008/
 /ml_model/data/
+/env
+.env

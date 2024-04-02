@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Notifications
 
+import android.net.Uri
 import java.time.LocalDateTime
 
 data class AlarmItem(
@@ -9,7 +10,8 @@ data class AlarmItem(
     val strength: String,
     val RX: String,
     val form: String,
-    val repetition: Repetition
+    val repetition: Repetition,
+    val imageUri: Uri?
 )
 
 enum class Repetition { EVERY_DAY, ONCE, HOURLY, WEEKLY }

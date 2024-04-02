@@ -2,6 +2,7 @@ package com.ztch.medilens_android_app.ApiUtils
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -63,8 +64,21 @@ interface ApiService {
         @Header("token") token: String
     ): Call<List<Medication>>
 
+    @GET("/medication/interactions")
+    fun getMedicationInteractions(
+        @Query("drug_a") drugA: String,
+        @Query("drug_b") drugB: String
+    ): Call<MedicationInteractionResponse>
+
 }
 
+data class MedicationInteractionResponse(
+    @SerializedName("drug_a") val drugA: String,
+    @SerializedName("drug_b") val drugB: String,
+    @SerializedName("severity") val severity: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("extended_description") val extendedDescription: String
+)
 data class Medication(
     val id: Int,
     val created_date: Date,
