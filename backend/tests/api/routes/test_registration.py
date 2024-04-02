@@ -62,10 +62,20 @@ async def test_create_user(async_client: AsyncClient, test_db: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_get_users(async_client: AsyncClient, test_db: AsyncSession):
-    # create 3 users directly in the database
+
+    # verify that user1 email, user2 email, and user3 email are not already in the database
     user_data1 = {"email": "user1@email.com", "password": "password123"}
     user_data2 = {"email": "user2@email.com", "password": "password123"}
     user_data3 = {"email": "user3@email.com", "password": "password123"}
+
+    response = await async_client.get("/users")
+    assert response.status_code == 200
+    users = response.json()
+
+    # assert those users are not in the response
+    assert user_data1["email"] not in [user["email"] for user in users]
+    assert user_data2["email"] not in [user["email"] for user in users]
+    assert user_data3["email"] not in [user["email"] for user in users]
 
     async with test_db as db:
         db_user1 = User(email=user_data1["email"], hashed_password=get_password_hash(user_data1["password"]))
@@ -110,5 +120,37 @@ async def test_get_users(async_client: AsyncClient, test_db: AsyncSession):
     assert user_data3["email"] not in [user["email"] for user in users]
 
 
+@pytest.mark.asyncio
+async def test_get_user(async_client: AsyncClient, test_db: AsyncSession):
+    user_data = {"email": "email@email.com", "password": "password123"}
 
+    # verify that the user is not already in the database
+    async with test_db as db:
+        query = select(User).filter(User.email == user_data["email"])
+        db_user = await db.execute(query)
+        db_user = db_user.scalars().first()
+        assert db_user is None
+
+    # create the user
+    async with test_db as db:
+        # set outer
+        db_user = User(email=user_data["email"], hashed_password=get_password_hash(user_data["password"]))
+        db.add(db_user)
+        await db.commit()
+        await db.refresh(db_user)
+
+    response = await async_client.get(f"/users/{db_user.id}")
+    assert response.status_code == 200
+    user = response.json()
+    assert user["email"] == user_data["email"]
+    # assert id is the same as the one in the response
+    assert user["id"] == db_user.id
+
+    # delete the user directly from the database
+    async with test_db as db:
+        query = select(User).filter(User.email == user_data["email"])
+        db_user = await db.execute(query)
+        db_user = db_user.scalars().first()
+        await db.delete(db_user)
+        await db.commit()
 
