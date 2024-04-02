@@ -19,7 +19,7 @@ def get_db():
 
 
 @router.post("/login/e", response_model=Token)
-async def create_token(email: Annotated[str, Form()], password: Annotated[str, Form()]):
+async def login_with_email(email: Annotated[str, Form()], password: Annotated[str, Form()]):
     user = authenticate_user_email(email, password, SessionLocal())
     if not user:
         raise HTTPException(

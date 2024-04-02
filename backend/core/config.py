@@ -12,7 +12,10 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+# Load test database URL if it exists, otherwise load the production database URL
+DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
+if DATABASE_URL is None:
+    DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL is None:
     raise ValueError("DATABASE_URL environment variable is not set.")
 DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
