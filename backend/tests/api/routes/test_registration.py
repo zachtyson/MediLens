@@ -59,3 +59,56 @@ async def test_create_user(async_client: AsyncClient, test_db: AsyncSession):
         db_user = db_user.scalars().first()
         assert db_user is None
 
+
+@pytest.mark.asyncio
+async def test_get_users(async_client: AsyncClient, test_db: AsyncSession):
+    # create 3 users directly in the database
+    user_data1 = {"email": "user1@email.com", "password": "password123"}
+    user_data2 = {"email": "user2@email.com", "password": "password123"}
+    user_data3 = {"email": "user3@email.com", "password": "password123"}
+
+    async with test_db as db:
+        db_user1 = User(email=user_data1["email"], hashed_password=get_password_hash(user_data1["password"]))
+        db.add(db_user1)
+        await db.commit()
+        await db.refresh(db_user1)
+
+        db_user2 = User(email=user_data2["email"], hashed_password=get_password_hash(user_data2["password"]))
+        db.add(db_user2)
+        await db.commit()
+        await db.refresh(db_user2)
+
+        db_user3 = User(email=user_data3["email"], hashed_password=get_password_hash(user_data3["password"]))
+        db.add(db_user3)
+        await db.commit()
+        await db.refresh(db_user3)
+
+    response = await async_client.get("/users")
+    assert response.status_code == 200
+    users = response.json()
+    assert len(users) == 3
+    # the users might not be in the same order as they were created
+    assert user_data1["email"] in [user["email"] for user in users]
+    assert user_data2["email"] in [user["email"] for user in users]
+    assert user_data3["email"] in [user["email"] for user in users]
+
+    # delete the users directly from the database
+    async with test_db as db:
+        query = select(User).filter(User.email.in_([user_data1["email"], user_data2["email"], user_data3["email"]]))
+        db_users = await db.execute(query)
+        db_users = db_users.scalars().all()
+        for db_user in db_users:
+            await db.delete(db_user)
+        await db.commit()
+
+    response = await async_client.get("/users")
+    assert response.status_code == 200
+    users = response.json()
+    # assert those users are not in the response
+    assert user_data1["email"] not in [user["email"] for user in users]
+    assert user_data2["email"] not in [user["email"] for user in users]
+    assert user_data3["email"] not in [user["email"] for user in users]
+
+
+
+
