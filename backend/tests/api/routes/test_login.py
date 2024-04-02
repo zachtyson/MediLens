@@ -20,6 +20,11 @@ def user_to_create():
 
 @pytest.mark.asyncio
 async def test_successful_login(async_client: AsyncClient, test_db: AsyncSession):
+    # delete all users from the database
+    async with test_db as db:
+        await db.execute(User.__table__.delete())
+        await db.commit()
+
     user = user_to_create()
 
     # Create user directly in the database
@@ -45,6 +50,11 @@ async def test_successful_login(async_client: AsyncClient, test_db: AsyncSession
 
 @pytest.mark.asyncio
 async def test_unsuccessful_login_wrong_password(async_client: AsyncClient, test_db: AsyncSession):
+    # delete all users from the database
+    async with test_db as db:
+        await db.execute(User.__table__.delete())
+        await db.commit()
+
     user = user_to_create()
 
     # Create user directly in the database
@@ -70,6 +80,10 @@ async def test_unsuccessful_login_wrong_password(async_client: AsyncClient, test
 
 @pytest.mark.asyncio
 async def test_unsuccessful_login_wrong_email(async_client: AsyncClient, test_db: AsyncSession):
+    # delete all users from the database
+    async with test_db as db:
+        await db.execute(User.__table__.delete())
+        await db.commit()
     user = user_to_create()
 
     # Create user directly in the database
