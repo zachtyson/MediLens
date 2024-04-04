@@ -15,13 +15,18 @@ def get_db():
 
 
 @router.get("/medication/interactions")
-async def get_medication_interactions(drug_a: str = Form(...), drug_b: str = Form(...), db: Session = Depends(get_db)):
+async def get_medication_interaction(drug_a: str, drug_b: str, db: Session = Depends(get_db)):
     # sort the drugs alphabetically
     drug_a, drug_b = sorted([drug_a, drug_b])
-    interaction = db.query(DrugInteraction).filter(DrugInteraction.drug_a == drug_a, DrugInteraction.drug_b == drug_b).first()
-    if interaction is None:
-        raise HTTPException(status_code=404, detail="Interaction not found")
 
+    # put drugs in lowercase
+    drug_a = drug_a.lower()
+    drug_b = drug_b.lower()
+
+    interaction = db.query(DrugInteraction).filter(DrugInteraction.drug_a == drug_a,
+                                                   DrugInteraction.drug_b == drug_b).first()
+    if interaction is None:
+        raise HTTPException(status_code=204, detail="Interaction not found")
     return {
         "drug_a": interaction.drug_a,
         "drug_b": interaction.drug_b,

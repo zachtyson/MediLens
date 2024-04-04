@@ -6,6 +6,7 @@ from typing import Union, Any
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import Header, HTTPException
 import os
 
 access_token_minutes = 60
@@ -57,3 +58,7 @@ def get_id_from_token(token: str) -> Any | None:
     id = data_dict["id"]
     return id
 
+def get_token_from_header(token: str = Header(...)):
+    if not token:
+        raise HTTPException(status_code=400, detail="Token is missing from headers")
+    return token

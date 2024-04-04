@@ -47,7 +47,7 @@ interface ApiService {
     @FormUrlEncoded
     @POST("medication/add_medication/")
     fun addMedication(
-        @Field("token") token: String,
+        @Header("token") token: String,
         @Field("name") name: String,
         @Field("color") color: String,
         @Field("imprint") imprint: String,
@@ -61,7 +61,7 @@ interface ApiService {
 
     @GET("medication/get_medications")
     fun getMedications(
-        @Query("token") token: String
+        @Header("token") token: String
     ): Call<List<Medication>>
 
     @GET("/medication/interactions")
