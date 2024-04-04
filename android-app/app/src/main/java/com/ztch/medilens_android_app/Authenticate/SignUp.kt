@@ -32,6 +32,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
     var password by remember { mutableStateOf("") }
     var legalName by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var errorText by remember { mutableStateOf("") }
+    var successText by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -125,6 +127,20 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
                 //    val email: String,
                 //    val password: String,
                 //)
+                // check if password and confirm password are the same
+                if (password != confirmPassword) {
+                    Log.d("Register", "Passwords do not match")
+                    errorText = "Passwords do not match"
+                    return@Button
+                }
+                if (email.isEmpty() || password.isEmpty() || legalName.isEmpty()) {
+                    Log.d("Register", "Empty fields")
+                    errorText = "Please fill all fields"
+                    return@Button
+                }
+                else {
+                    errorText = ""
+                }
                 val userToCreate = UserRegistrationCredentials(email, password)
                 service.createUser(userToCreate).enqueue(object : retrofit2.Callback<RegisterResponse> {
                     override fun onResponse(
@@ -134,9 +150,20 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
                         if (response.isSuccessful) {
                             val registerResponse = response.body()
                             Log.d("Register", "Response: $registerResponse")
+                            successText = "Account created successfully"
+                            // Wait for a second before navigating to the login page
+                            android.os.Handler().postDelayed({
+                                onNavigateToLogin()
+                            }, 500)
                             // Navigate to Login page
                             onNavigateToLogin()
                         } else {
+                            // if code 409 is returned, it means the email is already in use
+                            errorText = if (response.code() == 409) {
+                                "Email already in use"
+                            } else {
+                                "An error occurred"
+                            }
                             Log.d("Register", "Error: ${response.errorBody()}")
                         }
                     }
@@ -149,10 +176,20 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             colors = ButtonDefaults.buttonColors(colorResource(id = R.color.Purple)),
             modifier = Modifier
                 .size(150.dp, 50.dp)
-                .align(Alignment.End),
+                .align(Alignment.CenterHorizontally),
         ) {
             Text("Register")
         }
+        Text(
+            text = errorText,
+            color = Color.Red,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(
+            text = successText,
+            color = Color.Green,
+            modifier = Modifier.padding(top = 8.dp)
+        )
 
         Spacer(modifier = Modifier.height(250.dp))
 
