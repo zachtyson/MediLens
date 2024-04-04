@@ -1,27 +1,41 @@
 package com.ztch.medilens_android_app.Refill
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
 import com.ztch.medilens_android_app.Camera.SharedViewModel
+import com.ztch.medilens_android_app.R
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.time.LocalDateTime
 import java.util.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Cabinet (
     onNavigateToHomePage: () -> Unit,
@@ -42,86 +56,196 @@ fun Cabinet (
 
     // fetch all medications from the server
     LaunchedEffect(Unit) {
-        service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
-            override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
-                if (response.isSuccessful) {
-                    medications.value = response.body()!!
-                } else {
-                    Log.e("Cabinet", "Failed to fetch medications")
-                }
-            }
-
-            override fun onFailure(call: Call<List<Medication>>, t: Throwable) {
-                Log.e("Cabinet", "Failed to fetch medications", t)
-            }
-        })
+        fetchMedications(service, context, medications)
     }
 
     // Column of boxes, each box is a medication
 
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-        for (medication in medications.value) {
-            item {
-                MedicationBox(medication = medication)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.DarkBlue),
+                    titleContentColor = Color.White
+                ),
+                title = {
+                    Text(
+                        "Medications",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { onNavigateToHomePage() }) {
+                        Icon(
+                            tint = Color.White,
+                            imageVector = Icons.Filled.ArrowBackIosNew,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { onNavigateToHomePage() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            tint = Color.White,
+                            contentDescription = "addMedication"
+                        )
+                    }
+                },
+            )
+        },
+        containerColor = colorResource(R.color.DarkGrey),
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .background(color = colorResource(R.color.DarkGrey)
+                    )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(id = R.color.DarkestBlue)
+                        )
+                ) {
+                    LazyColumn(modifier = Modifier
+                        .width(350.dp)
+                        .padding(top = 60.dp)
+                    ) {
+                        for (medication in medications.value) {
+                            item {
+                                MedicationBox(medication = medication)
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+    )
+}
+private fun fetchMedications(
+    service: ApiService,
+    context: Context,
+    medications: MutableState<List<Medication>>
+) {
+    service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
+        override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
+            if (response.isSuccessful) {
+                medications.value = response.body() ?: emptyList()
+            } else {
+                Log.e("Cabinet", "Failed to fetch medications")
+            }
+        }
+
+        override fun onFailure(call: Call<List<Medication>>, t: Throwable) {
+            Log.e("Cabinet", "Failed to fetch medications", t)
+        }
+    })
+}
+@Composable
+fun MedicationBox(medication: Medication) {
+    val scheduleStart = medication.schedule_start?.let { convertToLocalDateTime(it) }
+    val humanReadableScheduleStart = scheduleStart?.let { formatDateTime(it) } ?: "N/A"
+    val humanReadableInterval = medication.interval_milliseconds?.let {
+        "Every ${convertMillisecondsToHumanReadableTime(it)}"
+    } ?: "N/A"
+    Surface(
+        modifier = Modifier
+            .padding(top = 10.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        color = colorResource(id = R.color.DarkBlue),
+    ) {
+        Card(
+            // Make entire card DarkBlue
+            colors = CardDefaults.cardColors(
+                containerColor = colorResource(R.color.DarkBlue),
+                contentColor = colorResource(R.color.DarkBlue),
+
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) { // This will align the items horizontally
+                // Medication image on the left
+                val image: ImageBitmap = getImage(IntSize(100, 100))
+                ImageSection(image = image)
+                Spacer(modifier = Modifier.width(8.dp)) // Add some space between the image and the text
+
+                // Medication details on the right
+                Column { // Keeps the text vertical
+                    InformationSection(
+                        name = medication.name,
+                        description = medication.description ?: "N/A",
+                        color = medication.color ?: "N/A",
+                        imprint = medication.imprint ?: "N/A",
+                        shape = medication.shape ?: "N/A",
+                        dosage = medication.dosage ?: "N/A",
+                        intakeMethod = medication.intake_method ?: "N/A",
+                        scheduleStart = humanReadableScheduleStart,
+                        interval = humanReadableInterval
+                    )
+                }
             }
         }
     }
 }
-
 @Composable
-fun MedicationBox(medication: Medication) {
-    // turn schedule_start into local date time and human readable format
-    var scheduleStart: LocalDateTime? = null
-    if (medication.schedule_start != null) {
-        scheduleStart = convertToLocalDateTime(medication.schedule_start)
-    }
-    var humanReadableScheduleStart = "N/A"
-    if (scheduleStart != null) {
-        humanReadableScheduleStart = formatDateTime(scheduleStart)
-    }
-
-    var humanReadableInterval = "N/A"
-    if (medication.interval_milliseconds != null) {
-        humanReadableInterval = "Every " + convertMillisecondsToHumanReadableTime(medication.interval_milliseconds)
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-    ) {
-        // Assuming getImage returns an ImageBitmap. Adjust this part based on your actual image loading logic.
-        val image: ImageBitmap = getImage(medication)
-
-        // Image section
-        Image(
-            bitmap = image,
-            contentDescription = "Medication Image",
-            modifier = Modifier
-                .weight(3f) // Takes 30% of the width
-                .fillMaxHeight(),
-            contentScale = ContentScale.Fit
+fun InformationSection(name: String, description: String, color: String, imprint: String, shape: String, dosage: String, intakeMethod: String, scheduleStart: String, interval: String) {
+    Column {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White
         )
-
-        // Information section
-        Column(
-            modifier = Modifier
-                .weight(7f) // Takes the remaining 70% of the width
-                .fillMaxHeight()
-                .padding(8.dp)
-        ) {
-            Text(text = "Name: ${medication.name}")
-            Text(text = "Description: ${medication.description ?: "N/A"}")
-            Text(text = "Color: ${medication.color ?: "N/A"}")
-            Text(text = "Imprint: ${medication.imprint ?: "N/A"}")
-            Text(text = "Shape: ${medication.shape ?: "N/A"}")
-            Text(text = "Dosage: ${medication.dosage ?: "N/A"}")
-            Text(text = "Intake Method: ${medication.intake_method ?: "N/A"}")
-            Text(text = "Start Date: ${humanReadableScheduleStart ?: "N/A"}")
-            Text(text = "Interval: ${humanReadableInterval ?: "N/A"}")
-        }
+        MedInfoText("Description: $description")
+        MedInfoText("Color: $color")
+        MedInfoText("Imprint: $imprint")
+        MedInfoText("Shape: $shape")
+        MedInfoText("Dosage: $dosage")
+        MedInfoText("Intake Method: $intakeMethod")
+        MedInfoText("Schedule Start: $scheduleStart")
+        MedInfoText("Interval: $interval")
     }
 }
 @Composable
-fun getImage(medication: Medication): ImageBitmap {
-    return ImageBitmap(100, 100) // Placeholder, replace with actual image loading
+fun MedInfoText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.White
+    )
+}
+
+
+@Composable
+fun ImageSection(image: ImageBitmap) {
+    Image(
+        bitmap = image,
+        contentDescription = "Medication Image",
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(100.dp),
+        contentScale = ContentScale.Fit
+    )
+}
+@Composable
+fun getImage(size: IntSize): ImageBitmap {
+    val imageBitmap = ImageBitmap(size.width, size.height)
+    val canvas = Canvas(imageBitmap)
+
+    canvas.drawCircle(
+        center = Offset(size.width / 2f, size.height / 2f),
+        radius = size.width / 2f,
+        paint = Paint().apply {
+            color = Color.Red
+        }
+    )
+
+    return imageBitmap
 }
