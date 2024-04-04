@@ -15,11 +15,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -33,7 +31,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +54,7 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer:
     //        }
     //    }
     var imagesGet = TokenAuth.getImagesAndPredictions(context)
-    val images = remember { mutableStateListOf<ImageAndPrediction>() }
+    val images = remember { SnapshotStateList<ImageAndPrediction>() }
     if (imagesGet != null) {
         images.addAll(imagesGet)
     }
@@ -81,11 +78,8 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer:
                     override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
                         if (response.isSuccessful) {
                             Log.d("Prediction Success", "Prediction: ${response.body()}")
-                            curImage.prediction = response.body()
-                            // weird hack to trigger recomposition, add to the list again and then remove it
-                            val temp = images.last()
-                            images.add(temp)
-                            images.remove(temp)
+                            curImage.prediction.value = response.body()
+
                             // save the prediction to the preferences
                             //TokenAuth.saveImagesAndPredictions(context, images)
                         } else {
@@ -119,11 +113,8 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer:
                     override fun onResponse(call: retrofit2.Call<PredictionResponse>, response: retrofit2.Response<PredictionResponse>) {
                         if (response.isSuccessful) {
                             Log.d("Prediction Success", "Prediction: ${response.body()}")
-                            curImage.prediction = response.body()
-                            // weird hack to trigger recomposition, add to the list again and then remove it
-                            val temp = images.last()
-                            images.add(temp)
-                            images.remove(temp)
+                            // prediction is a  MutableState<PredictionResponse?> = mutableStateOf(null),
+                            curImage.prediction.value = response.body()
 
                         } else {
                             Log.d("Prediction Failure", "Failed to predict")
@@ -174,24 +165,36 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer:
                             .fillMaxWidth()
                             .height(200.dp)
                             .clickable {
+                                // if prediction state is null, then the image is still loading
+                                if (images[image].prediction.value == null) {
+                                    return@clickable
+                                }
                                 // show text if it exists
                                 images[image].prediction?.let {
-                                    images[image].displayPrediction = !images[image].displayPrediction
+                                    images[image].displayPrediction.value = !images[image].displayPrediction.value
                                 }
-                                // weird hack to trigger recomposition, add to the list again and then remove it
-                                val temp = images[image]
-                                images.add(temp)
-                                images.remove(temp)
 
-                                sharedViewModel.imageAndPrediction = images[image]
-                                onNavigateToImageViewer()
+
                             }
                     )
                 }
-                // display the prediction if it exists
-                if (images[image].displayPrediction) {
-                    images[image].prediction?.let {
-                        Text(text = it.toString())
+                val isLoading = images[image].prediction.value == null
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    // else button that navigates to the image viewer, centered and max width
+                    Button(
+                        onClick = {
+                            sharedViewModel.imageAndPrediction = images[image]
+                            onNavigateToImageViewer()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Text("View Prediction")
                     }
                 }
             }
