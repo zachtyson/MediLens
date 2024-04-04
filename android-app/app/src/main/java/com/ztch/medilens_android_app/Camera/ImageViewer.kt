@@ -99,7 +99,7 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                 Canvas(modifier = Modifier.matchParentSize()
                     .pointerInput(Unit) {
                         detectTapGestures { offset ->
-                            prediction.predictions.forEachIndexed { index, p ->
+                            prediction.value?.predictions?.forEachIndexed { index, p ->
                                 val x1 = (p.x1 * scaleX)
                                 val y1 = (p.y1 * scaleY)
                                 val x2 = (p.x2 * scaleX)
@@ -121,8 +121,8 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                                     }
                                     sharedViewModel.currentPillInfo = PillInfo(
                                         imprint = imprint,
-                                        color = prediction.predictions[index].color ?: "",
-                                        shape = prediction.predictions[index].shape ?: "",
+                                        color = prediction.value?.predictions?.get(index)?.color ?: "",
+                                        shape = prediction.value?.predictions?.get(index)?.shape ?: "",
                                         index = index
                                     )
                                     onNavigateToPillViewer()
@@ -131,7 +131,7 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                         }
                     }
                 ) { // Ensure Canvas fills the Box exactly like the Image
-                    prediction.predictions.forEach { p ->
+                    prediction.value?.predictions?.forEach { p ->
                         val x1 = (p.x1 * scaleX)
                         val y1 = (p.y1 * scaleY)
                         val x2 = (p.x2 * scaleX)
@@ -143,7 +143,7 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                             size = Size((x2 - x1).toFloat(), (y2 - y1).toFloat())
                         )
                         // Draw text that just says the index of the pill
-                        val index = prediction.predictions.indexOf(p) + 1
+                        val index = prediction.value?.predictions?.indexOf(p) ?: 0
                         drawContext.canvas.nativeCanvas.drawText(
                             "$index",
                             x1.toFloat(),
@@ -156,7 +156,7 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
                     }
                 }
                 Log.d("ImageViewer", prediction.toString())
-                Log.d("ImageViewer", prediction.predictions.size.toString())
+                Log.d("ImageViewer", prediction.value?.predictions?.size.toString())
 
             }
             // Iterate over all predictions and display them
@@ -179,52 +179,54 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit, onNavigateToCamera: () -> Unit
         }
 
         LazyColumn {
-            items(prediction.predictions.size) { p ->
-                Text(
-                    // Text is 'Pill' + index
-                    text = "Pill ${p + 1}",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Confidence: ${prediction.predictions[p].confidence}",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Text(
-                    text = "Bounding Box: (${prediction.predictions[p].x1}, ${prediction.predictions[p].y1}) to (${prediction.predictions[p].x2}, ${prediction.predictions[p].y2})",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Color: ${prediction.predictions[p].color}",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Shape: ${prediction.predictions[p].shape}",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                if (prediction.predictions[p].ocr != null) {
+            prediction.value?.predictions?.size?.let {
+                items(it) { p ->
                     Text(
-                        text = "OCR: ${prediction.predictions[p].ocr.toString()}",
+                        // Text is 'Pill' + index
+                        text = "Pill ${p + 1}",
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
                         style = MaterialTheme.typography.bodySmall
                     )
+                    Text(
+                        text = "Confidence: ${prediction.value?.predictions?.get(p)?.confidence}",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Text(
+                        text = "Bounding Box: (${prediction.value?.predictions?.get(p)?.x1}, ${prediction.value?.predictions?.get(p)?.y1}) to (${prediction.value?.predictions?.get(p)?.x2}, ${prediction.value?.predictions?.get(p)?.y2})",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "Color: ${prediction.value?.predictions?.get(p)?.color}",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "Shape: ${prediction.value?.predictions?.get(p)?.shape}",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (prediction.value?.predictions?.get(p)?.ocr != null) {
+                        Text(
+                            text = "OCR: ${prediction.value?.predictions?.get(p)?.ocr}",
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
