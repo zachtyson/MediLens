@@ -20,7 +20,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ztch.medilens_android_app.ApiUtils.LoginTokenResponse
 import com.ztch.medilens_android_app.ApiUtils.RegisterResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.ApiUtils.UserRegistrationCredentials
@@ -46,6 +45,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             value = legalName,
             onValueChange = { legalName = it },
@@ -63,6 +64,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             value = email,
             onValueChange = { email = it },
@@ -80,6 +83,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             value = password,
             onValueChange = { password = it },
@@ -97,6 +102,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             value = confirmPassword,
             onValueChange = { confirmPassword = it },

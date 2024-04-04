@@ -12,7 +12,7 @@ from typing import Annotated, List
 
 from sqlalchemy.orm import Session
 
-from backend.core.security import verify_token, get_id_from_token
+from core.security import verify_token, get_id_from_token
 
 router = APIRouter()
 
@@ -67,9 +67,11 @@ async def add_medication(name: str = Form(...), color: str = Form(...),
         db.add(new_medication)
         db.commit()
         db.refresh(new_medication)
+        # return success message 200
         return {"message": "Medication added successfully"}
     except Exception as e:
-        return {"message": f"Error adding medication: {e}"}
+        # return
+        raise HTTPException(status_code=400, detail="Failed to add medication")
 
 
 @router.get("/medication/get_medications")

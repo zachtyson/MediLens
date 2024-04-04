@@ -1,22 +1,28 @@
 package com.ztch.medilens_android_app.Homepage
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
+import com.ztch.medilens_android_app.ApiUtils.MedicationInteractionResponse
 
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
@@ -24,12 +30,8 @@ import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 
-import com.ztch.medilens_android_app.Notifications.AlarmItem
-import com.ztch.medilens_android_app.Notifications.AlarmViewModel
-import com.ztch.medilens_android_app.Notifications.Repetition
-import com.ztch.medilens_android_app.Notifications.formatLocalDateTimeWithAMPM
-
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+import com.ztch.medilens_android_app.Notifications.*
 
 @Composable
 fun HomePage(onNavigateToCamera: () -> Unit,
@@ -38,11 +40,17 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              onNavigateToCabinet: () -> Unit,
              viewModel: AlarmViewModel,
              ) {
-    val context = LocalContext.current
-    if(!TokenAuth.isLoggedIn(context)) {
-        // if user is not logged in, navigate to login page
-        onNavigateToLogin()
-    }
+
+    /*
+   val context = LocalContext.current
+
+   if(!TokenAuth.isLoggedIn(context)) {
+       // if user is not logged in, navigate to login page
+       onNavigateToLogin()
+   }
+   */
+
+
 
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -201,6 +209,30 @@ fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
     }
 
 
+
+        LaunchedEffect(alarmsForSelectedDate) {
+            alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
+                alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
+                    // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
+                    if (indexA < indexB) {
+                        Log.d("inside","AlarmsList: Calling getMedicationInteractions")
+                        viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
+                    }
+                }
+            }
+        }
+
+
+    // Observe the medicationInteractions StateFlow from the ViewModel
+    val medicationInteractions by viewModel.medicationInteractionsList.collectAsState()
+
+    // Display medication interactions if available
+    medicationInteractions?.let { interactions ->
+        interactions.forEach { interaction ->
+            interactionDialog(interaction)
+        }
+    }
+
     LazyColumn {
         items(alarmsForSelectedDate) { alarm ->
             AlarmCard(alarm, viewModel::removeAlarm)
@@ -227,6 +259,47 @@ fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
     }
 }
 @Composable
+fun interactionDialog(interaction: MedicationInteractionResponse) {
+    var extendedDescriptionVisible by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = { /* Dismiss the dialog */ },
+        title = { Text(text = "Drug Interaction Detected") },
+        text = {
+            Column {
+                Text(text = "Severity: ${interaction.severity}")
+                Row() {
+                    Text(text = "Drugs: ")
+                    Text(text = "${interaction.drugA} and ${interaction.drugB}")
+                }
+                Text(text = "Description: ${interaction.description}")
+
+                // Display the "See Extended Description" text
+                ClickableText(
+                    text = AnnotatedString("See Extended Description"),
+                    onClick = {
+                        // Toggle the visibility of the extended description
+                        extendedDescriptionVisible = !extendedDescriptionVisible
+                    }
+                )
+
+                // Display the extended description if it's visible
+                if (extendedDescriptionVisible) {
+                    Text(text = "Extended Description: ${interaction.extendedDescription}")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { /* Dismiss the dialog */ }
+            ) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
 fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
 
     Card(
@@ -235,7 +308,7 @@ fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(215.dp)
             .padding(16.dp)
     ) {
         Column(
@@ -249,24 +322,32 @@ fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
             )
-            Text(
-                text = "Medication: ${alarm.message}",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Dosage: ${alarm.dosage}",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Form: ${alarm.form}",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Row  (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(85.dp)
+                    .padding(8.dp)
+            ){
+                alarm.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(75.dp) // Set the width of the image
+                            .height(75.dp) // Set the height of the image
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Text(
+                    text = "Medication: ${alarm.message} " +
+                            "\nDosage: ${alarm.dosage} " +
+                            "\nForm: ${alarm.form} ",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             Button(
                 onClick = { onDeleteClicked(alarm) },
