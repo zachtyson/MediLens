@@ -42,14 +42,14 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              viewModel: AlarmViewModel,
              ) {
 
-    /*
+
    val context = LocalContext.current
 
    if(!TokenAuth.isLoggedIn(context)) {
        // if user is not logged in, navigate to login page
        onNavigateToLogin()
    }
-   */
+
 
 
 
