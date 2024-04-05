@@ -97,32 +97,18 @@ fun Cabinet (
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
-            Column(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .width(400.dp)
                     .padding(innerPadding) // Use the padding provided by Scaffold for the content
-                    .background(color = colorResource(R.color.DarkGrey)
-                    )
+                    .background(color = colorResource(R.color.DarkGrey))
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(colorResource(id = R.color.DarkestBlue)
-                        )
-                ) {
-                    LazyColumn(modifier = Modifier
-                        .width(350.dp)
-                        .padding(top = 60.dp)
-                    ) {
-                        for (medication in medications.value) {
-                            item {
-                                MedicationBox(medication = medication)
-                            }
-                        }
+                for (medication in medications.value) {
+                    item {
+                        MedicationBox(medication = medication)
                     }
                 }
             }
-
         }
     )
 }
@@ -168,10 +154,11 @@ fun MedicationBox(medication: Medication) {
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .padding(16.dp)
+                .height(250.dp)
+                .padding(16.dp),
+
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) { // This will align the items horizontally
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
                 // Medication image on the left
                 val image: ImageBitmap = getImage(IntSize(100, 100))
                 ImageSection(image = image)
