@@ -69,15 +69,15 @@ interface ApiService {
         @Query("drug_a") drugA: String,
         @Query("drug_b") drugB: String
     ): Call<MedicationInteractionResponse>
-
 }
 
 data class MedicationInteractionResponse(
-    @SerializedName("drug_a") val drugA: String,
-    @SerializedName("drug_b") val drugB: String,
-    @SerializedName("severity") val severity: String,
-    @SerializedName("description") val description: String,
-    @SerializedName("extended_description") val extendedDescription: String
+    val id: Int,
+    val drug_a: String,
+    val drug_b: String,
+    val severity: String,
+    val description: String,
+    val extended_description: String
 )
 data class Medication(
     val id: Int,
