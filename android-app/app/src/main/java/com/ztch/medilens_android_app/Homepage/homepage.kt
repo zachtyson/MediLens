@@ -216,7 +216,7 @@ fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
             alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
                 alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
                     // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
-                    if (indexA < indexB) {
+                    if (indexA < indexB && alarmA != alarmB) {
                         Log.d("inside","AlarmsList: Calling getMedicationInteractions")
                         viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
                     }
@@ -272,7 +272,7 @@ fun interactionDialog(interaction: MedicationInteractionResponse) {
                 Text(text = "Severity: ${interaction.severity}")
                 Row() {
                     Text(text = "Drugs: ")
-                    Text(text = "${interaction.drugA} and ${interaction.drugB}")
+                    Text(text = "${interaction.drug_a} and ${interaction.drug_b}")
                 }
                 Text(text = "Description: ${interaction.description}")
 
@@ -287,7 +287,7 @@ fun interactionDialog(interaction: MedicationInteractionResponse) {
 
                 // Display the extended description if it's visible
                 if (extendedDescriptionVisible) {
-                    Text(text = "Extended Description: ${interaction.extendedDescription}")
+                    Text(text = "Extended Description: ${interaction.extended_description}")
                 }
             }
         },
