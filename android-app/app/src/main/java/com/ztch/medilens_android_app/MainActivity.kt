@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
         val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA)
     }
-    private fun hasRequiredPermissions(): Boolean {
+    fun hasRequiredPermissions(): Boolean {
         return CAMERAX_PERMISSIONS.all {
             ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
         }

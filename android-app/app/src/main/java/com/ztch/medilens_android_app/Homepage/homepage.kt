@@ -263,9 +263,11 @@ fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
 @Composable
 fun interactionDialog(interaction: MedicationInteractionResponse) {
     var extendedDescriptionVisible by remember { mutableStateOf(false) }
+    // variable to remember dismiss request
+    var dismissRequest by remember { mutableStateOf(false) }
 
     AlertDialog(
-        onDismissRequest = { /* Dismiss the dialog */ },
+        onDismissRequest = {dismissRequest = true},
         title = { Text(text = "Drug Interaction Detected") },
         text = {
             Column {
@@ -293,7 +295,7 @@ fun interactionDialog(interaction: MedicationInteractionResponse) {
         },
         confirmButton = {
             Button(
-                onClick = { /* Dismiss the dialog */ }
+                onClick = { dismissRequest = true }
             ) {
                 Text("OK")
             }
