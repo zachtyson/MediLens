@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from models.user import User
 from models.base import Base
 from models.medication import Medication
 from db.session import SessionLocal
 from schemas.user import UserCreate, UserUpdate, UserResponse
-from typing import List
+from typing import List, Annotated
 from core.security import get_password_hash, get_token_from_header, get_id_from_token, verify_password
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -20,9 +21,13 @@ def get_db():
 
 
 # Change email to new email, takes in user token, password, and new email
-@router.put("/users/email", response_model=UserResponse)
-async def change_email(token: str = Depends(get_token_from_header), password: str = None, new_email: str = None,
-                       db: Session = Depends(get_db)):
+@router.post("/users/email", response_model=UserResponse)
+async def change_email(
+        old_email: Annotated[str, Form()],
+        new_email: Annotated[str, Form()],
+        password: Annotated[str, Form()],
+        db: Session = Depends(get_db),
+        token: str = Depends(get_token_from_header),):
     user_id = get_id_from_token(token)
 
     # Return same error no matter what to prevent user enumeration
@@ -30,8 +35,10 @@ async def change_email(token: str = Depends(get_token_from_header), password: st
         raise HTTPException(status_code=401, detail="Failed to authenticate user")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Failed to authenticate user")
+        raise HTTPException(status_code=401, detail="Failed to authenticate user")
     if not verify_password(password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Failed to authenticate user")
+    if user.email != old_email:
         raise HTTPException(status_code=401, detail="Failed to authenticate user")
     user.email = new_email
     db.commit()
@@ -40,9 +47,13 @@ async def change_email(token: str = Depends(get_token_from_header), password: st
 
 
 # Change password, takes in user token, old password, and new password
-@router.put("/users/password", response_model=UserResponse)
-async def change_password(token: str = Depends(get_token_from_header), old_password: str = None,
-                          new_password: str = None, db: Session = Depends(get_db)):
+@router.post("/users/password_change", response_model=UserResponse)
+async def change_password(old_password: Annotated[str, Form()],
+                          new_password: Annotated[str, Form()],
+                          db: Session = Depends(get_db),
+                          token: str = Depends(get_token_from_header),):
+    if not old_password or not new_password:
+        raise HTTPException(status_code=400, detail="Missing password")
     user_id = get_id_from_token(token)
 
     # Return same error no matter what to prevent user enumeration
@@ -50,7 +61,7 @@ async def change_password(token: str = Depends(get_token_from_header), old_passw
         raise HTTPException(status_code=401, detail="Failed to authenticate user")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Failed to authenticate user")
+        raise HTTPException(status_code=401, detail="Failed to authenticate user")
     if not verify_password(old_password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Failed to authenticate user")
     user.hashed_password = get_password_hash(new_password)
@@ -60,8 +71,11 @@ async def change_password(token: str = Depends(get_token_from_header), old_passw
 
 
 # Delete account, takes in user token and password
-@router.delete("/users", response_model=UserResponse)
-async def delete_account(token: str = Depends(get_token_from_header), password: str = None, db: Session = Depends(get_db)):
+# Returns simple 200 status code
+@router.post("/users/delete_account")
+async def delete_account(password: Annotated[str, Form()],
+                         db: Session = Depends(get_db),
+                         token: str = Depends(get_token_from_header),):
     user_id = get_id_from_token(token)
 
     # Return same error no matter what to prevent user enumeration
@@ -69,7 +83,7 @@ async def delete_account(token: str = Depends(get_token_from_header), password: 
         raise HTTPException(status_code=401, detail="Failed to authenticate user")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Failed to authenticate user")
+        raise HTTPException(status_code=401, detail="Failed to authenticate user")
     if not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Failed to authenticate user")
 
@@ -80,4 +94,3 @@ async def delete_account(token: str = Depends(get_token_from_header), password: 
 
     db.delete(user)
     db.commit()
-    return user
