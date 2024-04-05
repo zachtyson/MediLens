@@ -50,9 +50,10 @@ fun Settings (
         onNavigateToHomePage()
     }
 
-    // Column of boxes, each box is a medication
     var showChangeEmailDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+
 
     if (showChangeEmailDialog) {
         ChangeEmailDialog(onDismiss = { showChangeEmailDialog = false })
@@ -71,6 +72,13 @@ fun Settings (
             }
         )
     }
+
+    if (showChangePasswordDialog) {
+        ChangePasswordDialog(
+            onDismiss = { showChangePasswordDialog = false },
+        )
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -108,7 +116,7 @@ fun Settings (
                     SettingsOptionItem(
                         icon = Icons.Default.Email,
                         title = "Change Email",
-                        onClick = {  }
+                        onClick = { showChangeEmailDialog = true }
                     )
                     Divider()
                 }
@@ -116,7 +124,7 @@ fun Settings (
                     SettingsOptionItem(
                         icon = Icons.Default.Password,
                         title = "Change Password",
-                        onClick = {  }
+                        onClick = { showChangePasswordDialog = true }
                     )
                     Divider()
                 }
@@ -124,7 +132,7 @@ fun Settings (
                     SettingsOptionItem(
                         icon = Icons.Default.Delete,
                         title = "Delete Account",
-                        onClick = {  }
+                        onClick = { showDeleteAccountDialog = true }
                     )
                     Divider()
                 }
@@ -159,6 +167,10 @@ fun SettingsOptionItem(
 @Composable
 fun ChangeEmailDialog(onDismiss: () -> Unit) {
     var newEmail by remember { mutableStateOf("") }
+    var confirmEmail by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
+
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
@@ -172,11 +184,30 @@ fun ChangeEmailDialog(onDismiss: () -> Unit) {
                     onValueChange = { newEmail = it },
                     label = { Text("Email") }
                 )
+                OutlinedTextField(
+                    value = confirmEmail,
+                    onValueChange = { confirmEmail = it },
+                    label = { Text("Confirm Email") }
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") }
+                )
+                if (error != "") {
+                    Text(error, color = Color.Red)
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                // Add logic to change email
+                if (newEmail != confirmEmail) {
+                    error = "Emails do not match"
+                    return@TextButton
+                }
+                // Make email change API call, dismiss if successful
+                // Otherwise if API call fails, set error message to 'Failed to change email'
+                // and also handle if the password is incorrect
                 onDismiss()
             }) {
                 Text("Confirm")
@@ -193,6 +224,8 @@ fun ChangeEmailDialog(onDismiss: () -> Unit) {
 @Composable
 fun ChangePasswordDialog(onDismiss: () -> Unit) {
     var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
@@ -206,11 +239,22 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                     onValueChange = { newPassword = it },
                     label = { Text("Password") }
                 )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") }
+                )
+                if (error) {
+                    Text("Passwords do not match", color = Color.Red)
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                // Add logic to change password
+                if (newPassword != confirmPassword) {
+                    error = true
+                    return@TextButton
+                }
                 onDismiss()
             }) {
                 Text("Confirm")
