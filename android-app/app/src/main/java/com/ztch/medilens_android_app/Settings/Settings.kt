@@ -53,6 +53,7 @@ fun Settings (
     var showChangeEmailDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var showLogOutDialog by remember { mutableStateOf(false) }
 
 
     if (showChangeEmailDialog) {
@@ -76,6 +77,20 @@ fun Settings (
     if (showChangePasswordDialog) {
         ChangePasswordDialog(
             onDismiss = { showChangePasswordDialog = false },
+        )
+    }
+
+    if (showLogOutDialog) {
+        ConfirmLogOutDialog(
+            onDismiss = { showLogOutDialog = false },
+            onLogOutConfirmed = {
+                // Handle log out here
+                showLogOutDialog = false
+                Toast.makeText(context, "Logged out", Toast.LENGTH_SHORT).show()
+                // Navigate to login or home screen
+                TokenAuth.logOut(context)
+                onNavigateToHomePage()
+            }
         )
     }
 
@@ -118,7 +133,7 @@ fun Settings (
                         title = "Change Email",
                         onClick = { showChangeEmailDialog = true }
                     )
-                    Divider()
+                    HorizontalDivider()
                 }
                 item {
                     SettingsOptionItem(
@@ -126,7 +141,15 @@ fun Settings (
                         title = "Change Password",
                         onClick = { showChangePasswordDialog = true }
                     )
-                    Divider()
+                    HorizontalDivider()
+                }
+                item {
+                    SettingsOptionItem(
+                        icon = Icons.Default.Logout,
+                        title = "Log Out",
+                        onClick = { showLogOutDialog = true }
+                    )
+                    HorizontalDivider()
                 }
                 item {
                     SettingsOptionItem(
@@ -134,9 +157,8 @@ fun Settings (
                         title = "Delete Account",
                         onClick = { showDeleteAccountDialog = true }
                     )
-                    Divider()
+                    HorizontalDivider()
                 }
-
 
             }
         }
@@ -258,6 +280,25 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                 onDismiss()
             }) {
                 Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun ConfirmLogOutDialog(onDismiss: () -> Unit, onLogOutConfirmed: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Log Out") },
+        text = { Text("Are you sure you want to log out?") },
+        confirmButton = {
+            TextButton(onClick = onLogOutConfirmed) {
+                Text("Log Out")
             }
         },
         dismissButton = {
