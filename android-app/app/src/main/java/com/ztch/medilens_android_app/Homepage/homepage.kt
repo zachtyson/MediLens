@@ -38,17 +38,18 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              onNavigateToAlarm: () -> Unit,
              onNavigateToLogin: () -> Unit,
              onNavigateToCabinet: () -> Unit,
+             onNavigateToSettings: () -> Unit,
              viewModel: AlarmViewModel,
              ) {
 
-    /*
+
    val context = LocalContext.current
 
    if(!TokenAuth.isLoggedIn(context)) {
        // if user is not logged in, navigate to login page
        onNavigateToLogin()
    }
-   */
+
 
 
 
@@ -75,7 +76,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
           appbarBottom(
               onNavigateToCamera = onNavigateToCamera,
               onNavigateToAlarm = onNavigateToAlarm,
-              onNavigateToCabinet = onNavigateToCabinet)
+              onNavigateToCabinet = onNavigateToCabinet,
+              onNavigateToSettings = onNavigateToSettings)
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->

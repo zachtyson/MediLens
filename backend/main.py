@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 # add routes from /api/routes
-from api.routes import user_login_routes, user_registration_routes, ml_model_routes
+from api.routes import user_login_routes, user_registration_routes, ml_model_routes, user_setting_routes
 from api.healthcare_info import medication_routes, drug_interaction_routes
 from api.pill_from_imprint import demo as pill_from_imprint_demo
 
@@ -15,6 +15,8 @@ app.include_router(ml_model_routes.router)
 app.include_router(medication_routes.router)
 app.include_router(pill_from_imprint_demo.router)
 app.include_router(drug_interaction_routes.router)
+app.include_router(user_setting_routes.router)
+
 
 # gets the origins from the environment variable CORS_ORIGINS, if it exists, or defaults to the android studio emulator
 origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5555,https://localhost:5555,http://localhost")

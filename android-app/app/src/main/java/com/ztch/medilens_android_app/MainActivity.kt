@@ -31,6 +31,7 @@ import com.ztch.medilens_android_app.Authenticate.*
 import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
 import com.ztch.medilens_android_app.Refill.Cabinet
+import com.ztch.medilens_android_app.Settings.Settings
 
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
@@ -96,6 +97,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToLogin = { navController.navigate("Login") {} },
                 onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                onNavigateToSettings = { navController.navigate("Settings") {} },
                 viewModel = viewModel
             )
 
@@ -131,6 +133,13 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToCamera = { navController.navigate("Camera") },
                 onNavigateToImageViewer = { navController.navigate("ImageViewer") {} },
                 sharedViewModel = sharedCameraImageViewerModel
+            )
+        }
+
+        composable("Settings") {
+            Settings(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} }
             )
         }
 

@@ -25,7 +25,11 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun appbarBottom(onNavigateToCamera: () -> Unit,onNavigateToAlarm: () -> Unit, onNavigateToCabinet: () -> Unit)
+fun appbarBottom(onNavigateToCamera: () -> Unit,
+                 onNavigateToAlarm: () -> Unit,
+                 onNavigateToCabinet: () -> Unit,
+                    onNavigateToSettings: () -> Unit)
+
 {
     val colorPurple = colorResource(R.color.Purple)
 
@@ -125,7 +129,7 @@ fun appbarBottom(onNavigateToCamera: () -> Unit,onNavigateToAlarm: () -> Unit, o
             {
 
                 IconButton(
-                    onClick = { },
+                    onClick = { onNavigateToSettings()},
                 ) {
                     Icon(
                         imageVector = Icons.Default.Reorder,

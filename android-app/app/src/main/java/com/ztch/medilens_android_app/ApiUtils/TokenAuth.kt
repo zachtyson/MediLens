@@ -17,6 +17,10 @@ object TokenAuth {
         return hasToken(context, "access_token")
     }
 
+    fun logOut(context: Context) {
+        deleteToken(context, "access_token")
+    }
+
     fun logIn(context: Context, token: String): Boolean {
         if (token == "") {
             return false
