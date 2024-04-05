@@ -45,7 +45,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     # used to have users register by username AND email, but I removed the username field from the User model
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=409, detail="Email already registered")
 
     user.password = get_password_hash(user.password)
 
