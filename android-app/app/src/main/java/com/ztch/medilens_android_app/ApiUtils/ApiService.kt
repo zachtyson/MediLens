@@ -70,6 +70,31 @@ interface ApiService {
         @Query("drug_b") drugB: String
     ): Call<MedicationInteractionResponse>
 
+    @FormUrlEncoded
+    @POST("users/email/")
+    fun updateEmail(
+        @Header("token") token: String,
+        @Field("old_email") oldEmail: String,
+        @Field("new_email") newEmail: String,
+        @Field("password") password: String
+    ): Call<RegisterResponse>
+
+    @FormUrlEncoded
+    @POST("users/password_change")
+    fun updatePassword(
+        @Header("token") token: String,
+        @Field("old_password") oldPassword: String,
+        @Field("new_password") newPassword: String
+    ): Call<RegisterResponse>
+
+    @FormUrlEncoded
+    @POST("users/delete_account")
+    fun deleteUser(
+        @Header("token") token: String,
+        @Field("password") password: String
+        // Returns basic JSON response
+    ): Call<Map<String, String>>
+
 }
 
 data class MedicationInteractionResponse(
