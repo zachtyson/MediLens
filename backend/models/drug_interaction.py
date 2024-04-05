@@ -1,13 +1,14 @@
-from sqlalchemy import Column, Integer, String, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Table, UniqueConstraint
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from .user import User
+from .base import Base
 
-Base = declarative_base()
 
 class DrugInteraction(Base):
     __tablename__ = "drug_interactions"
-    id = Column(Integer, primary_key=True)
-    drug_a = Column(String(255), nullable=False)
-    drug_b = Column(String(255), nullable=False)
+    drug_a = Column(String(255), primary_key=True)
+    drug_b = Column(String(255), primary_key=True)
     severity = Column(String(255), nullable=False)
     description = Column(String(255), nullable=True)
     extended_description = Column(String(2000), nullable=True)
@@ -16,16 +17,14 @@ class DrugInteraction(Base):
     __table_args__ = (UniqueConstraint('drug_a', 'drug_b', name='uq_drug_interaction'),)
 
     def __repr__(self):
-        return f"<DrugInteraction(id={self.id}, drug_a={self.drug_a!r}, drug_b={self.drug_b!r}, " \
+        return f"<DrugInteraction(drug_a={self.drug_a!r}, drug_b={self.drug_b!r}, " \
                f"severity={self.severity!r}, description={self.description!r}, " \
                f"extended_description={self.extended_description!r})>"
 
-    def __init__(self, id, drug_a, drug_b, severity, description, extended_description):
-        self.id = id
+    def __init__(self, drug_a, drug_b, severity, description, extended_description):
         drug_a, drug_b = sorted([drug_a, drug_b])  # sort the drugs alphabetically
         self.drug_a = drug_a
         self.drug_b = drug_b
         self.severity = severity
         self.description = description
         self.extended_description = extended_description
-
