@@ -36,6 +36,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 
+fun LogOutAfterDelete(context: Context, onNavigateToHomePage: () -> Unit) {
+    TokenAuth.logOut(context)
+    onNavigateToHomePage()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings (
@@ -55,46 +60,37 @@ fun Settings (
     var showChangePasswordDialog by remember { mutableStateOf(false) }
     var showLogOutDialog by remember { mutableStateOf(false) }
 
-    var oldPasswordChange by remember { mutableStateOf("") }
-    var newPasswordChange by remember { mutableStateOf("") }
-
+    var onEmailUpdateSuccess by remember { mutableStateOf<Boolean?>(null) }
 
     if (showChangeEmailDialog) {
-        ChangeEmailDialog(onDismiss = { showChangeEmailDialog = false })
+        ChangeEmailDialog(
+            onDismiss = { showChangeEmailDialog = false },
+            context = context,
+            onUpdateSuccess = { onEmailUpdateSuccess = true },
+            onUpdateFailure = { Toast.makeText(context, "Failed to update email", Toast.LENGTH_SHORT).show() }
+        )
     }
+
 
     if (showDeleteAccountDialog) {
         ConfirmDeleteAccountDialog(
             onDismiss = { showDeleteAccountDialog = false },
-
-            onDeleteConfirmed = {
-                // Handle account deletion here
-                showDeleteAccountDialog = false
-                Toast.makeText(context, "Account deleted", Toast.LENGTH_SHORT).show()
-                // Navigate to login or home screen
-                TokenAuth.logOut(context)
-                onNavigateToHomePage()
-            }
+            context = context,
+            onUpdateSuccess = { LogOutAfterDelete(context, onNavigateToHomePage)},
+            onUpdateFailure = { Toast.makeText(context, "Failed to delete account", Toast.LENGTH_SHORT).show() }
         )
     }
 
 
     var onPasswordUpdateSuccess by remember { mutableStateOf<Boolean?>(null) }
-    var onPasswordUpdateFailure by remember { mutableStateOf<Boolean?>(null) }
 
     if (showChangePasswordDialog) {
         ChangePasswordDialog(
             onDismiss = { showChangePasswordDialog = false },
             context = context,
-            onUpdateFailure = { onPasswordUpdateFailure = null },
+            onUpdateFailure = { Toast.makeText(context, "Failed to update password", Toast.LENGTH_SHORT).show() },
             onUpdateSuccess = { onPasswordUpdateSuccess = null }
         )
-    }
-
-    if (onPasswordUpdateSuccess != null) {
-        Toast.makeText(context, "Password updated", Toast.LENGTH_SHORT).show()
-    } else if (onPasswordUpdateFailure != null) {
-        Toast.makeText(context, "Failed to update password", Toast.LENGTH_SHORT).show()
     }
 
     if (showLogOutDialog) {
@@ -205,20 +201,26 @@ fun Settings (
 private fun updateUserEmail(
     service: ApiService,
     context: Context,
-    email: String,
-    password: String
+    oldEmail: String,
+    newEmail: String,
+    password: String,
+    onSuccess: () -> Unit,
+    onFailure: (String) -> Unit
 ) {
-    service.updateEmail(TokenAuth.getLogInToken(context), email, password).enqueue(object : Callback<RegisterResponse> {
+    service.updateEmail(TokenAuth.getLogInToken(context), oldEmail, newEmail, password).enqueue(object : Callback<RegisterResponse> {
         override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
             if (response.isSuccessful) {
                 Log.d("Settings", "Email updated")
+                onSuccess()
             } else {
                 Log.e("Settings", "Failed to update email")
+                onFailure("Failed to update email")
             }
         }
 
         override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
             Log.e("Settings", "Failed to update email", t)
+            onFailure("Failed to update email")
         }
     })
 }
@@ -235,13 +237,16 @@ private fun updateUserPassword(
         override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
             if (response.isSuccessful) {
                 Log.d("Settings", "Password updated")
+                onSuccess()
             } else {
                 Log.e("Settings", "Failed to update password")
+                onFailure("Failed to update password")
             }
         }
 
         override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
             Log.e("Settings", "Failed to update password", t)
+            onFailure("Failed to update password")
         }
     })
 }
@@ -289,23 +294,28 @@ fun SettingsOptionItem(
 
 
 @Composable
-fun ChangeEmailDialog(onDismiss: () -> Unit) {
+fun ChangeEmailDialog(onDismiss: () -> Unit,
+                      context: Context,
+                      onUpdateSuccess: () -> Unit = {},
+                      onUpdateFailure: (String) -> Unit = {}
+) {
+
+    var oldEmail by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var confirmEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
-
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text("Change Email") },
         text = {
             Column {
-                Text("Enter your new email address:")
+                Text("Enter your new email:")
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = newEmail,
-                    onValueChange = { newEmail = it },
+                    value = oldEmail,
+                    onValueChange = { oldEmail = it },
                     label = { Text("Old Email") }
                 )
                 OutlinedTextField(
@@ -316,7 +326,7 @@ fun ChangeEmailDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = confirmEmail,
                     onValueChange = { confirmEmail = it },
-                    label = { Text("Confirm Email") }
+                    label = { Text("Confirm New Email") }
                 )
                 OutlinedTextField(
                     value = password,
@@ -334,10 +344,16 @@ fun ChangeEmailDialog(onDismiss: () -> Unit) {
                     error = "Emails do not match"
                     return@TextButton
                 }
+                error = ""
                 // Make email change API call, dismiss if successful
                 // Otherwise if API call fails, set error message to 'Failed to change email'
-                // and also handle if the password is incorrect
-                onDismiss()
+                updateUserEmail(RetrofitClient.apiService, context, oldEmail, newEmail, password, {
+                    onUpdateSuccess()
+                    onDismiss()
+                }, {
+                    error = it
+                    onUpdateFailure(it)
+                })
             }) {
                 Text("Confirm")
             }
@@ -349,7 +365,6 @@ fun ChangeEmailDialog(onDismiss: () -> Unit) {
         }
     )
 }
-
 @Composable
 fun ChangePasswordDialog(onDismiss: () -> Unit,
                          context: Context,
@@ -438,14 +453,47 @@ fun ConfirmLogOutDialog(onDismiss: () -> Unit, onLogOutConfirmed: () -> Unit) {
 
 
 @Composable
-fun ConfirmDeleteAccountDialog(onDismiss: () -> Unit, onDeleteConfirmed: () -> Unit) {
+fun ConfirmDeleteAccountDialog(onDismiss: () -> Unit,
+                               context: Context,
+                               onUpdateSuccess: () -> Unit = {},
+                               onUpdateFailure: (String) -> Unit = {},
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
+
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text("Delete Account") },
-        text = { Text("Are you sure you want to delete your account? This action cannot be undone.") },
+        text = {
+            Column {
+                Text("Enter your password twice to confirm account deletion:")
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") }
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") }
+                )
+                if (error != "") {
+                    Text(error, color = Color.Red)
+                }
+            }
+        },
         confirmButton = {
-            TextButton(onClick = onDeleteConfirmed) {
-                Text("Delete")
+            TextButton(onClick = {
+                error = ""
+                // Make account deletion API call, dismiss if successful
+                // Otherwise if API call fails, set error message to 'Failed to delete account'
+                deleteUserAccount(RetrofitClient.apiService, context, password)
+                onUpdateSuccess()
+                onDismiss()
+            }) {
+                Text("Confirm")
             }
         },
         dismissButton = {
