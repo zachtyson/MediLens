@@ -38,6 +38,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              onNavigateToAlarm: () -> Unit,
              onNavigateToLogin: () -> Unit,
              onNavigateToCabinet: () -> Unit,
+             onNavigateToSettings: () -> Unit,
              viewModel: AlarmViewModel,
              ) {
 
@@ -75,7 +76,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
           appbarBottom(
               onNavigateToCamera = onNavigateToCamera,
               onNavigateToAlarm = onNavigateToAlarm,
-              onNavigateToCabinet = onNavigateToCabinet)
+              onNavigateToCabinet = onNavigateToCabinet,
+              onNavigateToSettings = onNavigateToSettings)
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
