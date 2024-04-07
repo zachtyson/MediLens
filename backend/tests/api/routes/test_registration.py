@@ -81,7 +81,7 @@ async def test_create_user_duplicate(async_client: AsyncClient, test_db: AsyncSe
 
     # try to create the user again
     response = await async_client.post("/users", json=user_data)
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert response.json() == {"detail": "Email already registered"}
 
     # delete the user directly from the database
