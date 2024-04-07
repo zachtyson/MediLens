@@ -149,3 +149,69 @@ async def test_authenticate(async_client: AsyncClient, test_db: AsyncSession):
         await db.execute(User.__table__.delete())
         await db.commit()
 
+@pytest.mark.asyncio
+async def test_authenticate_fail(async_client: AsyncClient, test_db: AsyncSession):
+    # delete all entries in medication table and user table
+    async with test_db as db:
+        await db.execute(Medication.__table__.delete())
+        await db.commit()
+    async with test_db as db:
+        await db.execute(User.__table__.delete())
+        await db.commit()
+
+    # verify the tables are empty
+    async with test_db as db:
+        users = await db.execute(select(User))
+        assert users.all() == []
+    async with test_db as db:
+        medications = await db.execute(select(Medication))
+        assert medications.all() == []
+
+    # delete all users from the database
+    async with test_db as db:
+        await db.execute(User.__table__.delete())
+        await db.commit()
+    user = user_to_create()
+
+    # Create user directly in the database
+
+    async with test_db as db:
+        hashed_password = get_password_hash(user["password"])
+        await db.execute(User.__table__.insert().values(email=user["email"], hashed_password=hashed_password))
+        await db.commit()
+
+    user = user_to_create()
+
+    # login
+
+    response = await async_client.post("/login/e", data={"email": user["email"], "password": "wrong_password"})
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Incorrect email or password"}
+
+    # create medication
+    medication_one = medication_one_to_create()
+
+    # add medication with the medication being the body of the request
+
+    response = await async_client.post("/medication/add_medication",
+                                       data=medication_one, headers={"token": f"wrong_token"})
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid token"}
+
+    # get medications directly from the database
+    async with test_db as db:
+        # select medication
+        query = select(Medication)
+        db_medication = await db.execute(query)
+        assert len(db_medication.all()) == 0
+
+    # delete all entries in medication table
+    async with test_db as db:
+        await db.execute(Medication.__table__.delete())
+        await db.commit()
+    # delete all users from the database
+    async with test_db as db:
+        await db.execute(User.__table__.delete())
+        await db.commit()
