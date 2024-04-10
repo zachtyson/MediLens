@@ -135,11 +135,20 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                                     Log.d("Login Error", "Token is null")
                                     return
                                 }
+                                // get id from response
+                                // jwt contains " sub = {"email": user.email, "id": user.id}"
+                                // decode jwt using base64 and get id
+                                val id = getUserIdFromJwt(token)
+                                hashAndStorePassword(context, password, id)
+
                                 if (TokenAuth.logIn(context, token)) {
                                     onNavigateToHomePage()
                                 } else {
                                     Log.d("Login Error", "Failed to save token")
                                 }
+
+                                // After password to hash and use as encryption key
+
 
                             } else {
                                 Log.d("Login Failure", "Incorrect email or password")
