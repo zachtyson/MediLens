@@ -22,3 +22,4 @@ class Medication(Base):
     intake_method = Column(String(100), nullable=True)
     schedule_start = Column(DateTime, nullable=True)
     interval_milliseconds = Column(Integer, nullable=True)
+    init_vector = Column(String(100), nullable=True)

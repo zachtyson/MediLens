@@ -14,3 +14,4 @@ class MedicationCreate(BaseModel):
     description: Optional[str]
     schedule_start: Optional[datetime]
     interval_milliseconds: Optional[int]
+    init_vector: Optional[str]
