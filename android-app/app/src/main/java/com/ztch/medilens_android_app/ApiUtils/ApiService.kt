@@ -116,7 +116,8 @@ data class Medication(
     val dosage: String?,
     val intake_method: String?,
     val schedule_start: Date?,
-    val interval_milliseconds: Int?
+    val interval_milliseconds: Int?,
+    val initVector: String,
 )
 
 fun convertToLocalDateTime(date: Date): LocalDateTime {
