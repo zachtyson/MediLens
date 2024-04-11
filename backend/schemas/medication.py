@@ -6,12 +6,13 @@ from typing import Optional, List, Union
 # Until Google Health API is implemented
 class MedicationCreate(BaseModel):
     name: str
-    color: Optional[str]
-    imprint: Optional[str]
-    shape: Optional[str]
-    dosage: Optional[str]
-    intake_method: Optional[str]
-    description: Optional[str]
-    schedule_start: Optional[datetime]
-    interval_milliseconds: Optional[int]
-    init_vector: Optional[str]
+    color: Optional[str] = None
+    imprint: Optional[str] = None
+    shape: Optional[str] = None
+    dosage: Optional[str] = None
+    intake_method: Optional[str] = None
+    description: Optional[str] = None
+    schedule_start: Optional[datetime] = None
+    # interval in milliseconds can be null
+    interval_milliseconds: Optional[int] = None
+    init_vector: Optional[str] = None
