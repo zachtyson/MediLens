@@ -27,6 +27,7 @@ fun hashAndStorePassword(context: Context, password: String, userID: String) {
     // the hash is then used to encrypt the user's medical data (the key is the hash)
 
     val p = hashWithSHA256(saltedPassword)
+
     Log.d("Encryption", "Hashed password: $p")
     storeKey(context, p)
 }
@@ -42,7 +43,7 @@ fun storeKey(context: Context, key: String) {
     TokenAuth.saveToken(context, "encryption_key", key)
 }
 
-fun getKey(context: Context): String {
+fun getLocalEncryptionKey(context: Context): String {
     return TokenAuth.getToken(context, "encryption_key")
 }
 
@@ -95,12 +96,21 @@ fun getUserIdFromJwt(jwt: String): String {
 
 fun encryptData(data: String, key: String, init: String): String {
     val iv = IvParameterSpec(Base64.getDecoder().decode(init))
-    val keyBytes = key.toByteArray(Charsets.UTF_8)
+    val keyBytes = hexStringToByteArray(key)
     val skeySpec = SecretKeySpec(keyBytes, "AES")
     val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
     cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv)
     val encrypted = cipher.doFinal(data.toByteArray())
     return Base64.getEncoder().encodeToString(encrypted)
+}
+
+fun hexStringToByteArray(s: String): ByteArray {
+    val len = s.length
+    val data = ByteArray(len / 2)
+    for (i in 0 until len step 2) {
+        data[i / 2] = ((Character.digit(s[i], 16) shl 4) + Character.digit(s[i+1], 16)).toByte()
+    }
+    return data
 }
 
 fun decryptData(data: String, key: String, init: String): String {
