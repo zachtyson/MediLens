@@ -37,6 +37,12 @@ interface ApiService {
         @Body medication: MedicationCreate
     ): Call<Map<String, String>>
 
+    @POST("medication/modify_medication")
+    fun modifyMedication(
+        @Header("token") token: String,
+        @Body medication: MedicationModify
+    ): Call<Map<String, String>>
+
     @GET("medication/get_medications")
     fun getMedications(
         @Header("token") token: String
@@ -106,6 +112,22 @@ data class MedicationCreate(
     val shape: String?,
     val dosage: String?,
     val intake_method: String?,
+    val init_vector: String
+)
+
+// class for modifying medication, this might be the same as the Medication class but I made it separate for clarity
+data class MedicationModify(
+    val id: Int,
+    val owner_id: Int,
+    val name: String,
+    val description: String?,
+    val color: String?,
+    val imprint: String?,
+    val shape: String?,
+    val dosage: String?,
+    val intake_method: String?,
+    val schedule_start: Date?,
+    val interval_milliseconds: Int?,
     val init_vector: String
 )
 
