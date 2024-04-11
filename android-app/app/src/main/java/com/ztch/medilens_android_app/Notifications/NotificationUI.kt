@@ -17,11 +17,17 @@ import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.Homepage.AlarmsList
 import com.ztch.medilens_android_app.Homepage.CalendarDataSource
 import com.ztch.medilens_android_app.R
+import com.ztch.medilens_android_app.Refill.SharedMedicationModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToPillInformation : ()-> Unit,viewModel: AlarmViewModel) {
+fun notificationScreen(onNavigateToHomePage: () -> Unit,
+                       onNavigateToPillInformation : ()-> Unit,
+                       viewModel: AlarmViewModel,
+                       onNavigateToUnscheduledMedications: () -> Unit,
+                       sharedMedicationModel: SharedMedicationModel
+) {
     /*
     val context = LocalContext.current
     if(!TokenAuth.isLoggedIn(context)) {
@@ -60,7 +66,10 @@ fun notificationScreen(onNavigateToHomePage: () -> Unit,onNavigateToPillInformat
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToPillInformation() }) {
+                    IconButton(onClick = {
+                        onNavigateToUnscheduledMedications()
+                        sharedMedicationModel.userIsScheduling = true
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             tint = Color.White,

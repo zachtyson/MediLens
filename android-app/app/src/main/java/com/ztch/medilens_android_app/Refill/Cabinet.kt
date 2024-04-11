@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -54,15 +55,23 @@ fun Cabinet (
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
+    val topText = remember { mutableStateOf("Medications") }
+    val userIsScheduling = remember { sharedMedicationModel.userIsScheduling }
+
+    if (sharedMedicationModel.userIsScheduling) {
+        topText.value = "Unscheduled Medications"
+    }
+
 
     // Fetch all medications that are in the cabinet
 
     // mutable state empty list medication
     val medications = remember { mutableStateOf<List<Medication>>(emptyList()) }
+    val allMedications = remember { mutableStateOf<List<Medication>>(emptyList()) }
 
     // fetch all medications from the server
     LaunchedEffect(Unit) {
-        fetchMedications(service, context, medications)
+        fetchMedications(service, context, allMedications, medications, userIsScheduling)
     }
 
     // Column of boxes, each box is a medication
@@ -75,12 +84,20 @@ fun Cabinet (
                     titleContentColor = Color.White
                 ),
                 title = {
+                    IconButton(onClick = { toggleUserIsScheduling(sharedMedicationModel, topText, medications, allMedications) }) {
+                        Icon(
+                            tint = Color.White,
+                            imageVector = Icons.Filled.FilterAlt,
+                            contentDescription = "Localized description"
+                        )
+                    }
                     Text(
-                        "Medications",
+                        topText.value,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+
                 navigationIcon = {
                     IconButton(onClick = { onNavigateToHomePage() }) {
                         Icon(
@@ -99,7 +116,8 @@ fun Cabinet (
                         )
                     }
                 },
-            )
+
+                )
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
@@ -121,14 +139,17 @@ fun Cabinet (
 private fun fetchMedications(
     service: ApiService,
     context: Context,
-    medications: MutableState<List<Medication>>
+    allMedications: MutableState<List<Medication>>,
+    medications: MutableState<List<Medication>>,
+    userIsScheduling: Boolean
 ) {
+
     service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
         override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
             if (response.isSuccessful) {
-                medications.value = response.body() ?: emptyList()
+                allMedications.value = response.body() ?: emptyList()
                 // iterate over medications and decrypt them
-                for (medication in medications.value) {
+                for (medication in allMedications.value) {
                     val localEncryptionKey = getLocalEncryptionKey(context)
                     val decryptedName = decryptData(medication.name, localEncryptionKey, medication.init_vector)
                     val decryptedDescription = decryptData(medication.description ?: "", localEncryptionKey, medication.init_vector)
@@ -145,6 +166,13 @@ private fun fetchMedications(
                     medication.dosage = decryptedDosage
                     medication.intake_method = decryptedIntakeMethod
                 }
+                medications.value = allMedications.value
+                if (userIsScheduling) {
+                    // if user is scheduling, filter out medications that are already scheduled
+                    medications.value = medications.value.filter { medication ->
+                        medication.schedule_start == null }
+                }
+
             } else {
                 Log.e("Cabinet", "Failed to fetch medications")
             }
@@ -155,6 +183,25 @@ private fun fetchMedications(
         }
     })
 }
+
+fun toggleUserIsScheduling(sharedMedicationModel: SharedMedicationModel,
+                           topText: MutableState<String>,
+                           medications: MutableState<List<Medication>>,
+                           allMedications: MutableState<List<Medication>>) {
+    sharedMedicationModel.userIsScheduling = !sharedMedicationModel.userIsScheduling
+    if (sharedMedicationModel.userIsScheduling) {
+        topText.value = "Unscheduled Medications"
+    } else {
+        topText.value = "Medications"
+    }
+    medications.value = allMedications.value
+    if (sharedMedicationModel.userIsScheduling) {
+        // if user is scheduling, filter out medications that are already scheduled
+        medications.value = medications.value.filter { medication ->
+            medication.schedule_start == null }
+    }
+}
+
 @Composable
 fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicationModel, onNavigateToModifyMedication: () -> Unit) {
     val scheduleStart = medication.schedule_start?.let { convertToLocalDateTime(it) }
@@ -175,13 +222,13 @@ fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicatio
                 containerColor = colorResource(R.color.DarkBlue),
                 contentColor = colorResource(R.color.DarkBlue),
 
-            ),
+                ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
                 .padding(16.dp),
 
-        ) {
+            ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
                 // Medication image on the left
                 val image: ImageBitmap = getImage(IntSize(100, 100))

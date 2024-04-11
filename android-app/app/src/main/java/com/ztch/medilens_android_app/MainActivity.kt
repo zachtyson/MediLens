@@ -105,7 +105,10 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToCamera = { navController.navigate("Camera") },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToLogin = { navController.navigate("Login") {} },
-                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                onNavigateToCabinet = {
+                    sharedMedicationModel.userIsScheduling = false
+                    navController.navigate("Cabinet")
+                                      },
                 onNavigateToSettings = { navController.navigate("Settings") {} },
                 viewModel = viewModel
             )
@@ -115,7 +118,13 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("Alarm") {
             notificationScreen(
                 onNavigateToHomePage = { navController.navigate("Home") },
-                onNavigateToPillInformation = { navController.navigate("PillInformation") {} }, viewModel = viewModel
+                onNavigateToPillInformation = { navController.navigate("PillInformation") {} },
+                viewModel = viewModel,
+                onNavigateToUnscheduledMedications = {
+                    sharedMedicationModel.userIsScheduling = true
+                    navController.navigate("Cabinet")
+                },
+                sharedMedicationModel = sharedMedicationModel
             )
         }
 
@@ -185,13 +194,16 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarm = { navController.navigate("Alarm") {} }
             )
         }
+
+
         composable("Cabinet") {
             Cabinet(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToAddMedication = { navController.navigate("AddMedication") {} },
                 onNavigateToModifyMedication = { navController.navigate("ModifyMedication") {} },
-                sharedMedicationModel = sharedMedicationModel
+                sharedMedicationModel = sharedMedicationModel,
+
 
             )
         }
