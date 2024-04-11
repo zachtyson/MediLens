@@ -32,6 +32,8 @@ import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
 import com.ztch.medilens_android_app.Refill.AddMedication
 import com.ztch.medilens_android_app.Refill.Cabinet
+import com.ztch.medilens_android_app.Refill.ModifyMedication
+import com.ztch.medilens_android_app.Refill.SharedMedicationModel
 import com.ztch.medilens_android_app.Settings.Settings
 
 // camera permission
@@ -76,6 +78,9 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
     val navController = rememberNavController()
 
     val sharedCameraImageViewerModel: SharedViewModel = SharedViewModel()
+    val sharedMedicationModel: SharedMedicationModel = SharedMedicationModel()
+
+
 
     NavHost(navController, startDestination = "Login") {
 
@@ -181,7 +186,10 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
             Cabinet(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
-                onNavigateToAddMedication = { navController.navigate("AddMedication") {} }
+                onNavigateToAddMedication = { navController.navigate("AddMedication") {} },
+                onNavigateToModifyMedication = { navController.navigate("ModifyMedication") {} },
+                sharedMedicationModel = sharedMedicationModel
+
             )
         }
 
@@ -190,6 +198,15 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToCabinet = { navController.navigate("Cabinet") {} }
+            )
+        }
+
+        composable("ModifyMedication") {
+            ModifyMedication(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                sharedMedicationModel = sharedMedicationModel
             )
         }
 
