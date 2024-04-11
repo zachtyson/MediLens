@@ -32,6 +32,7 @@ import java.time.LocalDateTime
 import java.util.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.Authenticate.decryptData
@@ -200,18 +201,36 @@ fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicatio
                         scheduleStart = humanReadableScheduleStart,
                         interval = humanReadableInterval
                     )
-                    // Button to modify medication
-                    Button(
-                        onClick = {
-                            sharedMedicationModel.medication = medication
-                            onNavigateToModifyMedication()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(R.color.LightBlue),
-                            contentColor = Color.White
-                        )
+                    // Box for two buttons 'Modify' and 'Schedule'
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Modify Medication")
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                sharedMedicationModel.medication = medication
+                                onNavigateToModifyMedication()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.LightBlue),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(text = "Modify", fontSize = 10.sp, color = Color.White, textAlign = TextAlign.Center)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { /*TODO*/ },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.LightBlue),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(text = "Schedule", fontSize = 10.sp, color = Color.White, textAlign = TextAlign.Center)
+                        }
                     }
                 }
             }
