@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -19,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -77,16 +79,17 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
     Log.d("myapp", "Recomposed")
     val navController = rememberNavController()
 
+    val context = LocalContext.current
     val sharedCameraImageViewerModel: SharedViewModel = SharedViewModel()
     val sharedMedicationModel: SharedMedicationModel = SharedMedicationModel()
 
+    val startDestination = if (TokenAuth.isLoggedIn(context)) "Home" else "Login"
 
-
-    NavHost(navController, startDestination = "Login") {
+    NavHost(navController, startDestination = startDestination) {
 
         composable("SignUp") {
             SignUp(
-                onNavigateToHome = { navController.navigate("HomePage") {} },
+                onNavigateToHome = { navController.navigate("Home") {} },
                 onNavigateToLogin = { navController.navigate("Login") })
         }
 
