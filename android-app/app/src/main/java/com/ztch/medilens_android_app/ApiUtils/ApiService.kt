@@ -1,23 +1,10 @@
 package com.ztch.medilens_android_app.ApiUtils
-import android.annotation.SuppressLint
-import android.graphics.Bitmap
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.http.*
-import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -44,19 +31,10 @@ interface ApiService {
         @Query("shape") shape: Int
     ): Call<List<PillInfoResponse>>
 
-    @FormUrlEncoded
-    @POST("medication/add_medication/")
+    @POST("medication/add_medication")
     fun addMedication(
         @Header("token") token: String,
-        @Field("name") name: String,
-        @Field("color") color: String,
-        @Field("imprint") imprint: String,
-        @Field("shape") shape: String,
-        @Field("dosage") dosage: String,
-        @Field("intake_method") intakeMethod: String,
-        @Field("description") description: String,
-        @Field("schedule_start") scheduleStart: String,
-        @Field("interval_milliseconds") intervalMilliseconds: Int
+        @Body medication: MedicationCreate
     ): Call<Map<String, String>>
 
     @GET("medication/get_medications")
@@ -106,7 +84,7 @@ data class MedicationInteractionResponse(
 )
 data class Medication(
     val id: Int,
-    val created_date: Date,
+    val created_date: Date?,
     val owner_id: Int,
     val name: String,
     val description: String?,
@@ -118,6 +96,17 @@ data class Medication(
     val schedule_start: Date?,
     val interval_milliseconds: Int?,
     val initVector: String,
+)
+
+data class MedicationCreate(
+    val name: String,
+    val description: String?,
+    val color: String?,
+    val imprint: String?,
+    val shape: String?,
+    val dosage: String?,
+    val intake_method: String?,
+    val init_vector: String
 )
 
 fun convertToLocalDateTime(date: Date): LocalDateTime {
