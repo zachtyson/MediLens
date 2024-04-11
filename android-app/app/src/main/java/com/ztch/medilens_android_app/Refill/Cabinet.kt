@@ -39,7 +39,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun Cabinet (
     onNavigateToHomePage: () -> Unit,
-    onNavigateToAlarm: () -> Unit
+    onNavigateToAlarm: () -> Unit,
+    onNavigateToAddMedication: () -> Unit,
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
@@ -85,7 +86,7 @@ fun Cabinet (
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToHomePage() }) {
+                    IconButton(onClick = { onNavigateToAddMedication() }) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             tint = Color.White,
