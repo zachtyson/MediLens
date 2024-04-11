@@ -90,7 +90,6 @@ fun AddMedication (
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -113,11 +112,25 @@ fun AddMedication (
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
+                        value = description,
+                        onValueChange = { description = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(text = "Description", color = Color.White)
+                        }
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
                         value = color,
                         onValueChange = { color = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Dosage", color = Color.White)
+                            Text(text = "Color", color = Color.White)
                         }
                     )
                     OutlinedTextField(
@@ -176,21 +189,6 @@ fun AddMedication (
                             Text(text = "Intake Method", color = Color.White)
                         }
                     )
-                    OutlinedTextField(
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        ),
-                        value = description,
-                        onValueChange = { description = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(text = "Description", color = Color.White)
-                        }
-                    )
-
                     if (errorText.isNotEmpty()) {
                         Snackbar(
                             modifier = Modifier.padding(top = 8.dp),
@@ -236,25 +234,28 @@ fun AddMedication (
                                 call.enqueue(object : retrofit2.Callback<Map<String, String>> {
                                     override fun onResponse(call: retrofit2.Call<Map<String, String>>, response: retrofit2.Response<Map<String, String>>) {
                                         if (response.isSuccessful) {
-                                            println("Medication added successfully")
+                                            Log.d("AddMedication", "Medication added successfully")
+                                            if (errorText.isEmpty()) {
+                                                onNavigateToCabinet()
+                                            }
                                         } else {
-                                            println("Failed to add medication")
+                                            Log.d("AddMedication", "Failed to add medication")
+                                            errorText = "Failed to add medication"
                                         }
                                     }
 
                                     override fun onFailure(call: retrofit2.Call<Map<String, String>>, t: Throwable) {
-                                        println("Failed to add medication")
+                                        Log.d("AddMedication", "Failed to add medication")
+                                        errorText = "Failed to add medication"
                                     }
                                 })
-                                if (errorText.isEmpty()) {
-                                    onNavigateToCabinet()
-                                }
+
                             }
                         },
                         modifier = Modifier.padding(top = 8.dp)
                             .fillMaxWidth()
                     ) {
-                        Text(text = "Set Alarm Times")
+                        Text(text = "Add Medication to Cabinet", color = Color.White)
                     }
                 }
             }
