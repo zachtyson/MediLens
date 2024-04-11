@@ -43,6 +43,8 @@ fun Cabinet (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToAddMedication: () -> Unit,
+    onNavigateToModifyMedication: () -> Unit,
+    sharedMedicationModel: SharedMedicationModel
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
@@ -108,7 +110,7 @@ fun Cabinet (
             ) {
                 for (medication in medications.value) {
                     item {
-                        MedicationBox(medication = medication)
+                        MedicationBox(medication = medication, sharedMedicationModel = sharedMedicationModel, onNavigateToModifyMedication = onNavigateToModifyMedication)
                     }
                 }
             }
@@ -153,7 +155,7 @@ private fun fetchMedications(
     })
 }
 @Composable
-fun MedicationBox(medication: Medication) {
+fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicationModel, onNavigateToModifyMedication: () -> Unit) {
     val scheduleStart = medication.schedule_start?.let { convertToLocalDateTime(it) }
     val humanReadableScheduleStart = scheduleStart?.let { formatDateTime(it) } ?: "N/A"
     val humanReadableInterval = medication.interval_milliseconds?.let {
@@ -198,6 +200,19 @@ fun MedicationBox(medication: Medication) {
                         scheduleStart = humanReadableScheduleStart,
                         interval = humanReadableInterval
                     )
+                    // Button to modify medication
+                    Button(
+                        onClick = {
+                            sharedMedicationModel.medication = medication
+                            onNavigateToModifyMedication()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.LightBlue),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Modify Medication")
+                    }
                 }
             }
         }
