@@ -84,18 +84,13 @@ fun Cabinet (
                     titleContentColor = Color.White
                 ),
                 title = {
-                    IconButton(onClick = { toggleUserIsScheduling(sharedMedicationModel, topText, medications, allMedications) }) {
-                        Icon(
-                            tint = Color.White,
-                            imageVector = Icons.Filled.FilterAlt,
-                            contentDescription = "Localized description"
-                        )
-                    }
                     Text(
                         topText.value,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                        // lower font size
+                        fontSize = 18.sp,
+                        overflow = TextOverflow.Ellipsis)
+
                 },
 
                 navigationIcon = {
@@ -108,12 +103,30 @@ fun Cabinet (
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToAddMedication() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            tint = Color.White,
-                            contentDescription = "addMedication"
-                        )
+                    Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        // center objects horizontally
+                        IconButton(onClick = {
+                            toggleUserIsScheduling(
+                                sharedMedicationModel,
+                                topText,
+                                medications,
+                                allMedications
+                            )
+                        }) {
+                            Icon(
+                                tint = Color.White,
+                                imageVector = Icons.Filled.FilterAlt,
+                                contentDescription = "Localized description"
+                            )
+                        }
+                        IconButton(onClick = { onNavigateToAddMedication() }) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                tint = Color.White,
+                                contentDescription = "addMedication"
+                            )
+                        }
+
                     }
                 },
 
@@ -213,9 +226,11 @@ fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicatio
         modifier = Modifier
             .padding(top = 10.dp)
             .fillMaxWidth(),
+
         shape = RoundedCornerShape(8.dp),
         color = colorResource(id = R.color.DarkBlue),
     ) {
+
         Card(
             // Make entire card DarkBlue
             colors = CardDefaults.cardColors(
@@ -225,7 +240,8 @@ fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicatio
                 ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp)
+                // take up as much height as needed
+                .height(IntrinsicSize.Min)
                 .padding(16.dp),
 
             ) {
