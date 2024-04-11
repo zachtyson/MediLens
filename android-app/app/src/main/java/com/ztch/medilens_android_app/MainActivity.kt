@@ -30,6 +30,7 @@ import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
 import com.ztch.medilens_android_app.Authenticate.*
 import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
+import com.ztch.medilens_android_app.Refill.AddMedication
 import com.ztch.medilens_android_app.Refill.Cabinet
 import com.ztch.medilens_android_app.Settings.Settings
 
@@ -179,7 +180,16 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("Cabinet") {
             Cabinet(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
-                onNavigateToAlarm = { navController.navigate("Alarm") {} }
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToAddMedication = { navController.navigate("AddMedication") {} }
+            )
+        }
+
+        composable("AddMedication") {
+            AddMedication(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} }
             )
         }
 
