@@ -34,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import com.ztch.medilens_android_app.Authenticate.decryptData
+import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,6 +124,24 @@ private fun fetchMedications(
         override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
             if (response.isSuccessful) {
                 medications.value = response.body() ?: emptyList()
+                // iterate over medications and decrypt them
+                for (medication in medications.value) {
+                    val localEncryptionKey = getLocalEncryptionKey(context)
+                    val decryptedName = decryptData(medication.name, localEncryptionKey, medication.init_vector)
+                    val decryptedDescription = decryptData(medication.description ?: "", localEncryptionKey, medication.init_vector)
+                    val decryptedColor = decryptData(medication.color ?: "", localEncryptionKey, medication.init_vector)
+                    val decryptedImprint = decryptData(medication.imprint ?: "", localEncryptionKey, medication.init_vector)
+                    val decryptedShape = decryptData(medication.shape ?: "", localEncryptionKey, medication.init_vector)
+                    val decryptedDosage = decryptData(medication.dosage ?: "", localEncryptionKey, medication.init_vector)
+                    val decryptedIntakeMethod = decryptData(medication.intake_method ?: "", localEncryptionKey, medication.init_vector)
+                    medication.name = decryptedName
+                    medication.description = decryptedDescription
+                    medication.color = decryptedColor
+                    medication.imprint = decryptedImprint
+                    medication.shape = decryptedShape
+                    medication.dosage = decryptedDosage
+                    medication.intake_method = decryptedIntakeMethod
+                }
             } else {
                 Log.e("Cabinet", "Failed to fetch medications")
             }

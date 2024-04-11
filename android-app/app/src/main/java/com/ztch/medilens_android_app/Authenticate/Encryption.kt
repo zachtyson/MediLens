@@ -115,7 +115,7 @@ fun hexStringToByteArray(s: String): ByteArray {
 
 fun decryptData(data: String, key: String, init: String): String {
     val iv = IvParameterSpec(Base64.getDecoder().decode(init))
-    val keyBytes = key.toByteArray(Charsets.UTF_8)
+    val keyBytes = hexStringToByteArray(key)
     val skeySpec = SecretKeySpec(keyBytes, "AES")
     val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
     cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv)
