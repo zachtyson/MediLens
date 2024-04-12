@@ -31,6 +31,8 @@ import com.ztch.medilens_android_app.Camera.*
 import com.ztch.medilens_android_app.ui.theme.MedilensandroidappTheme
 import com.ztch.medilens_android_app.Authenticate.*
 import com.ztch.medilens_android_app.Homepage.HomePage
+import com.ztch.medilens_android_app.Medicard.MediCardScreen
+
 import com.ztch.medilens_android_app.Notifications.*
 import com.ztch.medilens_android_app.Refill.AddMedication
 import com.ztch.medilens_android_app.Refill.Cabinet
@@ -110,6 +112,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                     navController.navigate("Cabinet")
                                       },
                 onNavigateToSettings = { navController.navigate("Settings") {} },
+                onNavigateToMediCard = { navController.navigate("MediCard") {} },
                 viewModel = viewModel
             )
 
@@ -205,6 +208,12 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 sharedMedicationModel = sharedMedicationModel,
 
 
+            )
+        }
+
+        composable("MediCard") {
+            MediCardScreen(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
             )
         }
 

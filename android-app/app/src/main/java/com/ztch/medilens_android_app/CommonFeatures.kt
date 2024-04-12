@@ -28,7 +28,8 @@ import androidx.compose.ui.unit.sp
 fun appbarBottom(onNavigateToCamera: () -> Unit,
                  onNavigateToAlarm: () -> Unit,
                  onNavigateToCabinet: () -> Unit,
-                    onNavigateToSettings: () -> Unit)
+                 onNavigateToSettings: () -> Unit,
+                 onNavigateToMedicard: () -> Unit,)
 
 {
     val colorPurple = colorResource(R.color.Purple)
@@ -44,7 +45,7 @@ fun appbarBottom(onNavigateToCamera: () -> Unit,
             {
 
                 IconButton(
-                    onClick = { },
+                    onClick = { onNavigateToMedicard() },
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CardMembership,

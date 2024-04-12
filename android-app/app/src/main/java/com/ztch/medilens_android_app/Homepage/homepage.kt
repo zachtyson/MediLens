@@ -39,6 +39,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              onNavigateToLogin: () -> Unit,
              onNavigateToCabinet: () -> Unit,
              onNavigateToSettings: () -> Unit,
+             onNavigateToMediCard: () -> Unit,
              viewModel: AlarmViewModel,
              ) {
 
@@ -77,7 +78,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
               onNavigateToCamera = onNavigateToCamera,
               onNavigateToAlarm = onNavigateToAlarm,
               onNavigateToCabinet = onNavigateToCabinet,
-              onNavigateToSettings = onNavigateToSettings)
+              onNavigateToSettings = onNavigateToSettings,
+              onNavigateToMedicard = onNavigateToMediCard)
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
