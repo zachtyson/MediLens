@@ -94,6 +94,19 @@ fun getUserIdFromJwt(jwt: String): String {
     return subPayload.userId
 }
 
+fun getExpirationFromJwt(jwt: String): Long {
+    val (_, payload) = decodeJwt(jwt)
+    val gson = Gson()
+    val payloadObj = gson.fromJson(payload, JwtPayload::class.java)
+    return payloadObj.exp
+}
+
+fun isJwtExpired(jwt: String): Boolean {
+    val expiration = getExpirationFromJwt(jwt)
+    val currentTime = System.currentTimeMillis() / 1000
+    return currentTime >= expiration
+}
+
 fun encryptData(data: String, key: String, init: String): String {
     val iv = IvParameterSpec(Base64.getDecoder().decode(init))
     val keyBytes = hexStringToByteArray(key)

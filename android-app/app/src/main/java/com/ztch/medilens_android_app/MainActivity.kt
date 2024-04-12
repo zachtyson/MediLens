@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -19,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -32,6 +34,8 @@ import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Notifications.*
 import com.ztch.medilens_android_app.Refill.AddMedication
 import com.ztch.medilens_android_app.Refill.Cabinet
+import com.ztch.medilens_android_app.Refill.ModifyMedication
+import com.ztch.medilens_android_app.Refill.SharedMedicationModel
 import com.ztch.medilens_android_app.Settings.Settings
 
 // camera permission
@@ -75,13 +79,17 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
     Log.d("myapp", "Recomposed")
     val navController = rememberNavController()
 
+    val context = LocalContext.current
     val sharedCameraImageViewerModel: SharedViewModel = SharedViewModel()
+    val sharedMedicationModel: SharedMedicationModel = SharedMedicationModel()
 
-    NavHost(navController, startDestination = "Login") {
+    val startDestination = if (TokenAuth.isLoggedIn(context)) "Home" else "Login"
+
+    NavHost(navController, startDestination = startDestination) {
 
         composable("SignUp") {
             SignUp(
-                onNavigateToHome = { navController.navigate("HomePage") {} },
+                onNavigateToHome = { navController.navigate("Home") {} },
                 onNavigateToLogin = { navController.navigate("Login") })
         }
 
@@ -97,7 +105,10 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToCamera = { navController.navigate("Camera") },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToLogin = { navController.navigate("Login") {} },
-                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                onNavigateToCabinet = {
+                    sharedMedicationModel.userIsScheduling = false
+                    navController.navigate("Cabinet")
+                                      },
                 onNavigateToSettings = { navController.navigate("Settings") {} },
                 viewModel = viewModel
             )
@@ -107,7 +118,13 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("Alarm") {
             notificationScreen(
                 onNavigateToHomePage = { navController.navigate("Home") },
-                onNavigateToPillInformation = { navController.navigate("PillInformation") {} }, viewModel = viewModel
+                onNavigateToPillInformation = { navController.navigate("PillInformation") {} },
+                viewModel = viewModel,
+                onNavigateToUnscheduledMedications = {
+                    sharedMedicationModel.userIsScheduling = true
+                    navController.navigate("Cabinet")
+                },
+                sharedMedicationModel = sharedMedicationModel
             )
         }
 
@@ -177,11 +194,17 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarm = { navController.navigate("Alarm") {} }
             )
         }
+
+
         composable("Cabinet") {
             Cabinet(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
-                onNavigateToAddMedication = { navController.navigate("AddMedication") {} }
+                onNavigateToAddMedication = { navController.navigate("AddMedication") {} },
+                onNavigateToModifyMedication = { navController.navigate("ModifyMedication") {} },
+                sharedMedicationModel = sharedMedicationModel,
+
+
             )
         }
 
@@ -190,6 +213,15 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToCabinet = { navController.navigate("Cabinet") {} }
+            )
+        }
+
+        composable("ModifyMedication") {
+            ModifyMedication(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                sharedMedicationModel = sharedMedicationModel
             )
         }
 

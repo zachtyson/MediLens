@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List, Union
 
+
 # Temporary Medication class
 # Until Google Health API is implemented
 class MedicationCreate(BaseModel):
@@ -16,3 +17,8 @@ class MedicationCreate(BaseModel):
     # interval in milliseconds can be null
     interval_milliseconds: Optional[int] = None
     init_vector: Optional[str] = None
+
+
+class MedicationModify(MedicationCreate):
+    id: int
+    owner_id: int

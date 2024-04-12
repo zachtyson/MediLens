@@ -23,32 +23,35 @@ import com.ztch.medilens_android_app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddMedication (
+fun ModifyMedication (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToCabinet: () -> Unit,
+    sharedMedicationModel: SharedMedicationModel
 ) {
     // Add Medication
 
     val service = RetrofitClient.apiService
-    Log.d("AddMedication", "Recomposed")
+    Log.d("ModifyMedication", "Recomposed")
     val context = LocalContext.current
     if (!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
+    if (sharedMedicationModel.medication == null) {
+        onNavigateToCabinet()
+    }
 
-    var medicationName by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf("") }
-    var imprint by remember { mutableStateOf("") }
-    var shape by remember { mutableStateOf("") }
-    var dosage by remember { mutableStateOf("") }
-    var intakeMethod by remember { mutableStateOf("") }
+    val medication = sharedMedicationModel.medication!!
+
+    var medicationName by remember { mutableStateOf(medication.name ?: "") }
+    var description by remember { mutableStateOf(medication.description ?: "") }
+    var color by remember { mutableStateOf(medication.color ?: "") }
+    var imprint by remember { mutableStateOf(medication.imprint ?: "") }
+    var shape by remember { mutableStateOf(medication.shape ?: "") }
+    var dosage by remember { mutableStateOf(medication.dosage ?: "") }
+    var intakeMethod by remember { mutableStateOf(medication.intake_method ?: "") }
     var errorText by remember { mutableStateOf("") }
-    var isFormDropdownVisible by remember { mutableStateOf(false) }
-
-
 
     Scaffold(
         topBar = {
@@ -59,7 +62,7 @@ fun AddMedication (
                 ),
                 title = {
                     Text(
-                        "Add Medication",
+                        "Modify Medication",
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -90,6 +93,7 @@ fun AddMedication (
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
+
                     OutlinedTextField(
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -189,6 +193,7 @@ fun AddMedication (
                             Text(text = "Intake Method", color = Color.White)
                         }
                     )
+
                     if (errorText.isNotEmpty()) {
                         Snackbar(
                             modifier = Modifier.padding(top = 8.dp),
@@ -212,14 +217,14 @@ fun AddMedication (
                                 // encrypt medication
                                 val encryptionKey = getLocalEncryptionKey(context)
                                 val iv = createRandomIV()
-                                Log.d("AddMedication", "IV: $iv")
-                                Log.d("AddMedication", "Encryption Key: $encryptionKey")
-                                Log.d("AddMedication", "Medication Name: $medicationName")
+                                Log.d("ModifyMedication", "IV: $iv")
+                                Log.d("ModifyMedication", "Encryption Key: $encryptionKey")
+                                Log.d("ModifyMedication", "Medication Name: $medicationName")
 
                                 val initVector = iv
                                 val token = TokenAuth.getLogInToken(context)
 
-                                val mc = MedicationCreate(
+                                val mc = MedicationModify(
                                     name = encryptData(medicationName, encryptionKey, iv),
                                     description = encryptData(description, encryptionKey, iv),
                                     color = encryptData(color, encryptionKey, iv),
@@ -228,25 +233,29 @@ fun AddMedication (
                                     dosage = encryptData(dosage, encryptionKey, iv),
                                     intake_method = encryptData(intakeMethod, encryptionKey, iv),
                                     init_vector = initVector,
+                                    id = medication.id,
+                                    owner_id = medication.owner_id,
+                                    schedule_start = medication.schedule_start,
+                                    interval_milliseconds = medication.interval_milliseconds
                                 )
 
-                                val call = RetrofitClient.apiService.addMedication(token, mc)
+                                val call = RetrofitClient.apiService.modifyMedication(token, mc)
                                 call.enqueue(object : retrofit2.Callback<Map<String, String>> {
                                     override fun onResponse(call: retrofit2.Call<Map<String, String>>, response: retrofit2.Response<Map<String, String>>) {
                                         if (response.isSuccessful) {
-                                            Log.d("AddMedication", "Medication added successfully")
+                                            Log.d("ModifyMedication", "Medication modified successfully")
                                             if (errorText.isEmpty()) {
                                                 onNavigateToCabinet()
                                             }
                                         } else {
-                                            Log.d("AddMedication", "Failed to add medication")
-                                            errorText = "Failed to add medication"
+                                            Log.d("ModifyMedication", "Failed to modify medication")
+                                            errorText = "Failed to modify medication"
                                         }
                                     }
 
                                     override fun onFailure(call: retrofit2.Call<Map<String, String>>, t: Throwable) {
-                                        Log.d("AddMedication", "Failed to add medication")
-                                        errorText = "Failed to add medication"
+                                        Log.d("ModifyMedication", "Failed to modify medication, error: ${t.message}")
+                                        errorText = "Failed to modify medication"
                                     }
                                 })
 
@@ -255,7 +264,7 @@ fun AddMedication (
                         modifier = Modifier.padding(top = 8.dp)
                             .fillMaxWidth()
                     ) {
-                        Text(text = "Add Medication to Cabinet", color = Color.White)
+                        Text(text = "Modify Medication", color = Color.White)
                     }
                 }
             }

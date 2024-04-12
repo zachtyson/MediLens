@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app.ApiUtils
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -8,30 +9,69 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
 import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
+import com.ztch.medilens_android_app.Authenticate.getExpirationFromJwt
+import com.ztch.medilens_android_app.Authenticate.isJwtExpired
 import com.ztch.medilens_android_app.Camera.ImageAndPrediction
 import java.io.ByteArrayOutputStream
 
 object TokenAuth {
 
+    fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
+        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        return EncryptedSharedPreferences.create(
+            "encrypted_prefs",
+            masterKeyAlias,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
     fun isLoggedIn(context: Context): Boolean {
-        return hasToken(context, "access_token")
+        val prefs = getEncryptedSharedPreferences(context)
+        val token = prefs.getString("access_token", null)
+        if (token == null || token == "") {
+            // delete token just in case
+            with(prefs.edit()) {
+                remove("access_token")
+                apply()
+            }
+            return false
+        }
+        // decrypt and check expiration time
+        val expiration = isJwtExpired(token)
+        if (expiration) {
+            return false
+        }
+        return true
+
     }
 
     fun logOut(context: Context) {
-        deleteToken(context, "access_token")
+        val prefs = getEncryptedSharedPreferences(context)
+        with(prefs.edit()) {
+            remove("access_token")
+            apply()
+        }
     }
 
     fun logIn(context: Context, token: String): Boolean {
         if (token == "") {
             return false
         }
-        saveToken(context, "access_token", token)
-        deleteToken(context, "images")
-        return true;
+        val prefs = getEncryptedSharedPreferences(context)
+        with(prefs.edit()) {
+            putString("access_token", token)
+            apply()
+        }
+        return true
     }
 
     fun getLogInToken(context: Context): String {
-        return getToken(context, "access_token")
+        val prefs = getEncryptedSharedPreferences(context)
+        return prefs.getString("access_token", "").toString()
     }
 
     fun saveToken(context: Context, token_name: String, token: String) {

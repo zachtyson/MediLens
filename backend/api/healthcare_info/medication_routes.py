@@ -7,7 +7,7 @@ from models.user import User
 from models.base import Base
 from models.medication import Medication
 from db.session import SessionLocal
-from schemas.medication import MedicationCreate
+from schemas.medication import MedicationCreate, MedicationModify
 from schemas.user import UserCreate, UserUpdate, UserResponse
 from typing import List, Annotated
 from core.security import get_password_hash, get_token_from_header, get_id_from_token, verify_password, verify_token
@@ -28,7 +28,6 @@ def get_db():
 @router.post("/medication/add_medication")
 async def add_medication(medication_data: MedicationCreate, db: Session = Depends(get_db),
                          token: str = Depends(get_token_from_header)):
-
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
     # get user id from token
@@ -84,3 +83,31 @@ async def get_medications(db: Session = Depends(get_db), token: str = Depends(ge
     # convert to dictionary
     medications = [med.__dict__ for med in medications]
     return medications
+
+
+@router.post("/medication/modify_medication")
+async def modify_medication(medication_data: MedicationModify, db: Session = Depends(get_db),
+                            token: str = Depends(get_token_from_header)):
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_id = get_id_from_token(token)
+    if not db.query(User).filter(User.id == user_id).first():
+        raise HTTPException(status_code=404, detail="User not found")
+    medication = db.query(Medication).filter(Medication.owner_id == user_id).filter(
+        Medication.id == medication_data.id).first()
+    if not medication:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    try:
+        medication.name = medication_data.name
+        medication.description = medication_data.description
+        medication.color = medication_data.color
+        medication.imprint = medication_data.imprint
+        medication.shape = medication_data.shape
+        medication.dosage = medication_data.dosage
+        medication.intake_method = medication_data.intake_method
+        medication.init_vector = medication_data.init_vector
+        db.commit()
+        db.refresh(medication)
+        return {"message": "Medication modified successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to modify medication")
