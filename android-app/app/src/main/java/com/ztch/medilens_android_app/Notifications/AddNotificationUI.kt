@@ -158,7 +158,7 @@ fun PillInformationScreen(
                         onValueChange = { form = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Form ", color = Color.White)
+                            Text(text = "Form", color = Color.White)
                         },
                         trailingIcon = {
                             IconButton(onClick = { isFormDropdownVisible = true }) {

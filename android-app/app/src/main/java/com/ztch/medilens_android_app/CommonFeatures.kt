@@ -48,7 +48,7 @@ fun appbarBottom(onNavigateToCamera: () -> Unit,
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CardMembership,
-                        contentDescription = "medicar",
+                        contentDescription = "medicard",
                         tint = Color.White,
                         modifier = Modifier.size(35.dp)
                     )
@@ -95,7 +95,7 @@ fun appbarBottom(onNavigateToCamera: () -> Unit,
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "alerts",
+                        contentDescription = "camera",
                         tint = Color.White,
                         modifier = Modifier.size(35.dp)
                     )

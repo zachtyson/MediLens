@@ -117,7 +117,7 @@ fun AddMedication (
                         onValueChange = { color = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
-                            Text(text = "Dosage", color = Color.White)
+                            Text(text = "Color", color = Color.White)
                         }
                     )
                     OutlinedTextField(
