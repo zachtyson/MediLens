@@ -172,6 +172,14 @@ fun Settings (
                     )
                     HorizontalDivider()
                 }
+                item {
+                    SettingsOptionItem(
+                        icon = Icons.Default.LocalPharmacy,
+                        title = "Add Doctor",
+                        onClick = { onNavigateToAlarm() }
+                    )
+                    HorizontalDivider()
+                }
 
             }
         }
