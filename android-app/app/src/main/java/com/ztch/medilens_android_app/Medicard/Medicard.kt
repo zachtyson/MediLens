@@ -35,7 +35,7 @@ import com.ztch.medilens_android_app.R
 
 @Preview(showSystemUi = true)
 @Composable
-fun mediPreview() {
+fun mediPreview1() {
     MediCardScreen( onNavigateToHomePage = {})
 }
 

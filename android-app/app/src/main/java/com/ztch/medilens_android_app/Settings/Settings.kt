@@ -45,7 +45,8 @@ fun LogOutAfterDelete(context: Context, onNavigateToHomePage: () -> Unit) {
 @Composable
 fun Settings (
     onNavigateToHomePage: () -> Unit,
-    onNavigateToAlarm: () -> Unit
+    onNavigateToAlarm: () -> Unit,
+    onNavigateToDoctor: () -> Unit
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
@@ -176,7 +177,7 @@ fun Settings (
                     SettingsOptionItem(
                         icon = Icons.Default.LocalPharmacy,
                         title = "Add Doctor",
-                        onClick = { onNavigateToAlarm() }
+                        onClick = { onNavigateToDoctor() }
                     )
                     HorizontalDivider()
                 }

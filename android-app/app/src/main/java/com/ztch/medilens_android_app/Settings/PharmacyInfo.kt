@@ -11,27 +11,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.Medicard.ProfileImage
 import com.ztch.medilens_android_app.R
-import java.time.format.TextStyle
-
-
 @Preview(showSystemUi = true)
 @Composable
-fun mediPreview() {
-    DoctorScreen( onNavigateToSettings = {})
+fun doctorPreview() {
+    DoctorScreen( onNavigateToSettings = {}, onNavigateToLogin = {})
+
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DoctorScreen(onNavigateToSettings: () -> Unit ) {
+fun DoctorScreen(
+    onNavigateToSettings: () -> Unit,
+    onNavigateToLogin: () -> Unit
+) {
     val context = LocalContext.current
     if (!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page

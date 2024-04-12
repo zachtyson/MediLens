@@ -38,6 +38,7 @@ import com.ztch.medilens_android_app.Refill.AddMedication
 import com.ztch.medilens_android_app.Refill.Cabinet
 import com.ztch.medilens_android_app.Refill.ModifyMedication
 import com.ztch.medilens_android_app.Refill.SharedMedicationModel
+import com.ztch.medilens_android_app.Settings.DoctorScreen
 import com.ztch.medilens_android_app.Settings.Settings
 
 // camera permission
@@ -160,7 +161,15 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
         composable("Settings") {
             Settings(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
-                onNavigateToAlarm = { navController.navigate("Alarm") {} }
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToDoctor = { navController.navigate("Doctor") {} }
+            )
+        }
+
+        composable("Doctor") {
+            DoctorScreen(
+                onNavigateToSettings = { navController.navigate("Settings") {} },
+                onNavigateToLogin = { navController.navigate("Login") }
             )
         }
 
