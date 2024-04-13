@@ -214,9 +214,18 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
                 onNavigateToAddMedication = { navController.navigate("AddMedication") {} },
                 onNavigateToModifyMedication = { navController.navigate("ModifyMedication") {} },
+                onNavigateToScheduleMedication = { navController.navigate("ScheduleMedication") {} },
                 sharedMedicationModel = sharedMedicationModel,
 
+            )
+        }
 
+        composable("ScheduleMedication") {
+            ScheduleMedication(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                sharedMedicationModel = sharedMedicationModel
             )
         }
 

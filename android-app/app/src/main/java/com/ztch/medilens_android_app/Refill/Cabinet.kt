@@ -46,6 +46,7 @@ fun Cabinet (
     onNavigateToAlarm: () -> Unit,
     onNavigateToAddMedication: () -> Unit,
     onNavigateToModifyMedication: () -> Unit,
+    onNavigateToScheduleMedication: () -> Unit,
     sharedMedicationModel: SharedMedicationModel
 ) {
     val service = RetrofitClient.apiService
@@ -142,7 +143,9 @@ fun Cabinet (
             ) {
                 for (medication in medications.value) {
                     item {
-                        MedicationBox(medication = medication, sharedMedicationModel = sharedMedicationModel, onNavigateToModifyMedication = onNavigateToModifyMedication)
+                        MedicationBox(medication = medication, sharedMedicationModel = sharedMedicationModel,
+                            onNavigateToModifyMedication = onNavigateToModifyMedication,
+                            onNavigateToScheduleMedication = onNavigateToScheduleMedication)
                     }
                 }
             }
@@ -216,7 +219,11 @@ fun toggleUserIsScheduling(sharedMedicationModel: SharedMedicationModel,
 }
 
 @Composable
-fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicationModel, onNavigateToModifyMedication: () -> Unit) {
+fun MedicationBox(medication: Medication,
+                  sharedMedicationModel: SharedMedicationModel,
+                  onNavigateToModifyMedication: () -> Unit,
+                  onNavigateToScheduleMedication: () -> Unit
+) {
     val scheduleStart = medication.schedule_start?.let { convertToLocalDateTime(it) }
     val humanReadableScheduleStart = scheduleStart?.let { formatDateTime(it) } ?: "N/A"
     val humanReadableInterval = medication.interval_milliseconds?.let {
@@ -286,7 +293,10 @@ fun MedicationBox(medication: Medication, sharedMedicationModel: SharedMedicatio
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             modifier = Modifier.weight(1f),
-                            onClick = { /*TODO*/ },
+                            onClick = {
+                                sharedMedicationModel.medication = medication
+                                onNavigateToScheduleMedication()
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colorResource(R.color.LightBlue),
                                 contentColor = Color.White
