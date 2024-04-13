@@ -105,6 +105,92 @@ fun ScheduleMedication (
                         .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // Unmodifiable text fields for the rest of the medication details
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Name: ${medication.name}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Description: ${medication.description ?: "N/A"}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Color: ${medication.color ?: "N/A"}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Imprint: ${medication.imprint ?: "N/A"}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Shape: ${medication.shape ?: "N/A"}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Dosage: ${medication.dosage ?: "N/A"}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedContainerColor = colorResource(id = R.color.DarkBlue),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        value = "Intake Method: ${medication.intake_method ?: "N/A"}",
+                        onValueChange = { },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     // let user pick a start date using a date picker
                     //todo implement datepicker/timepicker
                     Button(
