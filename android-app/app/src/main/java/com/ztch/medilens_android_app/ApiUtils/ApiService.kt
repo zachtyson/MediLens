@@ -99,8 +99,8 @@ data class Medication(
     var shape: String?,
     var dosage: String?,
     var intake_method: String?,
-    val schedule_start: Date?,
-    val interval_milliseconds: Long?,
+    var schedule_start: Date?,
+    var interval_milliseconds: Long?,
     val init_vector: String,
 )
 
