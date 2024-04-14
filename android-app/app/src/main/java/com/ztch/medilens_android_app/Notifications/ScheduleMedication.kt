@@ -265,9 +265,33 @@ fun ScheduleMedication (
                             value = medication.intake_method
                         )
                     }
+                    var scheduleDateString = "Not selected"
+                    if (medicationScheduleStartDate != null) {
+                        scheduleDateString = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(medicationScheduleStartDate!!)
+                    }
+                    OutlinedTextField(
+                        value = scheduleDateString,
+                        onValueChange = {},
+                        label = { Text("Start Date And Time") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    //medicationScheduleIntervalTimePicker.let {
+                    //                            "${it.weeks} weeks, ${it.days} days, ${it.hours} hours, ${it.minutes} minutes"
+                    var intervalString = "Not selected"
+                    if (medicationScheduleIntervalTimePicker.notDefault()) {
+                        intervalString = "${medicationScheduleIntervalTimePicker.weeks} weeks, ${medicationScheduleIntervalTimePicker.days} days, ${medicationScheduleIntervalTimePicker.hours} hours, ${medicationScheduleIntervalTimePicker.minutes} minutes"
+                    }
+                    // white color interval
+                    OutlinedTextField(
+                        value = intervalString,
+                        onValueChange = {},
+                        label = { Text("Interval") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
                     // let user pick a start date using a date picker
-                    //todo implement datepicker/timepicker
                     Button(
                         onClick = {
                             openDatePicker.value = true
@@ -275,9 +299,6 @@ fun ScheduleMedication (
                         modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                     ) {
                         Text(text = "Select Start Date And Time", color = Color.White)
-                    }
-                    medicationScheduleStartDate?.let {
-                        Text(text = "Start Date: ${formatDateTime(convertToLocalDateTime(it))}", color = Color.White)
                     }
                     if (medicationScheduleStartDate != null) {
                         Button(
@@ -297,6 +318,11 @@ fun ScheduleMedication (
                                 errorText.value = "Please select a start date and interval"
                             } else {
                                 // encrypt medication
+
+                                medication.schedule_start = medicationScheduleStartDate
+                                medication.interval_milliseconds = medicationScheduleInterval
+                                //todo fix error 422
+
                                 val encryptionKey = getLocalEncryptionKey(context)
                                 val iv = createRandomIV()
 
@@ -360,6 +386,10 @@ data class IntervalSchedule(
 ) {
     fun toMilliseconds(): Long {
         return (weeks * 604800000L) + (days * 86400000L) + (hours * 3600000L) + (minutes * 60000L)
+    }
+
+    fun notDefault(): Boolean {
+        return weeks > 0 || days > 0 || hours > 0 || minutes > 0
     }
 }
 @Composable
