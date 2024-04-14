@@ -100,7 +100,7 @@ data class Medication(
     var dosage: String?,
     var intake_method: String?,
     val schedule_start: Date?,
-    val interval_milliseconds: Int?,
+    val interval_milliseconds: Long?,
     val init_vector: String,
 )
 
@@ -127,7 +127,7 @@ data class MedicationModify(
     val dosage: String?,
     val intake_method: String?,
     val schedule_start: Date?,
-    val interval_milliseconds: Int?,
+    val interval_milliseconds: Long?,
     val init_vector: String
 )
 
@@ -141,7 +141,7 @@ fun formatDateTime(localDateTime: LocalDateTime): String {
     return formatter.format(localDateTime)
 }
 
-fun convertMillisecondsToHumanReadableTime(milliseconds: Int): String {
+fun convertMillisecondsToHumanReadableTime(milliseconds: Long): String {
     val years = milliseconds / 31536000000
     val months = (milliseconds % 31536000000) / 2628000000
     val days = ((milliseconds % 31536000000) % 2628000000) / 86400000
