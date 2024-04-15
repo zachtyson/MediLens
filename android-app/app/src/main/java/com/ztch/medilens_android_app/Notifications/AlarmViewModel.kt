@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
@@ -31,6 +32,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     private var alarmDao = db.alarmDao()
     private val _alarms = MutableStateFlow<List<AlarmItem>>(emptyList())
     val alarms: StateFlow<List<AlarmItem>> = _alarms.asStateFlow()
+
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -110,21 +112,22 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun cancel(item: AlarmItem, context: Context) {
-        val receiver = ComponentName(context, AlarmBroadcaster::class.java)
+        val receiver = AlarmBroadcaster()
+        val filter = IntentFilter("android.intent.action.BOOT_COMPLETED")
+        context.registerReceiver(receiver, filter)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         context.packageManager.setComponentEnabledSetting(
-            receiver,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            ComponentName(context, AlarmBroadcaster::class.java),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.DONT_KILL_APP
         )
 
-        val alarmId = item.id
         val intent = Intent(context, AlarmBroadcaster::class.java).apply {
             putExtra("EXTRA_MESSAGE", item.message)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
-            context, alarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context, item.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         alarmManager.cancel(
@@ -136,14 +139,17 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun schedule(item: AlarmItem, context: Context) {
+        val receiver = AlarmBroadcaster()
+        val filter = IntentFilter("android.intent.action.BOOT_COMPLETED")
+        context.registerReceiver(receiver, filter)
         val message = item.message
-        val alarmId = item.id
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AlarmBroadcaster::class.java).apply {
             putExtra("EXTRA_MESSAGE", message)
         }
+        // unique alarmName for each alarm
         val pendingIntent = PendingIntent.getBroadcast(
-            context, alarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context, item.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
