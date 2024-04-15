@@ -20,6 +20,8 @@ import com.ztch.medilens_android_app.Authenticate.createRandomIV
 import com.ztch.medilens_android_app.Authenticate.encryptData
 import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 import com.ztch.medilens_android_app.R
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -235,7 +237,7 @@ fun ModifyMedication (
                                     init_vector = initVector,
                                     id = medication.id,
                                     owner_id = medication.owner_id,
-                                    schedule_start = medication.schedule_start,
+                                    schedule_start = formatDate(medication.schedule_start),
                                     interval_milliseconds = medication.interval_milliseconds
                                 )
 
@@ -272,4 +274,12 @@ fun ModifyMedication (
 
     )
 
+}
+
+private fun formatDate(date: Date?): String? {
+    return date?.let {
+        val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+        formatter.timeZone = TimeZone.getTimeZone("UTC")
+        formatter.format(date)
+    }
 }
