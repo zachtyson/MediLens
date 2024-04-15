@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Notifications
 
+import android.content.Context
 import androidx.room.*
 
 // Create local database for storing alarms
@@ -8,6 +9,18 @@ import androidx.room.*
 @Database(entities = [AlarmItem::class], version = 1)
 abstract class AlarmDatabase : RoomDatabase() {
     abstract fun alarmDao(): AlarmDao
+    // get instance
+    private var instance: AlarmDatabase? = null
+    fun getInstance(context: Context): AlarmDatabase {
+        if (instance == null) {
+            instance = Room.databaseBuilder(
+                context,
+                AlarmDatabase::class.java,
+                "alarm_database"
+            ).build()
+        }
+        return instance!!
+    }
 }
 
 @Entity (tableName = "alarms")

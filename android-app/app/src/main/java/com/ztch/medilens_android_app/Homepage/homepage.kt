@@ -106,7 +106,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .background(color = colorResource(R.color.DarkGrey))
             ) {
                 // Your content goes here. For example, if you want to display a list of items:
-                AlarmsList(viewModel = viewModel, data = calendarUiModel)
+                //AlarmsList(viewModel = viewModel, data = calendarUiModel)
 
                 // Add more components as needed
             }
@@ -247,68 +247,68 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
     }
 }
 
-@Composable
-fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
-    val selectedDate = data.selectedDate.date
-
-    val alarmsForSelectedDate = remember(selectedDate, viewModel._alarms) {
-        viewModel._alarms.filter { alarm ->
-            alarm.time.toLocalDate() == selectedDate ||
-                    alarm.repetition == Repetition.EVERY_DAY ||
-                    (alarm.repetition == Repetition.WEEKLY && alarm.time.dayOfWeek == selectedDate.dayOfWeek)
-        }
-    }
-
-
-
-    LaunchedEffect(alarmsForSelectedDate) {
-        alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
-            alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
-                // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
-                if (indexA < indexB && alarmA != alarmB) {
-                    Log.d("inside","AlarmsList: Calling getMedicationInteractions")
-                    viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
-                }
-            }
-        }
-    }
-
-
-    // Observe the medicationInteractions StateFlow from the ViewModel
-    val medicationInteractions by viewModel.medicationInteractionsList.collectAsState()
-
-    // Display medication interactions if available
-    medicationInteractions?.let { interactions ->
-        interactions.forEach { interaction ->
-            interactionDialog(interaction)
-        }
-    }
-
-    LazyColumn {
-        items(alarmsForSelectedDate) { alarm ->
-            AlarmCard(alarm, viewModel::removeAlarm)
-        }
-    }
-
-    if (alarmsForSelectedDate.isEmpty()) {
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = colorResource(R.color.DarkestBlue)
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "No Medications for today",
-                fontSize = 24.sp,
-                color = Color.White,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
+//@Composable
+//fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
+//    val selectedDate = data.selectedDate.date
+//
+//    val alarmsForSelectedDate = remember(selectedDate, viewModel._alarms) {
+//        viewModel._alarms.filter { alarm ->
+//            alarm.time.toLocalDate() == selectedDate ||
+//                    alarm.repetition == Repetition.EVERY_DAY ||
+//                    (alarm.repetition == Repetition.WEEKLY && alarm.time.dayOfWeek == selectedDate.dayOfWeek)
+//        }
+//    }
+//
+//
+//
+//    LaunchedEffect(alarmsForSelectedDate) {
+//        alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
+//            alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
+//                // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
+//                if (indexA < indexB && alarmA != alarmB) {
+//                    Log.d("inside","AlarmsList: Calling getMedicationInteractions")
+//                    viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
+//                }
+//            }
+//        }
+//    }
+//
+//
+//    // Observe the medicationInteractions StateFlow from the ViewModel
+//    val medicationInteractions by viewModel.medicationInteractionsList.collectAsState()
+//
+//    // Display medication interactions if available
+//    medicationInteractions?.let { interactions ->
+//        interactions.forEach { interaction ->
+//            interactionDialog(interaction)
+//        }
+//    }
+//
+//    LazyColumn {
+//        items(alarmsForSelectedDate) { alarm ->
+//            AlarmCard(alarm, viewModel::removeAlarm)
+//        }
+//    }
+//
+//    if (alarmsForSelectedDate.isEmpty()) {
+//        Card(
+//            colors = CardDefaults.cardColors(
+//                containerColor = colorResource(R.color.DarkestBlue)
+//            ),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(200.dp)
+//                .padding(16.dp)
+//        ) {
+//            Text(
+//                text = "No Medications for today",
+//                fontSize = 24.sp,
+//                color = Color.White,
+//                modifier = Modifier.padding(16.dp)
+//            )
+//        }
+//    }
+//}
 @Composable
 fun interactionDialog(interaction: MedicationInteractionResponse) {
     var extendedDescriptionVisible by remember { mutableStateOf(false) }
@@ -352,63 +352,63 @@ fun interactionDialog(interaction: MedicationInteractionResponse) {
     )
 }
 
-@Composable
-fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
-
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.DarkestBlue)
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(215.dp)
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = formatLocalDateTimeWithAMPM(alarm.time),
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-            )
-            Row  (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(85.dp)
-                    .padding(8.dp)
-            ){
-                alarm.imageUri?.let { uri ->
-                    Image(
-                        painter = rememberImagePainter(uri),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(75.dp) // Set the width of the image
-                            .height(75.dp) // Set the height of the image
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                }
-
-                Text(
-                    text = "Medication: ${alarm.message} " +
-                            "\nDosage: ${alarm.dosage} " +
-                            "\nForm: ${alarm.form} ",
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Button(
-                onClick = { onDeleteClicked(alarm) },
-                modifier = Modifier
-                    .align(Alignment.End)
-            ) {
-                Text(text = "Delete")
-            }
-        }
-    }
-}
+//@Composable
+//fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
+//
+//    Card(
+//        colors = CardDefaults.cardColors(
+//            containerColor = colorResource(R.color.DarkestBlue)
+//        ),
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(215.dp)
+//            .padding(16.dp)
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(16.dp)
+//        ) {
+//            Text(
+//                text = formatLocalDateTimeWithAMPM(alarm.time),
+//                color = Color.White,
+//                modifier = Modifier
+//                    .align(Alignment.CenterHorizontally)
+//            )
+//            Row  (
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(85.dp)
+//                    .padding(8.dp)
+//            ){
+//                alarm.imageUri?.let { uri ->
+//                    Image(
+//                        painter = rememberImagePainter(uri),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .width(75.dp) // Set the width of the image
+//                            .height(75.dp) // Set the height of the image
+//                            .clip(RoundedCornerShape(8.dp))
+//                    )
+//                }
+//
+//                Text(
+//                    text = "Medication: ${alarm.message} " +
+//                            "\nDosage: ${alarm.dosage} " +
+//                            "\nForm: ${alarm.form} ",
+//                    fontSize = 16.sp,
+//                    color = Color.White,
+//                    fontWeight = FontWeight.Bold
+//                )
+//            }
+//
+//            Button(
+//                onClick = { onDeleteClicked(alarm) },
+//                modifier = Modifier
+//                    .align(Alignment.End)
+//            ) {
+//                Text(text = "Delete")
+//            }
+//        }
+//    }
+//}

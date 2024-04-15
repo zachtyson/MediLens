@@ -44,7 +44,7 @@ import com.ztch.medilens_android_app.Settings.Settings
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
-    private val alarmViewModel: AlarmViewModel by viewModels()
+//    private val alarmViewModel: AlarmViewModel by viewModels()
     companion object {
         val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA)
@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
 
             MedilensandroidappTheme{
 
-                MyApp( viewModel = alarmViewModel)
+                MyApp()
             }
         }
     }
@@ -173,17 +173,6 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
             )
         }
 
-
-
-        composable("PillInformation") {
-            PillInformationScreen(
-                onNavigateToAlarmTimes = { mediName, dose, strength, RX, form ->
-                    navController.navigate("AlarmTimes/$mediName/$dose/$strength/$RX/$form")
-                },
-                onNavigateToAlarm = { navController.navigate("Alarm") {} },
-            )
-        }
-
         composable(
             route = "AlarmTimes/{mediName}/{dose}/{strength}/{RX}/{form}",
 
@@ -195,16 +184,16 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                 navArgument("form") { type = NavType.StringType; nullable = true; defaultValue = "" }
             )
         ) { backStackEntry ->
-            AlarmTimesScreen(
-                mediName = backStackEntry.arguments?.getString("mediName") ?: "",
-                dose = backStackEntry.arguments?.getString("dose") ?: "",
-                strength = backStackEntry.arguments?.getString("strength") ?: "",
-                RX = backStackEntry.arguments?.getString("RX") ?: "",
-                form = backStackEntry.arguments?.getString("form") ?: "",
-                onNavigateBack = { navController.popBackStack() },
-                alarmViewModel = viewModel,
-                onNavigateToAlarm = { navController.navigate("Alarm") {} }
-            )
+//            AlarmTimesScreen(
+//                mediName = backStackEntry.arguments?.getString("mediName") ?: "",
+//                dose = backStackEntry.arguments?.getString("dose") ?: "",
+//                strength = backStackEntry.arguments?.getString("strength") ?: "",
+//                RX = backStackEntry.arguments?.getString("RX") ?: "",
+//                form = backStackEntry.arguments?.getString("form") ?: "",
+//                onNavigateBack = { navController.popBackStack() },
+//                alarmViewModel = viewModel,
+//                onNavigateToAlarm = { navController.navigate("Alarm") {} }
+//            )
         }
 
 

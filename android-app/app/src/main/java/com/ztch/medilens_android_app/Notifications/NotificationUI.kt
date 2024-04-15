@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
-import com.ztch.medilens_android_app.Homepage.AlarmsList
+//import com.ztch.medilens_android_app.Homepage.AlarmsList
 import com.ztch.medilens_android_app.Homepage.CalendarDataSource
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.Refill.SharedMedicationModel
@@ -88,7 +88,7 @@ fun notificationScreen(onNavigateToHomePage: () -> Unit,
                     .background(color = colorResource(R.color.DarkGrey))
             ) {
                 // Your content goes here. For example, if you want to display a list of items:
-                AlarmsList(viewModel = viewModel, data = calendarUiModel)
+//                AlarmsList(viewModel = viewModel, data = calendarUiModel)
 
             }
 
