@@ -105,6 +105,8 @@ async def modify_medication(medication_data: MedicationModify, db: Session = Dep
         medication.shape = medication_data.shape
         medication.dosage = medication_data.dosage
         medication.intake_method = medication_data.intake_method
+        medication.schedule_start = medication_data.schedule_start
+        medication.interval_milliseconds = medication_data.interval_milliseconds
         medication.init_vector = medication_data.init_vector
         db.commit()
         db.refresh(medication)
