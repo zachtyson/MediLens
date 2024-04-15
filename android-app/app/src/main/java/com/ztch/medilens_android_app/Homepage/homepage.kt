@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Homepage
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,8 +22,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Room
 import coil.compose.rememberImagePainter
+import com.ztch.medilens_android_app.ApiUtils.Medication
 import com.ztch.medilens_android_app.ApiUtils.MedicationInteractionResponse
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
@@ -31,7 +35,12 @@ import java.time.format.DateTimeFormatter
 
 
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+import com.ztch.medilens_android_app.Authenticate.decryptData
+import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 import com.ztch.medilens_android_app.Notifications.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun HomePage(onNavigateToCamera: () -> Unit,
@@ -41,15 +50,22 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              onNavigateToSettings: () -> Unit,
              onNavigateToMediCard: () -> Unit,
              viewModel: AlarmViewModel,
-             ) {
+) {
 
 
-   val context = LocalContext.current
+    val context = LocalContext.current
 
-   if(!TokenAuth.isLoggedIn(context)) {
-       // if user is not logged in, navigate to login page
-       onNavigateToLogin()
-   }
+    if(!TokenAuth.isLoggedIn(context)) {
+        // if user is not logged in, navigate to login page
+        onNavigateToLogin()
+    }
+    val db = Room.databaseBuilder(
+        context,
+        AlarmDatabase::class.java, "database-name"
+    ).build()
+
+    val alarmScheduler = AlarmScheduler(context, db)
+
 
 
 
@@ -74,12 +90,12 @@ fun HomePage(onNavigateToCamera: () -> Unit,
         },
         bottomBar = {
 
-          appbarBottom(
-              onNavigateToCamera = onNavigateToCamera,
-              onNavigateToAlarm = onNavigateToAlarm,
-              onNavigateToCabinet = onNavigateToCabinet,
-              onNavigateToSettings = onNavigateToSettings,
-              onNavigateToMedicard = onNavigateToMediCard)
+            appbarBottom(
+                onNavigateToCamera = onNavigateToCamera,
+                onNavigateToAlarm = onNavigateToAlarm,
+                onNavigateToCabinet = onNavigateToCabinet,
+                onNavigateToSettings = onNavigateToSettings,
+                onNavigateToMedicard = onNavigateToMediCard)
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
@@ -98,6 +114,37 @@ fun HomePage(onNavigateToCamera: () -> Unit,
     )
 }
 
+// private function to fetch user alarms during app start up
+// basically whenever the user opens the application every alarm they have scheduled is deleted and then rescheduled again
+// this is so that the alarms are always up-to-date with whatever is within the backend
+// using the AlarmSchedulerManager
+private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmScheduler: AlarmScheduler) {
+    // get the list of alarms from the backend
+    // assuming the service is obtained from RetrofitClient.apiService
+    // and the token is stored in the shared preferences
+    val token = TokenAuth.getLogInToken(context)
+    val service = RetrofitClient.apiService
+    service.getScheduledMedications(token).enqueue(object : Callback<List<Medication>> {
+        override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
+            if (response.isSuccessful) {
+                val medications = response.body() ?: emptyList()
+                // after successful response, delete all pending alarms and then reconstruct the local database
+                alarmScheduler.cancelAllAlarms()
+                for (medication in medications) {
+                    // if schedule_date is not null, schedule the alarm
+
+                }
+            } else {
+                Log.e("Cabinet", "Failed to fetch medications")
+            }
+        }
+
+        override fun onFailure(call: Call<List<Medication>>, t: Throwable) {
+            Log.e("Cabinet", "Failed to fetch medications", t)
+        }
+    })
+}
+
 
 // Start of Header creation
 @Composable
@@ -107,22 +154,22 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
         modifier = Modifier.fillMaxWidth()
             .background(color = colorResource(R.color.DarkBlue)),
 
-    ) {
+        ) {
 
         Row{
-        Text(
-            // show "Today" if user selects today's date
-            text = if (data.selectedDate.isToday) {
-                "Today"
-            }else{
-                data.selectedDate.dayHeader
-            },
-            fontSize = 32.sp,
-            color = Color.White,
-            modifier = Modifier.padding(start = 14.dp)
-                .weight(1f)
+            Text(
+                // show "Today" if user selects today's date
+                text = if (data.selectedDate.isToday) {
+                    "Today"
+                }else{
+                    data.selectedDate.dayHeader
+                },
+                fontSize = 32.sp,
+                color = Color.White,
+                modifier = Modifier.padding(start = 14.dp)
+                    .weight(1f)
 
-        )
+            )
         }
         Row {
             Text(
@@ -142,7 +189,7 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
 
         Spacer(modifier = Modifier.height(8.dp))
 
-       // Spacer(modifier = Modifier.height(14.dp))
+        // Spacer(modifier = Modifier.height(14.dp))
         RowOfDates(data = data,onDateClickListener = onDateClickListener)
     }
 }
@@ -214,17 +261,17 @@ fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
 
 
 
-        LaunchedEffect(alarmsForSelectedDate) {
-            alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
-                alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
-                    // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
-                    if (indexA < indexB && alarmA != alarmB) {
-                        Log.d("inside","AlarmsList: Calling getMedicationInteractions")
-                        viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
-                    }
+    LaunchedEffect(alarmsForSelectedDate) {
+        alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
+            alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
+                // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
+                if (indexA < indexB && alarmA != alarmB) {
+                    Log.d("inside","AlarmsList: Calling getMedicationInteractions")
+                    viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
                 }
             }
         }
+    }
 
 
     // Observe the medicationInteractions StateFlow from the ViewModel

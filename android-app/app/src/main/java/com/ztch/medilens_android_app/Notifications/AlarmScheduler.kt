@@ -18,96 +18,72 @@ import okhttp3.internal.notify
 import java.util.*
 
 
-class AlarmScheduler(
-    private val context: Context
-) : AlarmSchedulerManager {
+data class AlarmScheduler(
+    val context: Context,
+    val db: AlarmDatabase
+) {
 
     val receiver = ComponentName(context, AlarmBroadcaster::class.java)
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    override fun schedule(item: AlarmItem) {
-
-        context.packageManager.setComponentEnabledSetting(
-            receiver,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-            PackageManager.DONT_KILL_APP
-        )
+    fun schedule(item: AlarmItem) {
+        val message = item.message
+        val alarmId = item.id
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AlarmBroadcaster::class.java).apply {
-            putExtra("EXTRA_MESSAGE", item.message)
+            putExtra("EXTRA_MESSAGE", message)
         }
-
         val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            item.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context, alarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             requestExactAlarmPermission()
             return
         }
 
-        val calendar: Calendar = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, item.time.hour)
-            set(Calendar.MINUTE, item.time.minute)
-            set(Calendar.SECOND, item.time.second)
-        }
-        Log.d("time in alarm", "calendar time: ${calendar.time}")
-        when (item.repetition) {
-            Repetition.ONCE -> {
-             alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-             )
+        val timeInMillis = item.startTimeMillis
 
-            }
-            Repetition.EVERY_DAY -> {
-                alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    AlarmManager.INTERVAL_DAY,
-                    pendingIntent
-                )
-            }
-            Repetition.HOURLY -> {
-                alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    AlarmManager.INTERVAL_HOUR,
-                    pendingIntent
-                )
-            }
-            Repetition.WEEKLY -> {
-                alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    AlarmManager.INTERVAL_DAY * 7,
-                    pendingIntent
-                )
-            }
-        }
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            timeInMillis,
+            pendingIntent
+        )
+
+        saveAlarmDetails(item)
     }
 
-    override fun cancel(item: AlarmItem) {
+    private fun saveAlarmDetails(item: AlarmItem) {
+        db.alarmDao().insertAll(item)
+    }
+
+    fun cancelAllAlarms() {
+        db.alarmDao().getAll().forEach(this::cancel)
+        // clear all alarms from database
+        db.alarmDao().deleteAll(*db.alarmDao().getAll().toTypedArray())
+    }
+
+    fun cancel(item: AlarmItem) {
         context.packageManager.setComponentEnabledSetting(
             receiver,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP
         )
 
-        alarmManager.cancel(
-            PendingIntent.getBroadcast(
-                context,
-                item.hashCode(),
-                Intent(context, AlarmBroadcaster::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        val alarmId = item.id
+        val intent = Intent(context, AlarmBroadcaster::class.java).apply {
+            putExtra("EXTRA_MESSAGE", item.message)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, alarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
+        alarmManager.cancel(
+            pendingIntent
+        )
+        // Remove alarm from database
+        db.alarmDao().delete(item)
     }
 
 

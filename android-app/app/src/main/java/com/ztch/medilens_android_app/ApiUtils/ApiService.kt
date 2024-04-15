@@ -48,6 +48,11 @@ interface ApiService {
         @Header("token") token: String
     ): Call<List<Medication>>
 
+    @GET("medication/get_scheduled_medications")
+    fun getScheduledMedications(
+        @Header("token") token: String
+    ): Call<List<Medication>>
+
     @GET("/medication/interactions")
     fun getMedicationInteractions(
         @Query("drug_a") drugA: String,
