@@ -123,11 +123,13 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: A
                 alarmViewModel.deleteAllItems()
                 // iterate over the list of medications and schedule alarms
                 for (medication in response.body() ?: emptyList()) {
+                    // decrypt the medication name
+                    medication.name = decryptData(medication.name, getLocalEncryptionKey(context), medication.init_vector)
                     // schedule the alarm
                     val alarm = AlarmItem(
                         message = medication.name,
                         startTimeMillis = medication.schedule_start?.time ?: 0,
-                        intervalMillis = 0,
+                        intervalMillis = medication.interval_milliseconds ?: 0,
                         imageUri = ""
                     )
                     alarmViewModel.addAlarm(alarm)
