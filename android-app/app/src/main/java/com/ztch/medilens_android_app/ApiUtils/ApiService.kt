@@ -126,7 +126,7 @@ data class MedicationModify(
     val shape: String?,
     val dosage: String?,
     val intake_method: String?,
-    val schedule_start: Date?,
+    val schedule_start: String?,
     val interval_milliseconds: Long?,
     val init_vector: String
 )
