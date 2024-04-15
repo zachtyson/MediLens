@@ -21,9 +21,7 @@ import com.ztch.medilens_android_app.Authenticate.encryptData
 import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.Refill.SharedMedicationModel
-import androidx.compose.material.*
 import java.util.*
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,10 +32,6 @@ fun ScheduleMedication (
     onNavigateToCabinet: () -> Unit,
     sharedMedicationModel: SharedMedicationModel
 ) {
-    val snackState = remember { SnackbarHostState() }
-    val snackScope = rememberCoroutineScope()
-    SnackbarHost(hostState = snackState, Modifier)
-
     val service = RetrofitClient.apiService
     Log.d("ModifyMedication", "Recomposed")
     val context = LocalContext.current
@@ -51,6 +45,7 @@ fun ScheduleMedication (
 
     val medication = sharedMedicationModel.medication!!
     var medicationScheduleStartDate by remember { mutableStateOf(medication.schedule_start) }
+    var medicationScheduleDisplayDate by remember { mutableStateOf("") }
     var medicationScheduleInterval by remember { mutableStateOf(medication.interval_milliseconds) }
     var medicationScheduleIntervalTimePicker by remember { mutableStateOf(IntervalSchedule(0, 0, 0, 0)) }
     var errorText = remember { mutableStateOf("") }
@@ -59,32 +54,38 @@ fun ScheduleMedication (
     val openTimePicker = remember { mutableStateOf(false) }
     val openIntervalPicker = remember { mutableStateOf(false) }
     if (openDatePicker.value) {
+        // Initialize the DatePicker state with current date and time in local timezone
         val datePickerState = rememberDatePickerState()
+
+        // Derived state to control the enablement of the confirm button
         val confirmEnabled = remember {
             derivedStateOf { datePickerState.selectedDateMillis != null }
         }
+
         DatePickerDialog(
             onDismissRequest = {
-                // Dismiss the dialog when the user clicks outside the dialog or on the back
-                // button. If you want to disable that functionality, simply use an empty
-                // onDismissRequest.
+                // Dismiss the dialog
                 openDatePicker.value = false
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         openDatePicker.value = false
-                        snackScope.launch {
-                            snackState.showSnackbar(
-                                "Selected date timestamp: ${datePickerState.selectedDateMillis}"
-                            )
-                            val newDate = Date(datePickerState.selectedDateMillis!!)
-                            medicationScheduleStartDate = newDate
-                            Log.d("DatePicker", "Selected date: $newDate")
+                        // set the medication schedule start date to the selected date, store in local timezone
+                        // shift the time based on current timezone offset
+                        val calendar = Calendar.getInstance().apply {
+                            timeInMillis = datePickerState.selectedDateMillis!!
                         }
-                        // open time picker
-                        openTimePicker.value = true
+                        val offset = calendar.timeZone.getOffset(calendar.timeInMillis)
+                        val localCalendar = Calendar.getInstance().apply {
+                            timeInMillis = datePickerState.selectedDateMillis!! - offset
+                        }
+                        val localDate = localCalendar.time
+                        medicationScheduleDisplayDate = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(localDate)
+                        medicationScheduleStartDate = localDate
+                        Log.d("DatePicker", "Selected date: $medicationScheduleStartDate")
 
+                        openTimePicker.value = true
                     },
                     enabled = confirmEnabled.value
                 ) {
@@ -121,8 +122,11 @@ fun ScheduleMedication (
                     }
                     newCalendar.time
                 }
+                medicationScheduleDisplayDate = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(newDate!!)
                 medicationScheduleStartDate = newDate
+                Log.d("TimePicker", "Display time: $medicationScheduleDisplayDate")
                 openTimePicker.value = false
+
             },
             12,
             0,
@@ -266,7 +270,7 @@ fun ScheduleMedication (
                         )
                     }
                     var scheduleDateString = "Not selected"
-                    if (medicationScheduleStartDate != null) {
+                    if (medicationScheduleDisplayDate != "") {
                         scheduleDateString = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(medicationScheduleStartDate!!)
                     }
                     OutlinedTextField(
@@ -339,9 +343,10 @@ fun ScheduleMedication (
                                     init_vector = iv,
                                     id = medication.id,
                                     owner_id = medication.owner_id,
-                                    schedule_start = medication.schedule_start,
+                                    schedule_start = formatDate(medication.schedule_start),
                                     interval_milliseconds = medication.interval_milliseconds
                                 )
+                                Log.d("ModifyMedication", "Schedule start date: ${medication.schedule_start}")
 
                                 val call = RetrofitClient.apiService.modifyMedication(token, mc)
                                 call.enqueue(object : retrofit2.Callback<Map<String, String>> {
@@ -451,5 +456,13 @@ fun IntervalPicker (
             label = { Text("Minutes") },
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+private fun formatDate(date: Date?): String? {
+    return date?.let {
+        val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        formatter.timeZone = TimeZone.getTimeZone("UTC")
+        formatter.format(date)
     }
 }
