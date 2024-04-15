@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,7 +51,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
              onNavigateToCabinet: () -> Unit,
              onNavigateToSettings: () -> Unit,
              onNavigateToMediCard: () -> Unit,
-             viewModel: AlarmViewModel,
+             alarmViewModel: AlarmViewModel,
 ) {
 
 
@@ -59,16 +61,6 @@ fun HomePage(onNavigateToCamera: () -> Unit,
         // if user is not logged in, navigate to login page
         onNavigateToLogin()
     }
-    val db = Room.databaseBuilder(
-        context,
-        AlarmDatabase::class.java, "database-name"
-    ).build()
-
-    val alarmScheduler = AlarmScheduler(context, db)
-
-
-
-
 
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -76,7 +68,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
 
     //to offload calendar data to a background thread
     val coroutineScope = rememberCoroutineScope()
-
+    val alarms by alarmViewModel.alarms.collectAsState()
+    fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel, alarms.toMutableList())
     Scaffold(
         topBar = {
             homepageHeader(
@@ -102,23 +95,22 @@ fun HomePage(onNavigateToCamera: () -> Unit,
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .padding(innerPadding)
                     .background(color = colorResource(R.color.DarkGrey))
+                    .verticalScroll(rememberScrollState())
             ) {
-                // Your content goes here. For example, if you want to display a list of items:
-                //AlarmsList(viewModel = viewModel, data = calendarUiModel)
-
-                // Add more components as needed
+                AlarmsList(alarms = alarms, onDeleteClicked = alarmViewModel::removeAlarm)
             }
         }
     )
 }
 
+
 // private function to fetch user alarms during app start up
 // basically whenever the user opens the application every alarm they have scheduled is deleted and then rescheduled again
 // this is so that the alarms are always up-to-date with whatever is within the backend
 // using the AlarmSchedulerManager
-private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmScheduler: AlarmScheduler) {
+private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: AlarmViewModel, alarms : MutableList<AlarmItem>) {
     // get the list of alarms from the backend
     // assuming the service is obtained from RetrofitClient.apiService
     // and the token is stored in the shared preferences
@@ -127,20 +119,29 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmScheduler: A
     service.getScheduledMedications(token).enqueue(object : Callback<List<Medication>> {
         override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
             if (response.isSuccessful) {
-                val medications = response.body() ?: emptyList()
-                // after successful response, delete all pending alarms and then reconstruct the local database
-                alarmScheduler.cancelAllAlarms()
-                for (medication in medications) {
-                    // if schedule_date is not null, schedule the alarm
-
+                // delete all alarms
+                alarmViewModel.deleteAllItems()
+                // iterate over the list of medications and schedule alarms
+                for (medication in response.body() ?: emptyList()) {
+                    // schedule the alarm
+                    val alarm = AlarmItem(
+                        message = medication.name,
+                        startTimeMillis = medication.schedule_start?.time ?: 0,
+                        intervalMillis = 0,
+                        imageUri = ""
+                    )
+                    alarmViewModel.addAlarm(alarm)
+                    alarms.add(alarm)
+                    Log.d("ALarm", "${alarm.message} scheduled")
                 }
+                Log.d("HomePage", "Successfully fetched user alarms")
             } else {
-                Log.e("Cabinet", "Failed to fetch medications")
+                Log.e("HomePage", "Failed to fetch user alarms")
             }
         }
 
         override fun onFailure(call: Call<List<Medication>>, t: Throwable) {
-            Log.e("Cabinet", "Failed to fetch medications", t)
+            Log.e("HomePage", "Failed to fetch user alarms", t)
         }
     })
 }
@@ -247,68 +248,12 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
     }
 }
 
-//@Composable
-//fun AlarmsList(viewModel: AlarmViewModel, data: CalendarUiModel) {
-//    val selectedDate = data.selectedDate.date
-//
-//    val alarmsForSelectedDate = remember(selectedDate, viewModel._alarms) {
-//        viewModel._alarms.filter { alarm ->
-//            alarm.time.toLocalDate() == selectedDate ||
-//                    alarm.repetition == Repetition.EVERY_DAY ||
-//                    (alarm.repetition == Repetition.WEEKLY && alarm.time.dayOfWeek == selectedDate.dayOfWeek)
-//        }
-//    }
-//
-//
-//
-//    LaunchedEffect(alarmsForSelectedDate) {
-//        alarmsForSelectedDate.forEachIndexed { indexA, alarmA ->
-//            alarmsForSelectedDate.forEachIndexed { indexB, alarmB ->
-//                // Make sure we're not pairing a drug with itself and not pairing the same pair in reverse order
-//                if (indexA < indexB && alarmA != alarmB) {
-//                    Log.d("inside","AlarmsList: Calling getMedicationInteractions")
-//                    viewModel.getMedicationInteractions(alarmA.message, alarmB.message)
-//                }
-//            }
-//        }
-//    }
-//
-//
-//    // Observe the medicationInteractions StateFlow from the ViewModel
-//    val medicationInteractions by viewModel.medicationInteractionsList.collectAsState()
-//
-//    // Display medication interactions if available
-//    medicationInteractions?.let { interactions ->
-//        interactions.forEach { interaction ->
-//            interactionDialog(interaction)
-//        }
-//    }
-//
-//    LazyColumn {
-//        items(alarmsForSelectedDate) { alarm ->
-//            AlarmCard(alarm, viewModel::removeAlarm)
-//        }
-//    }
-//
-//    if (alarmsForSelectedDate.isEmpty()) {
-//        Card(
-//            colors = CardDefaults.cardColors(
-//                containerColor = colorResource(R.color.DarkestBlue)
-//            ),
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(200.dp)
-//                .padding(16.dp)
-//        ) {
-//            Text(
-//                text = "No Medications for today",
-//                fontSize = 24.sp,
-//                color = Color.White,
-//                modifier = Modifier.padding(16.dp)
-//            )
-//        }
-//    }
-//}
+@Composable
+fun AlarmsList(alarms: List<AlarmItem>, onDeleteClicked: (AlarmItem) -> Unit) {
+    for (alarm in alarms) {
+        AlarmCard(alarm, onDeleteClicked)
+    }
+}
 @Composable
 fun interactionDialog(interaction: MedicationInteractionResponse) {
     var extendedDescriptionVisible by remember { mutableStateOf(false) }
@@ -352,63 +297,61 @@ fun interactionDialog(interaction: MedicationInteractionResponse) {
     )
 }
 
-//@Composable
-//fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
-//
-//    Card(
-//        colors = CardDefaults.cardColors(
-//            containerColor = colorResource(R.color.DarkestBlue)
-//        ),
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(215.dp)
-//            .padding(16.dp)
-//    ) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(16.dp)
-//        ) {
-//            Text(
-//                text = formatLocalDateTimeWithAMPM(alarm.time),
-//                color = Color.White,
-//                modifier = Modifier
-//                    .align(Alignment.CenterHorizontally)
-//            )
-//            Row  (
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(85.dp)
-//                    .padding(8.dp)
-//            ){
-//                alarm.imageUri?.let { uri ->
-//                    Image(
-//                        painter = rememberImagePainter(uri),
-//                        contentDescription = null,
-//                        modifier = Modifier
-//                            .width(75.dp) // Set the width of the image
-//                            .height(75.dp) // Set the height of the image
-//                            .clip(RoundedCornerShape(8.dp))
-//                    )
-//                }
-//
-//                Text(
-//                    text = "Medication: ${alarm.message} " +
-//                            "\nDosage: ${alarm.dosage} " +
-//                            "\nForm: ${alarm.form} ",
-//                    fontSize = 16.sp,
-//                    color = Color.White,
-//                    fontWeight = FontWeight.Bold
-//                )
-//            }
-//
-//            Button(
-//                onClick = { onDeleteClicked(alarm) },
-//                modifier = Modifier
-//                    .align(Alignment.End)
-//            ) {
-//                Text(text = "Delete")
-//            }
-//        }
-//    }
-//}
+@Composable
+fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
+    val time = alarm.startTimeMillis
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(R.color.DarkestBlue)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(215.dp)
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Time: ${time}",
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+            Row  (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(85.dp)
+                    .padding(8.dp)
+            ){
+                alarm.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(75.dp) // Set the width of the image
+                            .height(75.dp) // Set the height of the image
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Text(
+                    text = "Medication: ${alarm.message}",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Button(
+                onClick = { onDeleteClicked(alarm) },
+                modifier = Modifier
+                    .align(Alignment.End)
+            ) {
+                Text(text = "Delete")
+            }
+        }
+    }
+}

@@ -44,7 +44,6 @@ import com.ztch.medilens_android_app.Settings.Settings
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
-//    private val alarmViewModel: AlarmViewModel by viewModels()
     companion object {
         val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA)
@@ -77,7 +76,7 @@ class MainActivity : ComponentActivity() {
 
 // === `NavController` and `NavHost`====//
 @Composable
-fun MyApp(viewModel: AlarmViewModel = viewModel()) {
+fun MyApp() {
 
     Log.d("myapp", "Recomposed")
     val navController = rememberNavController()
@@ -85,7 +84,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
     val context = LocalContext.current
     val sharedCameraImageViewerModel: SharedViewModel = SharedViewModel()
     val sharedMedicationModel: SharedMedicationModel = SharedMedicationModel()
-
+    val alarmViewModel: AlarmViewModel = viewModel()
     val startDestination = if (TokenAuth.isLoggedIn(context)) "Home" else "Login"
 
     NavHost(navController, startDestination = startDestination) {
@@ -114,7 +113,7 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
                                       },
                 onNavigateToSettings = { navController.navigate("Settings") {} },
                 onNavigateToMediCard = { navController.navigate("MediCard") {} },
-                viewModel = viewModel
+                alarmViewModel = alarmViewModel
             )
 
         }
@@ -123,7 +122,6 @@ fun MyApp(viewModel: AlarmViewModel = viewModel()) {
             notificationScreen(
                 onNavigateToHomePage = { navController.navigate("Home") },
                 onNavigateToPillInformation = { navController.navigate("PillInformation") {} },
-                viewModel = viewModel,
                 onNavigateToUnscheduledMedications = {
                     sharedMedicationModel.userIsScheduling = true
                     navController.navigate("Cabinet")

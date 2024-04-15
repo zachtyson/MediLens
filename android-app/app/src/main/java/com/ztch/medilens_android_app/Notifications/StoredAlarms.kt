@@ -10,16 +10,26 @@ import androidx.room.*
 abstract class AlarmDatabase : RoomDatabase() {
     abstract fun alarmDao(): AlarmDao
     // get instance
-    private var instance: AlarmDatabase? = null
-    fun getInstance(context: Context): AlarmDatabase {
-        if (instance == null) {
-            instance = Room.databaseBuilder(
-                context,
-                AlarmDatabase::class.java,
-                "alarm_database"
-            ).build()
+    companion object {
+        @Volatile
+        private var INSTANCE: AlarmDatabase? = null
+
+        fun getInstance(context: Context): AlarmDatabase {
+            // Return the existing instance if it already exists
+            return INSTANCE ?: synchronized(this) {
+                // Check again within synchronized block to avoid multiple instances
+                INSTANCE ?: buildDatabase(context).also {
+                    INSTANCE = it
+                }
+            }
         }
-        return instance!!
+
+        private fun buildDatabase(context: Context): AlarmDatabase {
+            return Room.databaseBuilder(
+                context.applicationContext,
+                AlarmDatabase::class.java, "AlarmDatabase.db",
+            ).allowMainThreadQueries().build()
+        }
     }
 }
 

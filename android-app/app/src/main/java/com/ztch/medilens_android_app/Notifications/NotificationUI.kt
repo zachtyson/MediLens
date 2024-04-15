@@ -24,7 +24,6 @@ import com.ztch.medilens_android_app.Refill.SharedMedicationModel
 @Composable
 fun notificationScreen(onNavigateToHomePage: () -> Unit,
                        onNavigateToPillInformation : ()-> Unit,
-                       viewModel: AlarmViewModel,
                        onNavigateToUnscheduledMedications: () -> Unit,
                        sharedMedicationModel: SharedMedicationModel
 ) {
