@@ -53,6 +53,13 @@ interface ApiService {
         @Header("token") token: String
     ): Call<List<Medication>>
 
+    @POST("medication/remove_medication_schedule")
+    fun removeMedicationSchedule(
+        @Header("token") token: String,
+        @Query("medication_id") medicationId: Int,
+        @Query("user_id") userId: Int
+    ): Call<Map<String, String>>
+
     @GET("/medication/interactions")
     fun getMedicationInteractions(
         @Query("drug_a") drugA: String,

@@ -26,9 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.Room
 import coil.compose.rememberImagePainter
-import com.ztch.medilens_android_app.ApiUtils.Medication
-import com.ztch.medilens_android_app.ApiUtils.MedicationInteractionResponse
-import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
+import com.ztch.medilens_android_app.ApiUtils.*
 
 import com.ztch.medilens_android_app.R
 import com.ztch.medilens_android_app.appbarBottom
@@ -36,7 +34,6 @@ import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 
-import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.Authenticate.decryptData
 import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 import com.ztch.medilens_android_app.Notifications.*
@@ -61,7 +58,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
         // if user is not logged in, navigate to login page
         onNavigateToLogin()
     }
-
+    val service = RetrofitClient.apiService
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
@@ -69,7 +66,13 @@ fun HomePage(onNavigateToCamera: () -> Unit,
     //to offload calendar data to a background thread
     val coroutineScope = rememberCoroutineScope()
     val alarms by alarmViewModel.alarms.collectAsState()
-    fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel, alarms.toMutableList())
+    val tok = TokenAuth.getLogInToken(context)
+    var refreshKey by remember { mutableStateOf(0) } // State variable to trigger refresh
+
+    LaunchedEffect(refreshKey) {  // Using Unit as a constant key
+        fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel, alarms.toMutableList())
+    }
+
     Scaffold(
         topBar = {
             homepageHeader(
@@ -99,7 +102,24 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .background(color = colorResource(R.color.DarkGrey))
                     .verticalScroll(rememberScrollState())
             ) {
-                AlarmsList(alarms = alarms, onDeleteClicked = alarmViewModel::removeAlarm)
+                AlarmsList(alarms = alarms, onDeleteClicked = {
+                    alarmViewModel.removeAlarm(it)
+                    // callback is Map<String,String>
+                    service.removeMedicationSchedule(token = tok, it.dbId, it.dbUserId).enqueue(object : Callback<Map<String,String>> {
+                        override fun onResponse(call: Call<Map<String,String>>, response: Response<Map<String,String>>) {
+                            if (response.isSuccessful) {
+                                Log.d("HomePage", "Successfully removed alarm")
+                                refreshKey += 1
+                            } else {
+                                Log.e("HomePage", "Failed to remove alarm")
+                            }
+                        }
+
+                        override fun onFailure(call: Call<Map<String,String>>, t: Throwable) {
+                            Log.e("HomePage", "Failed to remove alarm", t)
+                        }
+                    })
+                })
             }
         }
     )
@@ -130,7 +150,9 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: A
                         message = medication.name,
                         startTimeMillis = medication.schedule_start?.time ?: 0,
                         intervalMillis = medication.interval_milliseconds ?: 0,
-                        imageUri = ""
+                        imageUri = "",
+                        dbId = medication.id,
+                        dbUserId = medication.owner_id
                     )
                     alarmViewModel.addAlarm(alarm)
                     alarms.add(alarm)
@@ -352,7 +374,7 @@ fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
                 modifier = Modifier
                     .align(Alignment.End)
             ) {
-                Text(text = "Delete")
+                Text(text = "Remove schedule")
             }
         }
     }

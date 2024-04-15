@@ -2,15 +2,19 @@ package com.ztch.medilens_android_app.Notifications
 
 import android.content.Context
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 // Create local database for storing alarms
 
 
-@Database(entities = [AlarmItem::class], version = 1)
+@Database(entities = [AlarmItem::class], version = 2)
 abstract class AlarmDatabase : RoomDatabase() {
     abstract fun alarmDao(): AlarmDao
     // get instance
     companion object {
+        private const val DATABASE_NAME = "alarm_database"
+
         @Volatile
         private var INSTANCE: AlarmDatabase? = null
 
@@ -27,8 +31,8 @@ abstract class AlarmDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): AlarmDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
-                AlarmDatabase::class.java, "AlarmDatabase.db",
-            ).allowMainThreadQueries().build()
+                AlarmDatabase::class.java, DATABASE_NAME
+            ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
         }
     }
 }
@@ -39,7 +43,9 @@ data class AlarmItem(
     @ColumnInfo(name = "message") val message: String,
     @ColumnInfo(name = "start_time_millis") val startTimeMillis: Long,
     @ColumnInfo(name = "interval_millis") val intervalMillis: Long,
-    @ColumnInfo(name = "image_uri") val imageUri: String
+    @ColumnInfo(name = "image_uri") val imageUri: String,
+    @ColumnInfo(name = "db_id") val dbId: Int,
+    @ColumnInfo(name = "db_user_id") val dbUserId: Int
 )
 
 @Dao
