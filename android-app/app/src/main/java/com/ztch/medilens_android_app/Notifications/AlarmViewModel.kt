@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
 import retrofit2.Callback
 import retrofit2.Response
 
+val numIntervals = 100
+
 class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     private val db = AlarmDatabase.getInstance(application)
     private var alarmDao = db.alarmDao()
@@ -121,18 +123,22 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.DONT_KILL_APP
         )
-
         val intent = Intent(context, AlarmBroadcaster::class.java).apply {
             putExtra("EXTRA_MESSAGE", item.message)
         }
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, item.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        alarmManager.cancel(
-            pendingIntent
-        )
+        // Cancel the start_time + next n intervals
+        for (i in 0..numIntervals) {
+            // if time is in the past, skip
+            if (item.startTimeMillis + item.intervalMillis * i < System.currentTimeMillis()) {
+                continue
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, item.hashCode() + i, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarmManager.cancel(
+                pendingIntent
+            )
+        }
         // Remove alarm from database
         viewModelScope.launch {
             alarmDao.delete(item)
@@ -147,25 +153,33 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         val intent = Intent(context, AlarmBroadcaster::class.java).apply {
             putExtra("EXTRA_MESSAGE", message)
         }
-        // unique alarmName for each alarm
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, item.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        // schedule the start_time + next 5 intervals
+        for (i in 0..numIntervals) {
+            // if time is in the past, skip
+            if (item.startTimeMillis + item.intervalMillis * i < System.currentTimeMillis()) {
+                continue
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, item.hashCode() + i, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                requestExactAlarmPermission(context)
+                return
+            }
+            val zero:Long = 0
+            if (item.intervalMillis == zero && i > zero) {
+                continue
+            }
+            val timeInMillis = item.startTimeMillis + item.intervalMillis * i
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-            requestExactAlarmPermission(context)
-            return
+            // schedule the next n intervals
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                timeInMillis,
+                pendingIntent
+            )
+            Log.d("AlarmViewModel", "Alarm scheduled: $item at $timeInMillis")
         }
-
-        val timeInMillis = item.startTimeMillis
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            timeInMillis,
-            pendingIntent
-        )
-
-
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
