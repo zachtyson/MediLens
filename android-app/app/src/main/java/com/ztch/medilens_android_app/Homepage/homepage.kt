@@ -11,6 +11,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -263,10 +267,27 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
     Log.d("rowofdates", "Recomposed")
     LazyRow {
         // Using the date as a key to optimize recompositions
+        // left arrow to shift the visible dates to the left
+        item {
+            IconButton(onClick = {
+                data.onLeftArrowClick()
+            }) {
+                Icon(Icons.Filled.ArrowBackIosNew, contentDescription = "Previous")
+            }
+        }
         items(items = data.visibleDates, key = { it.date }) { date ->
             // Ensuring DateCard is only recomposed if necessary
             DateCard(date, onDateClickListener)
         }
+        // right arrow to shift the visible dates to the right
+        item {
+            IconButton(onClick = {
+                data.onRightArrowClick()
+            }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = "Next")
+            }
+        }
+
     }
 }
 
