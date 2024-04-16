@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -49,26 +50,8 @@ fun AddMedication (
     var dosage by remember { mutableStateOf("") }
     var intakeMethod by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
-    var isFormDropdownVisible by remember { mutableStateOf(false) }
 
 
-    var interactionDialogs by remember { mutableStateOf(listOf<MedicationInteractionResponse>()) }
-    var showDialog by remember { mutableStateOf(false) }
-    var currentInteraction by remember { mutableStateOf<MedicationInteractionResponse?>(null) }
-
-    // LaunchedEffect every time interactionDialogs changes
-    LaunchedEffect(interactionDialogs) {
-        interactionDialogs.firstOrNull()?.let {
-            currentInteraction = it
-            showDialog = true
-        }
-    }
-    if (showDialog && currentInteraction != null) {
-        InteractionDialog(interaction = currentInteraction!!)
-        showDialog = false
-        interactionDialogs = interactionDialogs.filter { it != currentInteraction }
-        currentInteraction = null
-    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -270,7 +253,12 @@ fun AddMedication (
                                                 drugs = drugs,
                                                 new_drug = medicationName
                                             )
-                                            getNewInteractions(token, userDrugs,interactionDialogs)
+                                            getNewInteractions(token, userDrugs, userMedicationViewModel.interactions)
+                                            // convert to snapshot
+                                            Log.d("AddMedicationBBBB", "Interactions: ${userMedicationViewModel.interactions}")
+                                            for (interaction in userMedicationViewModel.interactions) {
+                                                Log.d("AddMedicationAAAA", "Interaction: ${interaction}")
+                                            }
                                             if (errorText.isEmpty()) {
                                                 onNavigateToCabinet()
                                             }
@@ -300,69 +288,24 @@ fun AddMedication (
     )
 }
 
-fun getNewInteractions(token: String, userDrugs: UserDrugs, interactionDialogs: List<MedicationInteractionResponse>) {
+fun getNewInteractions(token: String, userDrugs: UserDrugs, interactions: SnapshotStateList<MedicationInteractionResponse>) {
     val call = RetrofitClient.apiService.getNewInteraction(token, userDrugs)
     call.enqueue(object : retrofit2.Callback<List<MedicationInteractionResponse>> {
         override fun onResponse(call: retrofit2.Call<List<MedicationInteractionResponse>>, response: retrofit2.Response<List<MedicationInteractionResponse>>) {
             if (response.isSuccessful) {
-                // if if response
-                Log.d("AddMedication", "Medication added successfully")
-                // After medication is added make dialogs for every interaction'
-                Log.d("AddMedication", "Interactions: ${response.body()}")
-                for (interaction in response.body()!!) {
-                    interactionDialogs.plusElement(interaction)
+                response.body()?.let {
+                    interactions.clear()
+                    interactions.addAll(it)
+                    Log.d("AddMedication", "Interactions updated successfully: $interactions")
                 }
             } else {
-                Log.d("AddMedication", "Failed to add medication")
+                Log.d("AddMedication", "Failed to retrieve new interactions")
             }
         }
 
         override fun onFailure(call: retrofit2.Call<List<MedicationInteractionResponse>>, t: Throwable) {
-            Log.d("AddMedication", "Failed to add medication")
+            Log.d("AddMedication", "Failed to retrieve new interactions", t)
         }
     })
-    }
-
-
-@Composable
-fun InteractionDialog(interaction: MedicationInteractionResponse) {
-    var extendedDescriptionVisible by remember { mutableStateOf(false) }
-    // variable to remember dismiss request
-    var dismissRequest by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = {dismissRequest = true},
-        title = { Text(text = "Drug Interaction Detected") },
-        text = {
-            Column {
-                Text(text = "Severity: ${interaction.severity}")
-                Row() {
-                    Text(text = "Drugs: ")
-                    Text(text = "${interaction.drug_a} and ${interaction.drug_b}")
-                }
-                Text(text = "Description: ${interaction.description}")
-
-                // Display the "See Extended Description" text
-                ClickableText(
-                    text = AnnotatedString("See Extended Description"),
-                    onClick = {
-                        // Toggle the visibility of the extended description
-                        extendedDescriptionVisible = !extendedDescriptionVisible
-                    }
-                )
-
-                // Display the extended description if it's visible
-                if (extendedDescriptionVisible) {
-                    Text(text = "Extended Description: ${interaction.extended_description}")
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { dismissRequest = true }
-            ) {
-                Text("OK")
-            }
-        }
-    )
 }
+
