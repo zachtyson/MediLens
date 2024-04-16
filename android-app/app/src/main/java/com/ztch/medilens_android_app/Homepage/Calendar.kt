@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Homepage
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
@@ -16,8 +17,8 @@ import java.time.temporal.ChronoUnit
 import java.util.Calendar
 
 data class CalendarUiModel(
-    val selectedDate: Date,
-    val visibleDates: List<Date>
+    var selectedDate: Date,
+    var visibleDates: List<Date>
 ) {
 
     data class Date(
@@ -28,6 +29,26 @@ data class CalendarUiModel(
 
         val day: String = date.format(DateTimeFormatter.ofPattern("E"))
         val dayHeader: String = date.format(DateTimeFormatter.ofPattern("EEEE"))
+    }
+    // shifts the calendar to the previous week
+    fun onLeftArrowClick() {
+        val lastSelectedDate = visibleDates.first().date
+        val newStartDate = lastSelectedDate.minusDays(7)
+        updateCalendar(newStartDate, lastSelectedDate)
+    }
+
+    // shifts the calendar to the next week
+    fun onRightArrowClick() {
+        val lastSelectedDate = visibleDates.first().date
+        val newStartDate = lastSelectedDate.plusDays(7)
+        updateCalendar(newStartDate, lastSelectedDate)
+    }
+
+    private fun updateCalendar(newStartDate: LocalDate, lastSelectedDate: LocalDate) {
+        val newUiModel = CalendarDataSource().getData(newStartDate, lastSelectedDate)
+        selectedDate = newUiModel.selectedDate
+        visibleDates = newUiModel.visibleDates
+        Log.d("CalendarUiModel", "updateCalendar: $newStartDate, $lastSelectedDate")
     }
 }
 
