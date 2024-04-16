@@ -47,7 +47,8 @@ fun Cabinet (
     onNavigateToAddMedication: () -> Unit,
     onNavigateToModifyMedication: () -> Unit,
     onNavigateToScheduleMedication: () -> Unit,
-    sharedMedicationModel: SharedMedicationModel
+    sharedMedicationModel: SharedMedicationModel,
+    userMedicationViewModel: UserMedicationViewModel
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
@@ -63,7 +64,7 @@ fun Cabinet (
         topText.value = "Unscheduled Medications"
     }
 
-
+    val userID = remember { mutableIntStateOf(0) }
     // Fetch all medications that are in the cabinet
 
     // mutable state empty list medication
@@ -72,7 +73,7 @@ fun Cabinet (
 
     // fetch all medications from the server
     LaunchedEffect(Unit) {
-        fetchMedications(service, context, allMedications, medications, userIsScheduling)
+        fetchMedications(service, context, allMedications, medications, userIsScheduling, userID)
     }
 
     // Column of boxes, each box is a medication
@@ -120,7 +121,12 @@ fun Cabinet (
                                 contentDescription = "Localized description"
                             )
                         }
-                        IconButton(onClick = { onNavigateToAddMedication() }) {
+                        IconButton(onClick = {
+                            userMedicationViewModel.unencryptedMedications = allMedications.value.toMutableList()
+                            // get first id of the medication
+                            userMedicationViewModel.user_id = userID.intValue
+                            onNavigateToAddMedication()
+                        }) {
                             Icon(
                                 imageVector = Icons.Filled.Add,
                                 tint = Color.White,
@@ -157,7 +163,8 @@ private fun fetchMedications(
     context: Context,
     allMedications: MutableState<List<Medication>>,
     medications: MutableState<List<Medication>>,
-    userIsScheduling: Boolean
+    userIsScheduling: Boolean,
+    userId: MutableIntState
 ) {
 
     service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
@@ -166,6 +173,7 @@ private fun fetchMedications(
                 allMedications.value = response.body() ?: emptyList()
                 // iterate over medications and decrypt them
                 for (medication in allMedications.value) {
+                    userId.intValue = medication.owner_id
                     val localEncryptionKey = getLocalEncryptionKey(context)
                     val decryptedName = decryptData(medication.name, localEncryptionKey, medication.init_vector)
                     val decryptedDescription = decryptData(medication.description ?: "", localEncryptionKey, medication.init_vector)

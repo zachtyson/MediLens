@@ -297,48 +297,6 @@ fun AlarmsList(alarms: List<AlarmItem>, onDeleteClicked: (AlarmItem) -> Unit) {
         AlarmCard(alarm, onDeleteClicked)
     }
 }
-@Composable
-fun interactionDialog(interaction: MedicationInteractionResponse) {
-    var extendedDescriptionVisible by remember { mutableStateOf(false) }
-    // variable to remember dismiss request
-    var dismissRequest by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = {dismissRequest = true},
-        title = { Text(text = "Drug Interaction Detected") },
-        text = {
-            Column {
-                Text(text = "Severity: ${interaction.severity}")
-                Row() {
-                    Text(text = "Drugs: ")
-                    Text(text = "${interaction.drug_a} and ${interaction.drug_b}")
-                }
-                Text(text = "Description: ${interaction.description}")
-
-                // Display the "See Extended Description" text
-                ClickableText(
-                    text = AnnotatedString("See Extended Description"),
-                    onClick = {
-                        // Toggle the visibility of the extended description
-                        extendedDescriptionVisible = !extendedDescriptionVisible
-                    }
-                )
-
-                // Display the extended description if it's visible
-                if (extendedDescriptionVisible) {
-                    Text(text = "Extended Description: ${interaction.extended_description}")
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { dismissRequest = true }
-            ) {
-                Text("OK")
-            }
-        }
-    )
-}
 
 @Composable
 fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {

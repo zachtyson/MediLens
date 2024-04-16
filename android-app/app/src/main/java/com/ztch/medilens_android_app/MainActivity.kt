@@ -34,10 +34,7 @@ import com.ztch.medilens_android_app.Homepage.HomePage
 import com.ztch.medilens_android_app.Medicard.MediCardScreen
 
 import com.ztch.medilens_android_app.Notifications.*
-import com.ztch.medilens_android_app.Refill.AddMedication
-import com.ztch.medilens_android_app.Refill.Cabinet
-import com.ztch.medilens_android_app.Refill.ModifyMedication
-import com.ztch.medilens_android_app.Refill.SharedMedicationModel
+import com.ztch.medilens_android_app.Refill.*
 import com.ztch.medilens_android_app.Settings.DoctorScreen
 import com.ztch.medilens_android_app.Settings.Settings
 
@@ -86,6 +83,7 @@ fun MyApp() {
     val sharedMedicationModel: SharedMedicationModel = SharedMedicationModel()
     val alarmViewModel: AlarmViewModel = viewModel()
     val startDestination = if (TokenAuth.isLoggedIn(context)) "Home" else "Login"
+    val userMedicationViewModel: UserMedicationViewModel = UserMedicationViewModel()
 
     NavHost(navController, startDestination = startDestination) {
 
@@ -203,6 +201,7 @@ fun MyApp() {
                 onNavigateToModifyMedication = { navController.navigate("ModifyMedication") {} },
                 onNavigateToScheduleMedication = { navController.navigate("ScheduleMedication") {} },
                 sharedMedicationModel = sharedMedicationModel,
+                userMedicationViewModel = userMedicationViewModel
 
             )
         }
@@ -226,7 +225,8 @@ fun MyApp() {
             AddMedication(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
-                onNavigateToCabinet = { navController.navigate("Cabinet") {} }
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                userMedicationViewModel = userMedicationViewModel
             )
         }
 

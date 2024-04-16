@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
@@ -27,6 +29,7 @@ fun AddMedication (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToCabinet: () -> Unit,
+    userMedicationViewModel : UserMedicationViewModel
 ) {
     // Add Medication
 
@@ -49,7 +52,23 @@ fun AddMedication (
     var isFormDropdownVisible by remember { mutableStateOf(false) }
 
 
+    var interactionDialogs by remember { mutableStateOf(listOf<MedicationInteractionResponse>()) }
+    var showDialog by remember { mutableStateOf(false) }
+    var currentInteraction by remember { mutableStateOf<MedicationInteractionResponse?>(null) }
 
+    // LaunchedEffect every time interactionDialogs changes
+    LaunchedEffect(interactionDialogs) {
+        interactionDialogs.firstOrNull()?.let {
+            currentInteraction = it
+            showDialog = true
+        }
+    }
+    if (showDialog && currentInteraction != null) {
+        InteractionDialog(interaction = currentInteraction!!)
+        showDialog = false
+        interactionDialogs = interactionDialogs.filter { it != currentInteraction }
+        currentInteraction = null
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -235,6 +254,23 @@ fun AddMedication (
                                     override fun onResponse(call: retrofit2.Call<Map<String, String>>, response: retrofit2.Response<Map<String, String>>) {
                                         if (response.isSuccessful) {
                                             Log.d("AddMedication", "Medication added successfully")
+                                            // After medication is added make dialogs for every interaction'
+
+                                            // list<String>
+                                            var drugs = mutableListOf<String>()
+                                            for (medication in userMedicationViewModel.unencryptedMedications) {
+                                                drugs.add(medication.name)
+                                            }
+                                            //data class UserDrugs(
+                                            //    val user_id: Int,
+                                            //    val drugs: List<String>
+                                            //)
+                                            val userDrugs = UserDrugs(
+                                                user_id = userMedicationViewModel.user_id,
+                                                drugs = drugs,
+                                                new_drug = medicationName
+                                            )
+                                            getNewInteractions(token, userDrugs,interactionDialogs)
                                             if (errorText.isEmpty()) {
                                                 onNavigateToCabinet()
                                             }
@@ -262,5 +298,71 @@ fun AddMedication (
         }
 
     )
+}
 
+fun getNewInteractions(token: String, userDrugs: UserDrugs, interactionDialogs: List<MedicationInteractionResponse>) {
+    val call = RetrofitClient.apiService.getNewInteraction(token, userDrugs)
+    call.enqueue(object : retrofit2.Callback<List<MedicationInteractionResponse>> {
+        override fun onResponse(call: retrofit2.Call<List<MedicationInteractionResponse>>, response: retrofit2.Response<List<MedicationInteractionResponse>>) {
+            if (response.isSuccessful) {
+                // if if response
+                Log.d("AddMedication", "Medication added successfully")
+                // After medication is added make dialogs for every interaction'
+                Log.d("AddMedication", "Interactions: ${response.body()}")
+                for (interaction in response.body()!!) {
+                    interactionDialogs.plusElement(interaction)
+                }
+            } else {
+                Log.d("AddMedication", "Failed to add medication")
+            }
+        }
+
+        override fun onFailure(call: retrofit2.Call<List<MedicationInteractionResponse>>, t: Throwable) {
+            Log.d("AddMedication", "Failed to add medication")
+        }
+    })
+    }
+
+
+@Composable
+fun InteractionDialog(interaction: MedicationInteractionResponse) {
+    var extendedDescriptionVisible by remember { mutableStateOf(false) }
+    // variable to remember dismiss request
+    var dismissRequest by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = {dismissRequest = true},
+        title = { Text(text = "Drug Interaction Detected") },
+        text = {
+            Column {
+                Text(text = "Severity: ${interaction.severity}")
+                Row() {
+                    Text(text = "Drugs: ")
+                    Text(text = "${interaction.drug_a} and ${interaction.drug_b}")
+                }
+                Text(text = "Description: ${interaction.description}")
+
+                // Display the "See Extended Description" text
+                ClickableText(
+                    text = AnnotatedString("See Extended Description"),
+                    onClick = {
+                        // Toggle the visibility of the extended description
+                        extendedDescriptionVisible = !extendedDescriptionVisible
+                    }
+                )
+
+                // Display the extended description if it's visible
+                if (extendedDescriptionVisible) {
+                    Text(text = "Extended Description: ${interaction.extended_description}")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { dismissRequest = true }
+            ) {
+                Text("OK")
+            }
+        }
+    )
 }
