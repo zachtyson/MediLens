@@ -4,15 +4,18 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
@@ -27,6 +30,7 @@ fun AddMedication (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToCabinet: () -> Unit,
+    userMedicationViewModel : UserMedicationViewModel
 ) {
     // Add Medication
 
@@ -46,8 +50,6 @@ fun AddMedication (
     var dosage by remember { mutableStateOf("") }
     var intakeMethod by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
-    var isFormDropdownVisible by remember { mutableStateOf(false) }
-
 
 
     Scaffold(
@@ -235,6 +237,28 @@ fun AddMedication (
                                     override fun onResponse(call: retrofit2.Call<Map<String, String>>, response: retrofit2.Response<Map<String, String>>) {
                                         if (response.isSuccessful) {
                                             Log.d("AddMedication", "Medication added successfully")
+                                            // After medication is added make dialogs for every interaction'
+
+                                            // list<String>
+                                            var drugs = mutableListOf<String>()
+                                            for (medication in userMedicationViewModel.unencryptedMedications) {
+                                                drugs.add(medication.name)
+                                            }
+                                            //data class UserDrugs(
+                                            //    val user_id: Int,
+                                            //    val drugs: List<String>
+                                            //)
+                                            val userDrugs = UserDrugs(
+                                                user_id = userMedicationViewModel.user_id,
+                                                drugs = drugs,
+                                                new_drug = medicationName
+                                            )
+                                            getNewInteractions(token, userDrugs, userMedicationViewModel.interactions)
+                                            // convert to snapshot
+                                            Log.d("AddMedicationBBBB", "Interactions: ${userMedicationViewModel.interactions}")
+                                            for (interaction in userMedicationViewModel.interactions) {
+                                                Log.d("AddMedicationAAAA", "Interaction: ${interaction}")
+                                            }
                                             if (errorText.isEmpty()) {
                                                 onNavigateToCabinet()
                                             }
@@ -262,5 +286,26 @@ fun AddMedication (
         }
 
     )
-
 }
+
+fun getNewInteractions(token: String, userDrugs: UserDrugs, interactions: SnapshotStateList<MedicationInteractionResponse>) {
+    val call = RetrofitClient.apiService.getNewInteraction(token, userDrugs)
+    call.enqueue(object : retrofit2.Callback<List<MedicationInteractionResponse>> {
+        override fun onResponse(call: retrofit2.Call<List<MedicationInteractionResponse>>, response: retrofit2.Response<List<MedicationInteractionResponse>>) {
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    interactions.clear()
+                    interactions.addAll(it)
+                    Log.d("AddMedication", "Interactions updated successfully: $interactions")
+                }
+            } else {
+                Log.d("AddMedication", "Failed to retrieve new interactions")
+            }
+        }
+
+        override fun onFailure(call: retrofit2.Call<List<MedicationInteractionResponse>>, t: Throwable) {
+            Log.d("AddMedication", "Failed to retrieve new interactions", t)
+        }
+    })
+}
+

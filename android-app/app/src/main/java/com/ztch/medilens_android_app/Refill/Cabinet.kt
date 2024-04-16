@@ -8,10 +8,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -33,6 +35,7 @@ import java.time.LocalDateTime
 import java.util.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -47,7 +50,8 @@ fun Cabinet (
     onNavigateToAddMedication: () -> Unit,
     onNavigateToModifyMedication: () -> Unit,
     onNavigateToScheduleMedication: () -> Unit,
-    sharedMedicationModel: SharedMedicationModel
+    sharedMedicationModel: SharedMedicationModel,
+    userMedicationViewModel: UserMedicationViewModel
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
@@ -63,18 +67,23 @@ fun Cabinet (
         topText.value = "Unscheduled Medications"
     }
 
-
+    val userID = remember { mutableIntStateOf(0) }
     // Fetch all medications that are in the cabinet
 
     // mutable state empty list medication
     val medications = remember { mutableStateOf<List<Medication>>(emptyList()) }
     val allMedications = remember { mutableStateOf<List<Medication>>(emptyList()) }
 
+    val interactions by mutableStateOf(userMedicationViewModel.interactions)
+
     // fetch all medications from the server
     LaunchedEffect(Unit) {
-        fetchMedications(service, context, allMedications, medications, userIsScheduling)
+        fetchMedications(service, context, allMedications, medications, userIsScheduling, userID)
+
+
     }
 
+    var showInteractions by remember { mutableStateOf(false) }
     // Column of boxes, each box is a medication
 
     Scaffold(
@@ -120,11 +129,38 @@ fun Cabinet (
                                 contentDescription = "Localized description"
                             )
                         }
-                        IconButton(onClick = { onNavigateToAddMedication() }) {
+                        IconButton(onClick = {
+                            // convert to snapshot
+                            userMedicationViewModel.unencryptedMedications.clear()
+                            userMedicationViewModel.unencryptedMedications.addAll(medications.value)
+                            // get first id of the medication
+                            userMedicationViewModel.user_id = userID.intValue
+                            onNavigateToAddMedication()
+                        }) {
                             Icon(
                                 imageVector = Icons.Filled.Add,
                                 tint = Color.White,
                                 contentDescription = "addMedication"
+                            )
+                        }
+                        // Button with warning Icon that toggles interaction cards
+                        IconButton(
+                            onClick = {
+                                showInteractions = !showInteractions
+
+                                var stringToLog = ""
+                                for (interaction in interactions) {
+                                    stringToLog += interaction.drug_a + " "
+                                    stringToLog += interaction.severity + " "
+                                    stringToLog += interaction.drug_b + " "
+                                }
+                                Log.d("CabinetInteractions", stringToLog)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Warning,
+                                contentDescription = "Localized description",
+                                tint = Color.White
                             )
                         }
 
@@ -135,6 +171,23 @@ fun Cabinet (
         },
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
+
+            // Lazy column displaying all interactions
+            LazyColumn(
+                modifier = Modifier
+                    .width(400.dp)
+                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .background(color = colorResource(R.color.DarkGrey))
+            ) {
+                Log.d("Cabinet", "Interactions recomposed")
+                if (showInteractions) {
+                    for (interaction in interactions) {
+                        item {
+                            InteractionBox(interaction = interaction)
+                        }
+                    }
+                }
+            }
             LazyColumn(
                 modifier = Modifier
                     .width(400.dp)
@@ -149,6 +202,7 @@ fun Cabinet (
                     }
                 }
             }
+
         }
     )
 }
@@ -157,7 +211,8 @@ private fun fetchMedications(
     context: Context,
     allMedications: MutableState<List<Medication>>,
     medications: MutableState<List<Medication>>,
-    userIsScheduling: Boolean
+    userIsScheduling: Boolean,
+    userId: MutableIntState
 ) {
 
     service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
@@ -166,6 +221,7 @@ private fun fetchMedications(
                 allMedications.value = response.body() ?: emptyList()
                 // iterate over medications and decrypt them
                 for (medication in allMedications.value) {
+                    userId.intValue = medication.owner_id
                     val localEncryptionKey = getLocalEncryptionKey(context)
                     val decryptedName = decryptData(medication.name, localEncryptionKey, medication.init_vector)
                     val decryptedDescription = decryptData(medication.description ?: "", localEncryptionKey, medication.init_vector)
@@ -311,6 +367,63 @@ fun MedicationBox(medication: Medication,
     }
 }
 @Composable
+fun InteractionBox(interaction: MedicationInteractionResponse) {
+    val showDialog = remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .padding(top = 10.dp)
+            .fillMaxWidth()
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            color = colorResource(id = R.color.DarkBlue),
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colorResource(R.color.DarkBlue),
+                    contentColor = colorResource(R.color.DarkBlue),
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+                    .padding(16.dp),
+            ) {
+                Column {
+                    Text(
+                        text = "Drug Interaction Detected",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White
+                    )
+                    MedInfoText("Severity: ${interaction.severity}")
+                    Row() {
+                        Text("Drugs: ")
+                        Text("${interaction.drug_a} and ${interaction.drug_b}")
+                    }
+                    MedInfoText("Description: ${interaction.description}")
+
+                    // Display the "See Extended Description" text
+                    ClickableText(
+                        text = AnnotatedString("See Extended Description"),
+                        onClick = {
+                            // Toggle the visibility of the extended description
+                            showDialog.value = true
+                        }
+                    )
+
+                    // Display the extended description if it's visible
+                    if (showDialog.value) {
+                        Text(text = "Extended Description: ${interaction.extended_description}")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun InformationSection(name: String, description: String, color: String, imprint: String, shape: String, dosage: String, intakeMethod: String, scheduleStart: String, interval: String) {
     Column {
         Text(
@@ -363,4 +476,46 @@ fun getImage(size: IntSize): ImageBitmap {
     )
 
     return imageBitmap
+}
+@Composable
+private fun InteractionDialog(interaction: MedicationInteractionResponse) {
+    var extendedDescriptionVisible by remember { mutableStateOf(false) }
+    // variable to remember dismiss request
+    var dismissRequest by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = {dismissRequest = true},
+        title = { Text(text = "Drug Interaction Detected") },
+        text = {
+            Column {
+                Text(text = "Severity: ${interaction.severity}")
+                Row() {
+                    Text(text = "Drugs: ")
+                    Text(text = "${interaction.drug_a} and ${interaction.drug_b}")
+                }
+                Text(text = "Description: ${interaction.description}")
+
+                // Display the "See Extended Description" text
+                ClickableText(
+                    text = AnnotatedString("See Extended Description"),
+                    onClick = {
+                        // Toggle the visibility of the extended description
+                        extendedDescriptionVisible = !extendedDescriptionVisible
+                    }
+                )
+
+                // Display the extended description if it's visible
+                if (extendedDescriptionVisible) {
+                    Text(text = "Extended Description: ${interaction.extended_description}")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { dismissRequest = true }
+            ) {
+                Text("OK")
+            }
+        }
+    )
 }
