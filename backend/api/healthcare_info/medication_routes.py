@@ -113,3 +113,50 @@ async def modify_medication(medication_data: MedicationModify, db: Session = Dep
         return {"message": "Medication modified successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail="Failed to modify medication")
+
+
+@router.get("/medication/get_scheduled_medications")
+async def get_scheduled_medications(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_id = get_id_from_token(token)
+    if not db.query(User).filter(User.id == user_id).first():
+        raise HTTPException(status_code=404, detail="User not found")
+    medications = db.query(Medication).filter(Medication.owner_id == user_id).filter(
+        Medication.schedule_start != null()).all()
+
+    # return list of medications that have a schedule_start
+    # regardless of whether interval_milliseconds is null or not
+    # since those could just be one time alarms
+    for med in medications:
+        if med.created_date is not None:
+            med.created_date = med.created_date.replace(tzinfo=ZoneInfo("UTC")).isoformat()
+        if med.schedule_start is not None:
+            med.schedule_start = med.schedule_start.replace(tzinfo=ZoneInfo("UTC")).isoformat()
+
+    # convert to dictionary
+    medications = [med.__dict__ for med in medications]
+    return medications
+
+@router.post("/medication/remove_medication_schedule")
+async def remove_medication_schedule(medication_id: int, user_id: int,
+                                     db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    u = get_id_from_token(token)
+    if u != user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    if not db.query(User).filter(User.id == user_id).first():
+        raise HTTPException(status_code=404, detail="User not found")
+    medication = db.query(Medication).filter(Medication.owner_id == user_id).filter(
+        Medication.id == medication_id).first()
+    if not medication:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    try:
+        medication.schedule_start = None
+        medication.interval_milliseconds = None
+        db.commit()
+        db.refresh(medication)
+        return {"message": "Medication schedule removed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to remove medication schedule")
