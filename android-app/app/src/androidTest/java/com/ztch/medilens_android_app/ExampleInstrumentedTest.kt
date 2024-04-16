@@ -332,7 +332,7 @@ class HomescreenTest {
     fun testHomeScreenNav() {
         // Set the content with the Home composable
         composeTestRule.setContent {
-            appbarBottom({},{},{},{},)
+            appbarBottom({},{},{},{},{})
         }
 
         composeTestRule.onNodeWithContentDescription("settings").assertExists().performClick()
