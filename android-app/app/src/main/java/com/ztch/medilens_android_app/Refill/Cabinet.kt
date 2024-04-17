@@ -412,6 +412,7 @@ fun InteractionBox(interaction: MedicationInteractionResponse) {
                     Row() {
                         Text("Drugs: ")
                         Text("${interaction.drug_a} and ${interaction.drug_b}")
+                        Text("Consult your doctor")
                     }
                     MedInfoText("Description: ${interaction.description}")
 //
