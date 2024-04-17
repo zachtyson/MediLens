@@ -12,9 +12,20 @@ import com.ztch.medilens_android_app.R
 class AlarmBroadcaster: BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
-
+        var alarmRepository: AlarmRepository? = null
         val message = intent?.getStringExtra("EXTRA_MESSAGE") ?: return
+        val requestCode = intent?.getIntExtra("REQUEST_CODE", -1) ?: return
         Log.d("AlarmBroadcaster", "onReceive: $message")
+
+        // Get an instance of the database and add the alarm to the database
+        if (context == null) {
+            return
+        }
+        alarmRepository = AlarmRepository(context)
+        // get instance of alarm from futureAlarm
+        val alarm = alarmRepository?.getFutureAlarmByRequestCode(requestCode) ?: return
+        // convert futureAlarm to pendingAlarm
+        alarmRepository.convertFutureAlarmToPendingAlarm(alarm)
 
         context?.let { ctx ->
             val notificationManager =

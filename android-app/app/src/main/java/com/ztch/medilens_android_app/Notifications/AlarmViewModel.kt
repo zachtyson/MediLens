@@ -30,8 +30,7 @@ import retrofit2.Response
 val numIntervals = 100
 
 class AlarmViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = AlarmDatabase.getInstance(application)
-    private var alarmDao = db.alarmDao()
+    private var alarmRepository = AlarmRepository(application)
     private val _alarms = MutableStateFlow<List<AlarmItem>>(emptyList())
     val alarms: StateFlow<List<AlarmItem>> = _alarms.asStateFlow()
 
@@ -42,55 +41,19 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     private suspend fun initializeDatabase() {
-        val dbInstance = AlarmDatabase.getInstance(getApplication())
-        alarmDao = dbInstance.alarmDao()
         loadAlarms()
     }
 
     private fun loadAlarms() {
         viewModelScope.launch {
-            _alarms.value = alarmDao.getAll()
+            _alarms.value = alarmRepository.alarmDao.getAll()
         }
     }
-
-    private val service= RetrofitClient.apiService
-
-    // StateFlow to store list of medication interactions
-    private val _medicationInteractionsList = MutableStateFlow<List<MedicationInteractionResponse>>(emptyList())
-    val medicationInteractionsList: StateFlow<List<MedicationInteractionResponse>> = _medicationInteractionsList
-
-    fun getMedicationInteractions(drugA: String, drugB: String) {
-        Log.d("getMedicationInteractions", "getMedicationInteractions: $drugA, $drugB")
-
-        // Assuming service is obtained from RetrofitClient.apiService
-        service.getMedicationInteractions(drugA, drugB).enqueue(object : Callback<MedicationInteractionResponse> {
-            override fun onResponse(call: retrofit2.Call<MedicationInteractionResponse>, response: retrofit2.Response<MedicationInteractionResponse>) {
-                if (response.isSuccessful) {
-                    Log.d("Success", "onResponse: ${response.body()}")
-                    val interaction = response.body()
-                    interaction?.let {
-                        val updatedList = _medicationInteractionsList.value.toMutableList()
-                        updatedList.add(it)
-                        _medicationInteractionsList.value = updatedList
-                    }
-                } else {
-                    Log.d("Error", "onResponse: ${response.body()}")
-                    // Handle unsuccessful response
-                }
-            }
-
-            override fun onFailure(call: Call<MedicationInteractionResponse>, t: Throwable) {
-                // Handle failure
-                Log.d("Error", t.message ?: "An error occurred")
-            }
-        })
-    }
-
 
     fun addAlarm(alarm: AlarmItem) {
         viewModelScope.launch {
             _alarms.value = _alarms.value + alarm
-            alarmDao.insertAll(alarm)
+            alarmRepository.alarmDao.insertAll(alarm)
             schedule(alarm, getApplication())
             Log.d("AlarmViewModel", "Alarm added: $alarm")
 
@@ -100,14 +63,14 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     fun removeAlarm(alarm: AlarmItem) {
         viewModelScope.launch {
             _alarms.value = _alarms.value - alarm
-            alarmDao.delete(alarm)
+            alarmRepository.alarmDao.delete(alarm)
             cancel(alarm, getApplication())
         }
     }
 
     fun deleteAllItems() {
         viewModelScope.launch {
-            alarmDao.deleteAll()
+            alarmRepository.alarmDao.deleteAll()
             _alarms.value = emptyList()
         }
     }
@@ -135,13 +98,21 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
             val pendingIntent = PendingIntent.getBroadcast(
                 context, item.hashCode() + i, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
+            // Get the alarm from the futureAlarm table
+            val futureAlarm = alarmRepository.futureAlarmDao.getByRequestCode(item.hashCode() + i)
+            // Remove the alarm from the futureAlarm table
+            if (futureAlarm != null) {
+                viewModelScope.launch {
+                    alarmRepository.futureAlarmDao.delete(futureAlarm)
+                }
+            }
             alarmManager.cancel(
                 pendingIntent
             )
         }
         // Remove alarm from database
         viewModelScope.launch {
-            alarmDao.delete(item)
+            alarmRepository.alarmDao.delete(item)
         }
     }
     fun schedule(item: AlarmItem, context: Context) {
@@ -150,14 +121,16 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         context.registerReceiver(receiver, filter)
         val message = item.message
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AlarmBroadcaster::class.java).apply {
-            putExtra("EXTRA_MESSAGE", message)
-        }
+
         // schedule the start_time + next 5 intervals
         for (i in 0..numIntervals) {
             // if time is in the past, skip
             if (item.startTimeMillis + item.intervalMillis * i < System.currentTimeMillis()) {
                 continue
+            }
+            val intent = Intent(context, AlarmBroadcaster::class.java).apply {
+                putExtra("EXTRA_MESSAGE", message)
+                putExtra("EXTRA_REQUEST_CODE", item.hashCode() + i)
             }
             val pendingIntent = PendingIntent.getBroadcast(
                 context, item.hashCode() + i, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -178,6 +151,17 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
                 timeInMillis,
                 pendingIntent
             )
+            // Add instance to FutureAlarm table
+            val futureAlarm = FutureAlarmItem(
+                message = item.message,
+                timeMillis = timeInMillis,
+                imageUri = item.imageUri,
+                response = false,
+                requestCode = item.hashCode() + i
+            )
+            viewModelScope.launch {
+                alarmRepository.insertFutureAlarm(futureAlarm)
+            }
             Log.d("AlarmViewModel", "Alarm scheduled: $item at $timeInMillis")
         }
     }
