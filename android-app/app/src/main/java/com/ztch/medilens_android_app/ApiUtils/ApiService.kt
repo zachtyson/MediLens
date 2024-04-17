@@ -65,36 +65,9 @@ interface ApiService {
         @Query("drug_a") drugA: String,
         @Query("drug_b") drugB: String
     ): Call<MedicationInteractionResponse>
-    //@router.get("/medication/get_new_interaction/{drug_a}")
-    //# compares new drug interaction with every drug within the user's medication list
-    //async def get_new_interaction(drug_a: str, user_drugs: UserDrugs, db: Session = Depends(get_db),
-    //                              token: str = Depends(get_token_from_header)):
-    //    if not user_drugs:
-    //        raise HTTPException(status_code=204, detail="User drugs not found")
-    //    if not verify_token(token):
-    //        raise HTTPException(status_code=401, detail="Unauthorized")
-    //    # get user id from token
-    //    user_id = get_id_from_token(token)
-    //    # compare token user id with user_drugs user id
-    //    if user_id != user_drugs.user_id:
-    //        raise HTTPException(status_code=401, detail="Unauthorized")
-    //    interactions = []
-    //    for drug_b in user_drugs.drugs:
-    //        # sort the drugs alphabetically
-    //        drug_a, drug_b = sorted([drug_a, drug_b])
-    //        interaction = db.query(DrugInteraction).filter(DrugInteraction.drug_a == drug_a,
-    //                                                       DrugInteraction.drug_b == drug_b).first()
-    //        if interaction is not None:
-    //            interactions.append({
-    //                "drug_a": interaction.drug_a,
-    //                "drug_b": interaction.drug_b,
-    //                "severity": interaction.severity,
-    //                "description": interaction.description,
-    //                "extended_description": interaction.extended_description
-    //            })
 
-    @POST("medication/get_new_interaction/")
-    fun getNewInteraction(
+    @POST("medication/get_all_user_interactions/")
+    fun getAllInteractions(
         @Header("token") token: String,
         // Body contains user drugs and new drug
         @Body userDrugs: UserDrugs
@@ -127,9 +100,7 @@ interface ApiService {
 }
 
 data class UserDrugs(
-    val user_id: Int,
-    val drugs: List<String>,
-    val new_drug: String
+    var drugs: List<String> = listOf(),
 )
 
 data class MedicationInteractionResponse(

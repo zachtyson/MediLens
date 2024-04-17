@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
@@ -74,12 +75,11 @@ fun Cabinet (
     val medications = remember { mutableStateOf<List<Medication>>(emptyList()) }
     val allMedications = remember { mutableStateOf<List<Medication>>(emptyList()) }
 
-    val interactions by mutableStateOf(userMedicationViewModel.interactions)
+    val interactions = remember { mutableStateListOf<MedicationInteractionResponse>() }
 
     // fetch all medications from the server
     LaunchedEffect(Unit) {
-        fetchMedications(service, context, allMedications, medications, userIsScheduling, userID)
-
+        fetchMedications(service, context, allMedications, medications, userIsScheduling, userID, interactions)
 
     }
 
@@ -212,7 +212,8 @@ private fun fetchMedications(
     allMedications: MutableState<List<Medication>>,
     medications: MutableState<List<Medication>>,
     userIsScheduling: Boolean,
-    userId: MutableIntState
+    userId: MutableIntState,
+    interactions: SnapshotStateList<MedicationInteractionResponse>
 ) {
 
     service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
@@ -244,7 +245,7 @@ private fun fetchMedications(
                     medications.value = medications.value.filter { medication ->
                         medication.schedule_start == null }
                 }
-
+                getDrugInteractions(TokenAuth.getLogInToken(context), interactions, medications.value)
             } else {
                 Log.e("Cabinet", "Failed to fetch medications")
             }
@@ -476,6 +477,31 @@ fun getImage(size: IntSize): ImageBitmap {
     )
 
     return imageBitmap
+}
+
+private fun getDrugInteractions(token: String, interactions: SnapshotStateList<MedicationInteractionResponse>, medications: List<Medication>) {
+    // create new object UserDrugs that has all interactions
+    val userDrugs = UserDrugs()
+    userDrugs.drugs = medications.map { it.name }
+    // get all medications
+    val call = RetrofitClient.apiService.getAllInteractions(token, userDrugs)
+    call.enqueue(object : retrofit2.Callback<List<MedicationInteractionResponse>> {
+        override fun onResponse(call: retrofit2.Call<List<MedicationInteractionResponse>>, response: retrofit2.Response<List<MedicationInteractionResponse>>) {
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    interactions.clear()
+                    interactions.addAll(it)
+                    Log.d("AddMedication", "Interactions updated successfully: $interactions")
+                }
+            } else {
+                Log.d("AddMedication", "Failed to retrieve new interactions")
+            }
+        }
+
+        override fun onFailure(call: retrofit2.Call<List<MedicationInteractionResponse>>, t: Throwable) {
+            Log.d("AddMedication", "Failed to retrieve new interactions", t)
+        }
+    })
 }
 @Composable
 private fun InteractionDialog(interaction: MedicationInteractionResponse) {
