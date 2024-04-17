@@ -37,39 +37,34 @@ async def get_medication_interaction(drug_a: str, drug_b: str, db: Session = Dep
         "extended_description": interaction.extended_description
     }
 
-
-@router.post("/medication/get_new_interaction/")
-# compares new drug interaction with every drug within the user's medication list
-async def get_new_interaction(user_drugs: UserDrugs, db: Session = Depends(get_db),
-                              token: str = Depends(get_token_from_header)):
+@router.post("/medication/get_all_user_interactions/")
+# compares all drugs within the user's medication list
+# this scales poorly, but it's the best we can do for now
+async def get_all_user_interactions(user_drugs: UserDrugs, db: Session = Depends(get_db),
+                                    token: str = Depends(get_token_from_header)):
+    print(user_drugs.drugs)
     if not user_drugs:
         raise HTTPException(status_code=204, detail="User drugs not found")
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Unauthorized")
     # get user id from token
     user_id = get_id_from_token(token)
-    # compare token user id with user_drugs user id
-    if user_id != user_drugs.user_id:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    # put drugs in lowercase
+    user_drugs.drugs = [drug.lower() for drug in user_drugs.drugs]
     interactions = []
-    drug_a = user_drugs.new_drug.lower()
-    drug_a_orig = drug_a
-    print(user_drugs.drugs)
-    print(user_drugs.new_drug)
-    for drug_b in user_drugs.drugs:
-        # sort the drugs alphabetically
-        drug_b = drug_b.lower()
-        drug_a, drug_b = sorted([drug_a, drug_b])
-        print(drug_a, drug_b)
-        interaction = db.query(DrugInteraction).filter(DrugInteraction.drug_a == drug_a,
-                                                       DrugInteraction.drug_b == drug_b).first()
-        if interaction is not None:
-            interactions.append({
-                "drug_a": interaction.drug_a,
-                "drug_b": interaction.drug_b,
-                "severity": interaction.severity,
-                "description": interaction.description,
-                "extended_description": interaction.extended_description
-            })
-        drug_a = drug_a_orig
+    for i in range(len(user_drugs.drugs)):
+        for j in range(i + 1, len(user_drugs.drugs)):
+            drug_a, drug_b = sorted([user_drugs.drugs[i], user_drugs.drugs[j]])
+            interaction = db.query(DrugInteraction).filter(DrugInteraction.drug_a == drug_a,
+                                                           DrugInteraction.drug_b == drug_b).first()
+            if interaction is not None:
+                interactions.append({
+                    "drug_a": interaction.drug_a,
+                    "drug_b": interaction.drug_b,
+                    "severity": interaction.severity,
+                    "description": interaction.description,
+                    "extended_description": interaction.extended_description
+                })
+    print(interactions)
     return interactions
+

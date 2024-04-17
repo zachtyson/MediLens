@@ -11,6 +11,4 @@ class DrugInteractionBase(BaseModel):
     extended_description: Optional[str]
 
 class UserDrugs(BaseModel):
-    user_id: int
     drugs: List[str]
-    new_drug: str
