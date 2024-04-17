@@ -75,7 +75,7 @@ fun Cabinet (
     val medications = remember { mutableStateOf<List<Medication>>(emptyList()) }
     val allMedications = remember { mutableStateOf<List<Medication>>(emptyList()) }
 
-    val interactions = remember { mutableStateListOf<MedicationInteractionResponse>() }
+    val interactions = remember { mutableStateOf<List<MedicationInteractionResponse>>(emptyList()) }
 
     // fetch all medications from the server
     LaunchedEffect(Unit) {
@@ -149,7 +149,7 @@ fun Cabinet (
                                 showInteractions = !showInteractions
 
                                 var stringToLog = ""
-                                for (interaction in interactions) {
+                                for (interaction in interactions.value) {
                                     stringToLog += interaction.drug_a + " "
                                     stringToLog += interaction.severity + " "
                                     stringToLog += interaction.drug_b + " "
@@ -172,36 +172,46 @@ fun Cabinet (
         containerColor = colorResource(R.color.DarkGrey),
         content = { innerPadding ->
 
-            // Lazy column displaying all interactions
-            LazyColumn(
+            // Box containing multiple LazyColumns
+            Box(
                 modifier = Modifier
-                    .width(400.dp)
-                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .fillMaxSize()
+                    .padding(innerPadding)
                     .background(color = colorResource(R.color.DarkGrey))
             ) {
-                Log.d("Cabinet", "Interactions recomposed")
-                if (showInteractions) {
-                    for (interaction in interactions) {
-                        item {
-                            InteractionBox(interaction = interaction)
+                Column {
+                    // LazyColumn for interactions
+                    if (showInteractions) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .width(400.dp)
+                                .background(color = colorResource(R.color.DarkGrey))
+                        ) {
+                            for (interaction in interactions.value) {
+                                item {
+                                    InteractionBox(interaction = interaction)
+                                }
+                            }
+                        }
+                    }
+                    LazyColumn(
+                        modifier = Modifier
+                            .width(400.dp)
+                            .background(color = colorResource(R.color.DarkGrey))
+                    ) {
+                        for (medication in medications.value) {
+                            item {
+                                MedicationBox(
+                                    medication = medication, sharedMedicationModel = sharedMedicationModel,
+                                    onNavigateToModifyMedication = onNavigateToModifyMedication,
+                                    onNavigateToScheduleMedication = onNavigateToScheduleMedication
+                                )
+                            }
                         }
                     }
                 }
             }
-            LazyColumn(
-                modifier = Modifier
-                    .width(400.dp)
-                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
-                    .background(color = colorResource(R.color.DarkGrey))
-            ) {
-                for (medication in medications.value) {
-                    item {
-                        MedicationBox(medication = medication, sharedMedicationModel = sharedMedicationModel,
-                            onNavigateToModifyMedication = onNavigateToModifyMedication,
-                            onNavigateToScheduleMedication = onNavigateToScheduleMedication)
-                    }
-                }
-            }
+
 
         }
     )
@@ -213,7 +223,7 @@ private fun fetchMedications(
     medications: MutableState<List<Medication>>,
     userIsScheduling: Boolean,
     userId: MutableIntState,
-    interactions: SnapshotStateList<MedicationInteractionResponse>
+    interactions: MutableState<List<MedicationInteractionResponse>>
 ) {
 
     service.getMedications(TokenAuth.getLogInToken(context)).enqueue(object : Callback<List<Medication>> {
@@ -404,20 +414,20 @@ fun InteractionBox(interaction: MedicationInteractionResponse) {
                         Text("${interaction.drug_a} and ${interaction.drug_b}")
                     }
                     MedInfoText("Description: ${interaction.description}")
-
-                    // Display the "See Extended Description" text
-                    ClickableText(
-                        text = AnnotatedString("See Extended Description"),
-                        onClick = {
-                            // Toggle the visibility of the extended description
-                            showDialog.value = true
-                        }
-                    )
-
-                    // Display the extended description if it's visible
-                    if (showDialog.value) {
-                        Text(text = "Extended Description: ${interaction.extended_description}")
-                    }
+//
+//                    // Display the "See Extended Description" text
+//                    ClickableText(
+//                        text = AnnotatedString("See Extended Description"),
+//                        onClick = {
+//                            // Toggle the visibility of the extended description
+//                            showDialog.value = true
+//                        }
+//                    )
+//
+//                    // Display the extended description if it's visible
+//                    if (showDialog.value) {
+//                        Text(text = "Extended Description: ${interaction.extended_description}")
+//                    }
                 }
             }
         }
@@ -479,7 +489,7 @@ fun getImage(size: IntSize): ImageBitmap {
     return imageBitmap
 }
 
-private fun getDrugInteractions(token: String, interactions: SnapshotStateList<MedicationInteractionResponse>, medications: List<Medication>) {
+private fun getDrugInteractions(token: String, interactions: MutableState<List<MedicationInteractionResponse>>, medications: List<Medication>) {
     // create new object UserDrugs that has all interactions
     val userDrugs = UserDrugs()
     userDrugs.drugs = medications.map { it.name }
@@ -489,8 +499,7 @@ private fun getDrugInteractions(token: String, interactions: SnapshotStateList<M
         override fun onResponse(call: retrofit2.Call<List<MedicationInteractionResponse>>, response: retrofit2.Response<List<MedicationInteractionResponse>>) {
             if (response.isSuccessful) {
                 response.body()?.let {
-                    interactions.clear()
-                    interactions.addAll(it)
+                    interactions.value = it
                     Log.d("AddMedication", "Interactions updated successfully: $interactions")
                 }
             } else {
