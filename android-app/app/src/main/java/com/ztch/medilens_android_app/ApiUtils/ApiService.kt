@@ -31,6 +31,23 @@ interface ApiService {
         @Query("shape") shape: Int
     ): Call<List<PillInfoResponse>>
 
+    @POST("doctor/add_doctor")
+    fun addDoctor(
+        @Header("token") token: String,
+        @Body doctor: DoctorCreate
+    ): Call<Map<String, String>>
+
+    @POST("doctor/delete_doctor")
+    fun deleteDoctor(
+        @Header("token") token: String,
+        @Body doctor: DoctorDelete
+    ): Call<Map<String, String>>
+
+    @GET("doctor/get_user_doctors")
+    fun getUserDoctors(
+        @Header("token") token: String
+    ): Call<List<Doctor>>
+
     @POST("medication/add_medication")
     fun addMedication(
         @Header("token") token: String,
@@ -98,6 +115,30 @@ interface ApiService {
         // Returns basic JSON response
     ): Call<Map<String, String>>
 }
+
+data class Doctor(
+    val doctor_id: Int,
+    val doctor_name: String?,
+    val specialty: String?,
+    val office_number: String?,
+    val emergency_number: String?,
+    val office_address: String?,
+    val email: String,
+    val user_id: Int
+)
+
+data class DoctorCreate(
+    val doctor_name: String?,
+    val specialty: String?,
+    val office_number: String?,
+    val emergency_number: String?,
+    val office_address: String?,
+    val email: String?
+)
+
+data class DoctorDelete(
+    val doctor_id: Int
+)
 
 data class UserDrugs(
     var drugs: List<String> = listOf(),
