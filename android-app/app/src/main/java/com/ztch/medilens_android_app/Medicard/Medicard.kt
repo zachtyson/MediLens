@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+import com.ztch.medilens_android_app.Notifications.AlarmViewModel
 import com.ztch.medilens_android_app.R
 
 
@@ -37,18 +38,21 @@ import com.ztch.medilens_android_app.R
 @Preview(showSystemUi = false, showBackground = false)
 @Composable
 fun mediPreview1() {
-    MediCardScreen( onNavigateToHomePage = {})
+    MediCardScreen( onNavigateToHomePage = {}, alarmViewModel = {} as AlarmViewModel)
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MediCardScreen(onNavigateToHomePage: () -> Unit ) {
+fun MediCardScreen(onNavigateToHomePage: () -> Unit,
+                   alarmViewModel: AlarmViewModel
+) {
     val context = LocalContext.current
     if (!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
+    // call alarmviewmodel function to get past_alarms table and parse it into a readable report
 
     Scaffold(
         topBar = {

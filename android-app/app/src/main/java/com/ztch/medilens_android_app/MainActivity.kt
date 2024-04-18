@@ -218,6 +218,7 @@ fun MyApp() {
         composable("MediCard") {
             MediCardScreen(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
+                alarmViewModel = alarmViewModel
             )
         }
 
