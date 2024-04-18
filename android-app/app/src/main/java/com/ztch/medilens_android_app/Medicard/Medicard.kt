@@ -33,7 +33,8 @@ import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.R
 
 
-@Preview(showSystemUi = true)
+
+@Preview(showSystemUi = false, showBackground = false)
 @Composable
 fun mediPreview1() {
     MediCardScreen( onNavigateToHomePage = {})
@@ -85,7 +86,7 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit ) {
 
             ) {
 
-                    UserInfo()
+                    userInfo()
                     MediCardBox()
                 }
         }
@@ -93,7 +94,7 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit ) {
 }
 
 @Composable
-fun ProfileImage(imageSize: Dp,){ // 135 for big
+fun profileImage(imageSize: Dp,){ // 135 for big
         Surface(
             modifier = Modifier
                 .size(imageSize+17.dp)
@@ -115,13 +116,13 @@ fun ProfileImage(imageSize: Dp,){ // 135 for big
 }
 
 @Composable
-fun UserInfo() {
+fun userInfo() {
     Column(
         modifier = Modifier
             .padding(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ProfileImage(135.dp)
+        profileImage(135.dp)
         Text(
             text = "FetchName()",
             color = Color.White,
@@ -195,7 +196,7 @@ fun MediCardsList(data: List<String>) {
                         .background(MaterialTheme.colorScheme.surface)
                         .padding(7.dp)
                 ) {
-                    ProfileImage(50.dp)
+                    profileImage(50.dp)
                     Column(modifier = Modifier
                         .padding(7.dp)
                         .align(alignment = CenterVertically))
