@@ -49,8 +49,10 @@ async def get_user_doctors(db: Session = Depends(get_db), token: str = Depends(g
     doctors = db.query(Doctor).filter(Doctor.owner_id == user_id).all()
     return doctors
 
+
 @router.post("/doctor/delete_doctor")
-async def delete_doctor(doctor: DoctorDelete, db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
+async def delete_doctor(doctor: DoctorDelete, db: Session = Depends(get_db),
+                        token: str = Depends(get_token_from_header)):
     user_id = get_id_from_token(token)
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -62,3 +64,4 @@ async def delete_doctor(doctor: DoctorDelete, db: Session = Depends(get_db), tok
     db.delete(db_doctor)
     db.commit()
     return {"message": "Doctor deleted successfully"}
+
