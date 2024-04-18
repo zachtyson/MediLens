@@ -35,7 +35,8 @@ import com.ztch.medilens_android_app.Medicard.MediCardScreen
 
 import com.ztch.medilens_android_app.Notifications.*
 import com.ztch.medilens_android_app.Refill.*
-import com.ztch.medilens_android_app.Settings.DoctorScreen
+import com.ztch.medilens_android_app.Settings.AddPharmacist
+import com.ztch.medilens_android_app.Settings.PharmacyInfo
 import com.ztch.medilens_android_app.Settings.Settings
 
 // camera permission
@@ -158,14 +159,24 @@ fun MyApp() {
             Settings(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
-                onNavigateToDoctor = { navController.navigate("Doctor") {} }
+                onNavigateToPharmacyInfo = { navController.navigate("PharmacyInfo") {} }
             )
         }
 
-        composable("Doctor") {
-            DoctorScreen(
+        composable("PharmacyInfo") {
+            PharmacyInfo(
                 onNavigateToSettings = { navController.navigate("Settings") {} },
-                onNavigateToLogin = { navController.navigate("Login") }
+                onNavigateToLogin = { navController.navigate("Login") },
+                onNavigateToAddPharmacist = { navController.navigate("AddPharmacist") }
+            )
+        }
+
+        composable("AddPharmacist") {
+            AddPharmacist(
+                onNavigateToSettings = { navController.navigate("Settings") {} },
+                onNavigateToLogin = { navController.navigate("Login") },
+                onNavigateToHomePage = { navController.navigate("Home") },
+                onNavigateToPharmacyInfo = { navController.navigate("PharmacyInfo") }
             )
         }
 

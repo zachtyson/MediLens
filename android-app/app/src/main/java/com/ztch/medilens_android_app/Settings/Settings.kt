@@ -3,38 +3,27 @@ package com.ztch.medilens_android_app.Settings
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
-import com.ztch.medilens_android_app.Camera.SharedViewModel
 import com.ztch.medilens_android_app.R
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalDateTime
-import java.util.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 
 fun LogOutAfterDelete(context: Context, onNavigateToHomePage: () -> Unit) {
     TokenAuth.logOut(context)
@@ -46,7 +35,7 @@ fun LogOutAfterDelete(context: Context, onNavigateToHomePage: () -> Unit) {
 fun Settings (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
-    onNavigateToDoctor: () -> Unit
+    onNavigateToPharmacyInfo: () -> Unit
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
@@ -177,7 +166,7 @@ fun Settings (
                     SettingsOptionItem(
                         icon = Icons.Default.LocalPharmacy,
                         title = "Add Doctor",
-                        onClick = { onNavigateToDoctor() }
+                        onClick = { onNavigateToPharmacyInfo() }
                     )
                     HorizontalDivider()
                 }
