@@ -38,14 +38,14 @@ import com.ztch.medilens_android_app.R
 @Preview(showSystemUi = false, showBackground = false)
 @Composable
 fun mediPreview1() {
-    MediCardScreen( onNavigateToHomePage = {}, alarmViewModel = {} as AlarmViewModel)
+    MediCardScreen( onNavigateToHomePage = {}, alarmViewModel = null)
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediCardScreen(onNavigateToHomePage: () -> Unit,
-                   alarmViewModel: AlarmViewModel
+                   alarmViewModel: AlarmViewModel?
 ) {
     val context = LocalContext.current
     if (!TokenAuth.isLoggedIn(context)) {
