@@ -64,6 +64,9 @@ interface AlarmDao {
 
     @Delete
     fun deleteAll(vararg alarms: AlarmItem)
+
+    @Query("DELETE FROM alarms")
+    fun deleteEverything()
 }
 
 
@@ -121,6 +124,8 @@ interface PastAlarmDao {
     @Delete
     fun deleteAll(vararg alarms: PastAlarmItem)
 
+    @Query("DELETE FROM past_alarms")
+    fun deleteEverything()
 }
 
 @Dao
@@ -145,6 +150,9 @@ interface PendingAlarmDao {
 
     @Query("DELETE FROM future_alarms WHERE request_code = :requestCode")
     fun deleteByRequestCode(requestCode: Int)  // Method to delete by requestCode
+
+    @Query("DELETE FROM pending_alarms")
+    fun deleteEverything()
 }
 
 @Dao
@@ -169,5 +177,8 @@ interface FutureAlarmDao {
 
     @Query("DELETE FROM future_alarms WHERE request_code = :requestCode")
     fun deleteByRequestCode(requestCode: Int)  // Method to delete by requestCode
+
+    @Query("DELETE FROM future_alarms")
+    fun deleteEverything()
 }
 

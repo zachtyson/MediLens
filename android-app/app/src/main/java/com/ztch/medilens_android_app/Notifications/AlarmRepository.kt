@@ -9,7 +9,7 @@ class AlarmRepository (context: Context) {
     val futureAlarmDao = db.futureAlarmDao()
     val pendingAlarmDao = db.pendingAlarmDao()
 
-    fun getPastAlarmByRequestCode(requestCode: Int): PastAlarmItem? {
+    suspend fun getPastAlarmByRequestCode(requestCode: Int): PastAlarmItem? {
         return pastAlarmDao.getByRequestCode(requestCode)
     }
 

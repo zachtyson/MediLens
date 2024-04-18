@@ -67,12 +67,12 @@ fun HomePage(onNavigateToCamera: () -> Unit,
 
     //to offload calendar data to a background thread
     val coroutineScope = rememberCoroutineScope()
-    val alarms by alarmViewModel.alarms.collectAsState()
+
     val tok = TokenAuth.getLogInToken(context)
-    var refreshKey by remember { mutableStateOf(0) } // State variable to trigger refresh
+    var refreshKey = remember { mutableIntStateOf(0) } // State variable to trigger refresh
 
     LaunchedEffect(refreshKey) {  // Using Unit as a constant key
-        fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel, alarms.toMutableList())
+        fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel)
     }
 
     Scaffold(
@@ -104,27 +104,62 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .background(color = colorResource(R.color.DarkGrey))
                     .verticalScroll(rememberScrollState())
             ) {
-                AlarmsList(alarms = alarms, onDeleteClicked = {
-                    alarmViewModel.removeAlarm(it)
-                    // callback is Map<String,String>
-                    service.removeMedicationSchedule(token = tok, it.dbId, it.dbUserId).enqueue(object : Callback<Map<String,String>> {
-                        override fun onResponse(call: Call<Map<String,String>>, response: Response<Map<String,String>>) {
-                            if (response.isSuccessful) {
-                                Log.d("HomePage", "Successfully removed alarm")
-                                refreshKey += 1
-                            } else {
-                                Log.e("HomePage", "Failed to remove alarm")
-                            }
-                        }
 
-                        override fun onFailure(call: Call<Map<String,String>>, t: Throwable) {
-                            Log.e("HomePage", "Failed to remove alarm", t)
-                        }
-                    })
-                })
+                AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey)
+                // Log button that prints all alarms to the logcat
+                Button(
+                    onClick = {
+                        Log.d("HomePage", "Alarms: ${alarmViewModel.alarms.value}")
+                        Log.d("HomePage", "Past Alarms: ${alarmViewModel.past_alarms.value}")
+                        Log.d("HomePage", "Future Alarms: ${alarmViewModel.future_alarms.value}")
+                        Log.d("HomePage", "Pending Alarms: ${alarmViewModel.pending_alarms.value}")
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    Text(text = "Log Alarms")
+                }
             }
         }
     )
+}
+
+@Composable
+fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = RetrofitClient.apiService, tok: String, refreshKey: MutableState<Int>) {
+    val alarms by alarmViewModel.alarms.collectAsState()
+    val past_alarms by alarmViewModel.past_alarms.collectAsState()
+    val future_alarms by alarmViewModel.future_alarms.collectAsState()
+    val pending_alarms by alarmViewModel.pending_alarms.collectAsState()
+    Log.d("Past Alarms", past_alarms.toString())
+    Log.d("Future Alarms", future_alarms.toString())
+    Log.d("Pending Alarms", pending_alarms.toString())
+    Log.d("Alarms", alarms.toString())
+    AlarmsList(alarms = alarms, onDeleteClicked = {
+        alarmViewModel.removeAlarm(it)
+        // callback is Map<String,String>
+        service.removeMedicationSchedule(token = tok, it.dbId, it.dbUserId).enqueue(object : Callback<Map<String,String>> {
+            override fun onResponse(call: Call<Map<String,String>>, response: Response<Map<String,String>>) {
+                if (response.isSuccessful) {
+                    Log.d("HomePage", "Successfully removed alarm")
+                    refreshKey.value += 1
+                } else {
+                    Log.e("HomePage", "Failed to remove alarm")
+                }
+            }
+
+            override fun onFailure(call: Call<Map<String,String>>, t: Throwable) {
+                Log.e("HomePage", "Failed to remove alarm", t)
+            }
+        })
+    })
+    Spacer(modifier = Modifier.height(16.dp))
+    PastAlarmsList(pastAlarms = past_alarms)
+    Spacer(modifier = Modifier.height(16.dp))
+    FutureAlarmsList(futureAlarms = future_alarms)
+    Spacer(modifier = Modifier.height(16.dp))
+    PendingAlarmList(pendingAlarms = pending_alarms)
+
 }
 
 
@@ -132,17 +167,19 @@ fun HomePage(onNavigateToCamera: () -> Unit,
 // basically whenever the user opens the application every alarm they have scheduled is deleted and then rescheduled again
 // this is so that the alarms are always up-to-date with whatever is within the backend
 // using the AlarmSchedulerManager
-private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: AlarmViewModel, alarms : MutableList<AlarmItem>) {
+
+private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: AlarmViewModel) {
     // get the list of alarms from the backend
     // assuming the service is obtained from RetrofitClient.apiService
     // and the token is stored in the shared preferences
     val token = TokenAuth.getLogInToken(context)
     val service = RetrofitClient.apiService
+    alarmViewModel.deleteAllItems()
     service.getScheduledMedications(token).enqueue(object : Callback<List<Medication>> {
         override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
             if (response.isSuccessful) {
                 // delete all alarms
-                alarmViewModel.deleteAllItems()
+                Log.d("All scheduled alarms", response.body().toString())
                 // iterate over the list of medications and schedule alarms
                 for (medication in response.body() ?: emptyList()) {
                     // decrypt the medication name
@@ -157,10 +194,10 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: A
                         dbUserId = medication.owner_id
                     )
                     alarmViewModel.addAlarm(alarm)
-                    alarms.add(alarm)
                     Log.d("ALarm", "${alarm.message} scheduled")
                 }
                 Log.d("HomePage", "Successfully fetched user alarms")
+
             } else {
                 Log.e("HomePage", "Failed to fetch user alarms")
             }
@@ -178,7 +215,8 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: A
 fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
     Log.d("header", "Recomposed")
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .background(color = colorResource(R.color.DarkBlue)),
 
         ) {
@@ -193,7 +231,8 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
                 },
                 fontSize = 32.sp,
                 color = Color.White,
-                modifier = Modifier.padding(start = 14.dp)
+                modifier = Modifier
+                    .padding(start = 14.dp)
                     .weight(1f)
 
             )
@@ -206,7 +245,8 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
 
                 fontSize = 24.sp,
                 color = Color.White,
-                modifier = Modifier.padding(start = 14.dp)
+                modifier = Modifier
+                    .padding(start = 14.dp)
                     .weight(1f)
                     .align(Alignment.CenterVertically)
 
@@ -295,6 +335,179 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
 fun AlarmsList(alarms: List<AlarmItem>, onDeleteClicked: (AlarmItem) -> Unit) {
     for (alarm in alarms) {
         AlarmCard(alarm, onDeleteClicked)
+    }
+}
+
+@Composable
+fun PastAlarmsList(pastAlarms: List<PastAlarmItem>) {
+    for (alarm in pastAlarms) {
+        PastAlarmCard(alarm)
+    }
+}
+
+@Composable
+fun PastAlarmCard(alarm: PastAlarmItem) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(R.color.Purple)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(215.dp)
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Time: ${alarm.timeMillis}",
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+            Row  (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(85.dp)
+                    .padding(8.dp)
+            ){
+                alarm.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(75.dp) // Set the width of the image
+                            .height(75.dp) // Set the height of the image
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Text(
+                    text = "Past Medication: ${alarm.message}",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>) {
+    Log.d("FutureAlarmsList", futureAlarms.toString())
+    for (alarm in futureAlarms) {
+        FutureAlarmCard(alarm)
+    }
+}
+
+@Composable
+fun FutureAlarmCard(alarm: FutureAlarmItem) {
+    Card(
+        colors = CardDefaults.cardColors(
+            // Red
+            containerColor = colorResource(R.color.Grey)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(215.dp)
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Time: ${alarm.timeMillis}",
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+            Row  (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(85.dp)
+                    .padding(8.dp)
+            ){
+                alarm.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(75.dp) // Set the width of the image
+                            .height(75.dp) // Set the height of the image
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Text(
+                    text = "Future Medication: ${alarm.message}",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>) {
+    for (alarm in pendingAlarms) {
+        PendingAlarmCard(alarm)
+    }
+}
+
+@Composable
+fun PendingAlarmCard(alarm: PendingAlarmItem) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(R.color.DarkBlue)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(215.dp)
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Time: ${alarm.timeMillis}",
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+            Row  (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(85.dp)
+                    .padding(8.dp)
+            ){
+                alarm.imageUri?.let { uri ->
+                    Image(
+                        painter = rememberImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(75.dp) // Set the width of the image
+                            .height(75.dp) // Set the height of the image
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Text(
+                    text = "Pending Medication: ${alarm.message}",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 
