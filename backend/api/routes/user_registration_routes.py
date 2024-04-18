@@ -41,15 +41,15 @@ async def get_user(user_id: int, db: Session = Depends(get_db), token: str = Dep
 
 @router.post("/users", response_model=UserResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
-
-    # used to have users register by username AND email, but I removed the username field from the User model
-    existing_email = db.query(User).filter(User.email == user.email).first()
-    if existing_email:
-        raise HTTPException(status_code=409, detail="Email already registered")
+    print("User: ", user)
+    # check for email conflict
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
     user.password = get_password_hash(user.password)
 
-    db_user = User(email=user.email, hashed_password=user.password)
+    db_user = User(email=user.email, hashed_password=user.password, name=user.name)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
