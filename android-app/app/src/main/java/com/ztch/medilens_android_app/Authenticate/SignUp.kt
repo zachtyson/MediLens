@@ -142,7 +142,8 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
                 else {
                     errorText = ""
                 }
-                val userToCreate = UserRegistrationCredentials(email, password)
+                val name = legalName
+                val userToCreate = UserRegistrationCredentials(name,email, password)
                 service.createUser(userToCreate).enqueue(object : retrofit2.Callback<RegisterResponse> {
                     override fun onResponse(
                         call: retrofit2.Call<RegisterResponse>,
