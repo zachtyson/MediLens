@@ -5,6 +5,7 @@ from models.doctor import Doctor
 from models.user import User
 from db.session import SessionLocal
 from schemas.doctor import DoctorCreate, DoctorDelete
+from schemas.doctor import Doctor as DoctorSchema
 from schemas.user import UserCreate, UserUpdate, UserResponse
 from typing import List
 from core.security import get_password_hash, get_token_from_header, get_id_from_token
@@ -20,7 +21,7 @@ def get_db():
         db.close()
 
 
-@router.post("/doctor/add_doctor", response_model=UserResponse)
+@router.post("/doctor/add_doctor")
 async def add_doctor(doctor: DoctorCreate, db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
     print("Doctor: ", doctor)
     user_id = get_id_from_token(token)
@@ -34,14 +35,14 @@ async def add_doctor(doctor: DoctorCreate, db: Session = Depends(get_db), token:
     # I'm just gonna let the user have multiple doctors that can be completely identical
     db_doctor = Doctor(doctor_name=doctor.doctor_name, specialty=doctor.specialty, office_number=doctor.office_number,
                        emergency_number=doctor.emergency_number, office_address=doctor.office_address,
-                       email=doctor.email, owner_id=doctor.user_id)
+                       email=doctor.email, owner_id=user_id)
     db.add(db_doctor)
     db.commit()
     db.refresh(db_doctor)
-    return db_doctor
+    return {"message": "Doctor added successfully"}
 
 
-@router.get("/doctor/get_user_doctors", response_model=List[Doctor])
+@router.get("/doctor/get_user_doctors", response_model=List[DoctorSchema])
 async def get_user_doctors(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
     user_id = get_id_from_token(token)
     if not user_id:

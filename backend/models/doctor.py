@@ -13,7 +13,7 @@ class Doctor(Base):
     office_number = Column(String(20))
     emergency_number = Column(String(20))
     office_address = Column(String(255))
-    email = Column(String(100), index=True, unique=True)
+    email = Column(String(255))
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship(User)
 
