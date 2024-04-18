@@ -167,7 +167,7 @@ fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = Retro
     Spacer(modifier = Modifier.height(16.dp))
     FutureAlarmsList(futureAlarms = future_alarms, selectedDate = selectedDate)
     Spacer(modifier = Modifier.height(16.dp))
-    PendingAlarmList(pendingAlarms = pending_alarms, selectedDate = selectedDate)
+    PendingAlarmList(pendingAlarms = pending_alarms, selectedDate = selectedDate, alarmViewModel = alarmViewModel)
 
 }
 
@@ -489,7 +489,7 @@ fun FutureAlarmCard(alarm: FutureAlarmItem) {
 }
 
 @Composable
-fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: MutableState<LocalDate>) {
+fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: MutableState<LocalDate>, alarmViewModel: AlarmViewModel) {
     val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
 
     // Recalculate only if selectedDate or zoneId changes
@@ -501,7 +501,7 @@ fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: Mutabl
     }
     Column {
         pendingAlarms.filter { it.timeMillis in startOfDay until endOfDay }.forEach { alarm ->
-            PendingAlarmCard(alarm)
+            PendingAlarmCard(alarm, alarmViewModel)
         }
     }
 }
@@ -514,7 +514,7 @@ fun convertMillisToLocalDate(timeMillis: Long): LocalDate {
     return zonedDateTime.toLocalDate()
 }
 @Composable
-fun PendingAlarmCard(alarm: PendingAlarmItem) {
+fun PendingAlarmCard(alarm: PendingAlarmItem, alarmViewModel: AlarmViewModel) {
     val localDate = convertMillisToLocalDate(alarm.timeMillis)
     val date = localDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
     Card(
@@ -523,7 +523,7 @@ fun PendingAlarmCard(alarm: PendingAlarmItem) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(215.dp)
+            .height(270.dp)
             .padding(16.dp)
     ) {
         Column(
@@ -534,15 +534,14 @@ fun PendingAlarmCard(alarm: PendingAlarmItem) {
             Text(
                 text = "Date: $date",
                 color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            Row  (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(85.dp)
                     .padding(8.dp)
-            ){
+            ) {
                 alarm.imageUri?.let { uri ->
                     Image(
                         painter = rememberImagePainter(uri),
@@ -554,12 +553,46 @@ fun PendingAlarmCard(alarm: PendingAlarmItem) {
                     )
                 }
 
+                Spacer(modifier = Modifier.width(8.dp))
+
                 Text(
                     text = "Pending Medication: ${alarm.message}",
                     fontSize = 16.sp,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
+            }
+            // Buttons row to accept or reject the medication
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp), // Add padding around the buttons
+                horizontalArrangement = Arrangement.Center // Center the buttons horizontally
+            ) {
+                Button(
+                    onClick = {
+                        // convert the pending alarm to a past alarm
+                        // and delete the pending alarm
+                        // this will log that the user took the medication at the scheduled time
+                        // and remove the pending alarm from the list
+                        alarmViewModel.convertPendingAlarmToPastAlarm(alarm, true)
+                    }
+                ) {
+                    Text(text = "Accept")
+                }
+                Spacer(modifier = Modifier.width(16.dp)) // Space between the buttons
+                Button(
+                    onClick = {
+                        // convert the pending alarm to a past alarm
+                        // and delete the pending alarm
+                        // this will log that the user did not take the medication at the scheduled time
+                        // and remove the pending alarm from the list
+                        alarmViewModel.convertPendingAlarmToPastAlarm(alarm, false)
+                    }
+                ) {
+                    Text(text = "Reject")
+                }
             }
         }
     }

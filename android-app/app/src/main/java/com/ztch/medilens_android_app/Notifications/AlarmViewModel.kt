@@ -54,6 +54,20 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         loadAlarms()
     }
 
+    fun convertPendingAlarmToPastAlarm(pendingAlarm: PendingAlarmItem, response: Boolean) {
+        val pastAlarm = PastAlarmItem(
+            message = pendingAlarm.message,
+            timeMillis = pendingAlarm.timeMillis,
+            imageUri = pendingAlarm.imageUri,
+            response = response,
+            requestCode = pendingAlarm.requestCode
+        )
+        viewModelScope.launch {
+            alarmRepository.insertPastAlarm(pastAlarm)
+            alarmRepository.deletePendingAlarm(pendingAlarm)
+        }
+    }
+
     private fun loadAlarms() {
         viewModelScope.launch {
             _alarms.value = alarmRepository.alarmDao.getAll()
