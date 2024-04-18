@@ -42,7 +42,10 @@ import com.ztch.medilens_android_app.Notifications.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.util.*
 
 @Composable
 fun HomePage(onNavigateToCamera: () -> Unit,
@@ -160,11 +163,11 @@ fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = Retro
         })
     })
     Spacer(modifier = Modifier.height(16.dp))
-    PastAlarmsList(pastAlarms = past_alarms)
+    PastAlarmsList(pastAlarms = past_alarms, selectedDate = selectedDate)
     Spacer(modifier = Modifier.height(16.dp))
-    FutureAlarmsList(futureAlarms = future_alarms)
+    FutureAlarmsList(futureAlarms = future_alarms, selectedDate = selectedDate)
     Spacer(modifier = Modifier.height(16.dp))
-    PendingAlarmList(pendingAlarms = pending_alarms)
+    PendingAlarmList(pendingAlarms = pending_alarms, selectedDate = selectedDate)
 
 }
 
@@ -345,9 +348,21 @@ fun AlarmsList(alarms: List<AlarmItem>, onDeleteClicked: (AlarmItem) -> Unit) {
 }
 
 @Composable
-fun PastAlarmsList(pastAlarms: List<PastAlarmItem>) {
-    for (alarm in pastAlarms) {
-        PastAlarmCard(alarm)
+fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: MutableState<LocalDate>) {
+    val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
+
+    // Recalculate only if selectedDate or zoneId changes
+    val startOfDay = remember(selectedDate.value, zoneId) {
+        selectedDate.value.atStartOfDay(zoneId).toInstant().toEpochMilli()
+    }
+    val endOfDay = remember(selectedDate.value, zoneId) {
+        selectedDate.value.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+    }
+
+    Column {
+        pastAlarms.filter { it.timeMillis in startOfDay until endOfDay }.forEach { alarm ->
+            PastAlarmCard(alarm)
+        }
     }
 }
 
@@ -402,12 +417,25 @@ fun PastAlarmCard(alarm: PastAlarmItem) {
 }
 
 @Composable
-fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>) {
-    Log.d("FutureAlarmsList", futureAlarms.toString())
-    for (alarm in futureAlarms) {
-        FutureAlarmCard(alarm)
+fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>, selectedDate: MutableState<LocalDate>) {
+    val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
+
+    // Recalculate only if selectedDate or zoneId changes
+    val startOfDay = remember(selectedDate.value, zoneId) {
+        selectedDate.value.atStartOfDay(zoneId).toInstant().toEpochMilli()
+    }
+    val endOfDay = remember(selectedDate.value, zoneId) {
+        selectedDate.value.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+    }
+
+    Column {
+        futureAlarms.filter { it.timeMillis in startOfDay until endOfDay }.forEach { alarm ->
+            FutureAlarmCard(alarm)
+        }
     }
 }
+
+
 
 @Composable
 fun FutureAlarmCard(alarm: FutureAlarmItem) {
@@ -461,14 +489,34 @@ fun FutureAlarmCard(alarm: FutureAlarmItem) {
 }
 
 @Composable
-fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>) {
-    for (alarm in pendingAlarms) {
-        PendingAlarmCard(alarm)
+fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: MutableState<LocalDate>) {
+    val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
+
+    // Recalculate only if selectedDate or zoneId changes
+    val startOfDay = remember(selectedDate.value, zoneId) {
+        selectedDate.value.atStartOfDay(zoneId).toInstant().toEpochMilli()
+    }
+    val endOfDay = remember(selectedDate.value, zoneId) {
+        selectedDate.value.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+    }
+    Column {
+        pendingAlarms.filter { it.timeMillis in startOfDay until endOfDay }.forEach { alarm ->
+            PendingAlarmCard(alarm)
+        }
     }
 }
 
+
+fun convertMillisToLocalDate(timeMillis: Long): LocalDate {
+    val zoneId = TimeZone.getDefault().toZoneId() // Get the default timezone from the device
+    val instant = Instant.ofEpochMilli(timeMillis)
+    val zonedDateTime = instant.atZone(zoneId)
+    return zonedDateTime.toLocalDate()
+}
 @Composable
 fun PendingAlarmCard(alarm: PendingAlarmItem) {
+    val localDate = convertMillisToLocalDate(alarm.timeMillis)
+    val date = localDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
     Card(
         colors = CardDefaults.cardColors(
             containerColor = colorResource(R.color.DarkBlue)
@@ -484,7 +532,7 @@ fun PendingAlarmCard(alarm: PendingAlarmItem) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Time: ${alarm.timeMillis}",
+                text = "Date: $date",
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
