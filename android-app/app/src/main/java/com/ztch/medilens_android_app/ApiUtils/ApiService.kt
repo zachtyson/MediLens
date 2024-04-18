@@ -227,6 +227,7 @@ fun convertMillisecondsToHumanReadableTime(milliseconds: Long): String {
 }
 
 data class UserRegistrationCredentials(
+    val name: String,
     val email: String,
     val password: String,
 )
