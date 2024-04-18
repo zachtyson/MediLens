@@ -42,6 +42,7 @@ import com.ztch.medilens_android_app.Notifications.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDate
 
 @Composable
 fun HomePage(onNavigateToCamera: () -> Unit,
@@ -64,6 +65,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
+    // display only alarms that are today
+    var selectedDate = remember { mutableStateOf(dataSource.today) }
 
     //to offload calendar data to a background thread
     val coroutineScope = rememberCoroutineScope()
@@ -79,9 +82,11 @@ fun HomePage(onNavigateToCamera: () -> Unit,
         topBar = {
             homepageHeader(
                 data = calendarUiModel,
+                selectedDate = selectedDate,
                 onDateClickListener = { date ->
                     coroutineScope.launch {
                         calendarUiModel = dataSource.getData(lastSelectedDate = date.date)
+                        selectedDate.value = date.date
                     }
                 }
             )
@@ -105,7 +110,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .verticalScroll(rememberScrollState())
             ) {
 
-                AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey)
+                AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
                 // Log button that prints all alarms to the logcat
                 Button(
                     onClick = {
@@ -113,6 +118,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                         Log.d("HomePage", "Past Alarms: ${alarmViewModel.past_alarms.value}")
                         Log.d("HomePage", "Future Alarms: ${alarmViewModel.future_alarms.value}")
                         Log.d("HomePage", "Pending Alarms: ${alarmViewModel.pending_alarms.value}")
+                        Log.d("Selected Date", selectedDate.value.toString())
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -126,7 +132,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
 }
 
 @Composable
-fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = RetrofitClient.apiService, tok: String, refreshKey: MutableState<Int>) {
+fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = RetrofitClient.apiService, tok: String, refreshKey: MutableState<Int>, selectedDate: MutableState<LocalDate>) {
     val alarms by alarmViewModel.alarms.collectAsState()
     val past_alarms by alarmViewModel.past_alarms.collectAsState()
     val future_alarms by alarmViewModel.future_alarms.collectAsState()
@@ -212,7 +218,7 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: A
 
 // Start of Header creation
 @Composable
-fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit, selectedDate: MutableState<LocalDate>) {
     Log.d("header", "Recomposed")
     Column(
         modifier = Modifier
