@@ -127,6 +127,16 @@ data class Doctor(
     val user_id: Int
 )
 
+data class DoctorCreateResponse(
+    val doctor_id: Int,
+    val doctor_name: String?,
+    val specialty: String?,
+    val office_number: String?,
+    val emergency_number: String?,
+    val office_address: String?,
+    val email: String,
+    val owner_id: Int
+)
 data class DoctorCreate(
     val doctor_name: String?,
     val specialty: String?,
