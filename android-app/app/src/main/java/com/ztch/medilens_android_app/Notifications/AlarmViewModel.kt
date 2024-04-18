@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Callback
 import retrofit2.Response
 
-val numIntervals = 5
+val numIntervals = 20
 
 class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     private var alarmRepository = AlarmRepository(application)
