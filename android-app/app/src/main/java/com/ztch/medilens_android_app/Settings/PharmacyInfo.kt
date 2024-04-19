@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -122,7 +124,15 @@ fun DoctorScreen(
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 0.dp)
+                                .padding(horizontal = 8.dp, vertical = 0.dp),
+                            leadingIcon = {
+                                Image(
+                                    painter = painterResource(id = R.drawable.face_icon),
+                                    contentDescription = "Face Icon",
+                                    modifier = Modifier.size(24.dp)
+
+                                )
+                            }
                         )
                     }
 
@@ -140,7 +150,15 @@ fun DoctorScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.job_icon),
+                                contentDescription = "Job Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
                     )
 
                     //include a spacer
@@ -158,7 +176,15 @@ fun DoctorScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.email_logo),
+                                contentDescription = "Email Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
                     )
                     OutlinedTextField(
                         value = "",
@@ -172,7 +198,15 @@ fun DoctorScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.phone_icon),
+                                contentDescription = "Phone Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
 
                     )
                     OutlinedTextField(
@@ -187,7 +221,15 @@ fun DoctorScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.office_icon),
+                                contentDescription = "Office Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
 
                     )
                     Spacer(Modifier.height(18.dp))
@@ -204,7 +246,15 @@ fun DoctorScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
+                            .padding(horizontal = 8.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.contact_emergency_icon),
+                                contentDescription = "Emergency Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
                     )
 
                 }

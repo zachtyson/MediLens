@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app.Authenticate
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,10 +59,17 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email
             ),
-
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp),
+            leadingIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.face_icon),
+                    contentDescription = "face icon",
+                    modifier = Modifier.size(24.dp)
+
+                )
+            }
         )
 
         OutlinedTextField(
@@ -76,10 +85,17 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email
             ),
-
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp),
+            leadingIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.email_logo),
+                    contentDescription = "email icon",
+                    modifier = Modifier.size(24.dp)
+
+                )
+            }
         )
 
         OutlinedTextField(
@@ -98,7 +114,15 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            leadingIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.password_lock),
+                    contentDescription = "password icon",
+                    modifier = Modifier.size(24.dp)
+
+                )
+            }
         )
 
         OutlinedTextField(
@@ -117,7 +141,15 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            leadingIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.confirm_pass_icon),
+                    contentDescription = "confirm password icon",
+                    modifier = Modifier.size(24.dp)
+
+                )
+            }
         )
 
         Button(

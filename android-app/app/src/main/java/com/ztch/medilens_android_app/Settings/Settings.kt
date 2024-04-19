@@ -33,6 +33,7 @@ import java.util.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 
@@ -325,7 +326,15 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                 OutlinedTextField(
                     value = oldEmail,
                     onValueChange = { oldEmail = it },
-                    label = { Text("Old Email") }
+                    label = { Text("Old Email") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.old_email_icon),
+                            contentDescription = "Old Email Icon",
+                            modifier = Modifier.size(24.dp)
+
+                        )
+                    }
                 )
                 OutlinedTextField(
                     value = newEmail,
@@ -335,12 +344,28 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                 OutlinedTextField(
                     value = confirmEmail,
                     onValueChange = { confirmEmail = it },
-                    label = { Text("Confirm New Email") }
+                    label = { Text("Confirm New Email") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.new_email_icon),
+                            contentDescription = "New Email Icon",
+                            modifier = Modifier.size(24.dp)
+
+                        )
+                    }
                 )
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") }
+                    label = { Text("Password") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.password_lock),
+                            contentDescription = "Password Icon",
+                            modifier = Modifier.size(24.dp)
+
+                        )
+                    }
                 )
                 if (error != "") {
                     Text(error, color = Color.Red)
