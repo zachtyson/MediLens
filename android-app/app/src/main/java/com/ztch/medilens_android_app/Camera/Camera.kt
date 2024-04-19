@@ -9,28 +9,61 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.view.CameraController
-import androidx.camera.view.LifecycleCameraController
+import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.ApiUtils.PredictionResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
+import com.ztch.medilens_android_app.Medicard.profileImage
+import com.ztch.medilens_android_app.R
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
+import kotlin.math.cos
+import kotlin.math.sin
+
+
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+
+
+@Preview(showSystemUi = true)
+@Composable
+fun camPreview() {
+    CameraXGuideTheme(onNavigateToHomePage = {}, onNavigateToImageViewer = {}, sharedViewModel = SharedViewModel())
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,10 +72,13 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer:
 
     Log.d("camera", "Recomposed")
     val context = LocalContext.current
+
+
     if(!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
+
     //fun getImagesAndPredictions(context: Context): List<ImageAndPrediction>? {
     //        val sharedPref = context.getSharedPreferences("medilens", Context.MODE_PRIVATE)
     //        val json = sharedPref.getString("images", null)
@@ -140,67 +176,146 @@ fun CameraXGuideTheme(onNavigateToHomePage: () -> Unit, onNavigateToImageViewer:
         takePictureLauncher.launch(intent)
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(onClick = { launchCamera() }) {
-                Text("Take Photo")
-            }
-            Button(onClick = { launchGallery() }) {
-                Text("Pick from Gallery")
-            }
-        }
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(images.size) { image ->
-                images[image].bitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clickable {
-                                // if prediction state is null, then the image is still loading
-                                if (images[image].prediction.value == null) {
-                                    return@clickable
-                                }
-                                // show text if it exists
-                                images[image].prediction?.let {
-                                    images[image].displayPrediction.value = !images[image].displayPrediction.value
-                                }
 
-
-                            }
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.DarkBlue),
+                    titleContentColor = Color.White
+                ),
+                title = {
+                    Text(
+                        "Pill Identifier",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                }
-                val isLoading = images[image].prediction.value == null
-                if (isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                },
+                navigationIcon = {
+                    IconButton(onClick = { onNavigateToHomePage() }) {
+                        Icon(
+                            tint = Color.White,
+                            imageVector = Icons.Filled.ArrowBackIosNew,
+                            contentDescription = "backAlert"
+                        )
                     }
-                } else {
-                    // else button that navigates to the image viewer, centered and max width
-                    Button(
-                        onClick = {
-                            sharedViewModel.imageAndPrediction = images[image]
-                            onNavigateToImageViewer()
-                        },
+                },
+            )
+        },
+        containerColor = colorResource(R.color.DarkGrey),
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Use the padding provided by Scaffold for the content
+                    .background(color = colorResource(R.color.DarkGrey)),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                if(images.isEmpty())
+                {
+                    Box(modifier = Modifier.fillMaxSize(0.55f), contentAlignment = Alignment.Center) {
+                        AnimatedLogo(logoId = R.drawable.medilens_logo)
+                        Text("No Image selected", color = Color.White)
+                    }
+
+                }
+
+                LazyColumn() {
+                    items(images.size) { image ->
+                        images[image].bitmap?.let {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .clickable {
+                                        // if prediction state is null, then the image is still loading
+                                        if (images[image].prediction.value == null) {
+                                            return@clickable
+                                        }
+                                        // show text if it exists
+                                        images[image].prediction?.let {
+                                            images[image].displayPrediction.value = !images[image].displayPrediction.value
+                                        }
+
+
+                                    }
+                            )
+                        }
+                        val isLoading = images[image].prediction.value == null
+                        if (isLoading) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        } else {
+                            // else button that navigates to the image viewer, centered and max width
+                            Button(
+                                onClick = {
+                                    sharedViewModel.imageAndPrediction = images[image]
+                                    onNavigateToImageViewer()
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            ) {
+                                Text("View Prediction")
+                            }
+                        }
+                    }
+                }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("View Prediction")
+                        Button(onClick = { launchCamera() }) {
+                            Text("Take Photo")
+                        }
+                        Button(onClick = { launchGallery() }) {
+                            Text("Pick from Gallery")
+                        }
                     }
-                }
             }
         }
-    }
-
-
+    )
 }
 
+
+
+@Composable
+fun AnimatedLogo(
+    @DrawableRes logoId: Int,
+    modifier: Modifier = Modifier
+) {
+    val logoPainter = painterResource(id = logoId)
+
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(10000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = ""
+    )
+
+    val x = (cos(Math.toRadians(angle.toDouble())) * 150).toFloat() // Radius of the circle is 150
+    val y = (sin(Math.toRadians(angle.toDouble())) * 150).toFloat() // Radius of the circle is 150
+
+    Box(
+        modifier = modifier
+            .offset(x.dp, y.dp)
+            .size(150.dp)
+    ) {
+        Image(
+            painter = logoPainter,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
+        )
+    }
+}

@@ -276,7 +276,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
     Log.d("datecard", "Recomposed")
     Card(
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 4.dp),
+            .padding(vertical = 4.dp, horizontal = 0.dp),
         onClick = { onDateClickListener(data) },
         colors = CardDefaults.cardColors(
             // background colors of the selected date
@@ -291,7 +291,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
     ) {
         Column(
             modifier = Modifier
-                .width(40.dp)
+                .width(35.dp)
                 .height(48.dp)
                 .padding(4.dp)
         ) {
@@ -318,10 +318,18 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
         // Using the date as a key to optimize recompositions
         // left arrow to shift the visible dates to the left
         item {
-            IconButton(onClick = {
-                data.onLeftArrowClick()
-            }) {
-                Icon(Icons.Filled.ArrowBackIosNew, contentDescription = "Previous")
+            IconButton(
+                onClick = { data.onLeftArrowClick() },
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(30.dp)
+
+            ) {
+                Icon(
+                    Icons.Filled.ArrowBackIosNew,
+                    contentDescription = "Previous",
+                    tint = Color.White,
+                    )
             }
         }
         items(items = data.visibleDates, key = { it.date }) { date ->
@@ -330,10 +338,16 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
         }
         // right arrow to shift the visible dates to the right
         item {
-            IconButton(onClick = {
-                data.onRightArrowClick()
-            }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = "Next")
+            IconButton(
+                onClick = { data.onRightArrowClick() } ,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(30.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = "Next",
+                    tint = Color.White
+                   )
             }
         }
 
