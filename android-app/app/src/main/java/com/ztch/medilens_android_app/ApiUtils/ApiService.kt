@@ -31,6 +31,12 @@ interface ApiService {
         @Query("shape") shape: Int
     ): Call<List<PillInfoResponse>>
 
+    @POST("doctor/modify_doctor")
+    fun modifyDoctor(
+        @Header("token") token: String,
+        @Body doctor: Doctor
+    ): Call<Map<String, String>>
+
     @POST("doctor/add_doctor")
     fun addDoctor(
         @Header("token") token: String,
@@ -124,7 +130,7 @@ data class Doctor(
     val emergency_number: String?,
     val office_address: String?,
     val email: String,
-    val user_id: Int
+    val owner_id: Int
 )
 
 data class DoctorCreateResponse(

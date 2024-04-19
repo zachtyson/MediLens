@@ -91,7 +91,7 @@ fun PharmacyInfo(
                 Spacer(modifier = Modifier.height(16.dp))
                 Column {
                     doctors.value.forEach { doctor ->
-                        DoctorCard(doctor, onNavigateToModifyPharmacist)
+                        DoctorCard(doctor, onNavigateToModifyPharmacist, sharedDoctorModel)
                     }
                 }
                 Button(
@@ -127,7 +127,7 @@ fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Do
 }
 
 @Composable
-fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit) {
+fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit, sharedDoctorModel: SharedDoctorModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,7 +184,7 @@ fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit) {
             ) {
                 Button(
                     onClick = {
-                        SharedDoctorModel().doctor = doctor
+                        sharedDoctorModel.doctor = doctor
                         onNavigateToModifyPharmacist()
                     },
                     colors = ButtonDefaults.buttonColors(
