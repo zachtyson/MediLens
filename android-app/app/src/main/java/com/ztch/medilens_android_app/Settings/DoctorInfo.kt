@@ -115,7 +115,7 @@ fun PharmacyInfo(
 
 }
 
-fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Doctor>>) {
+private fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Doctor>>) {
     service.getUserDoctors(token).enqueue(object : Callback<List<Doctor>> {
         override fun onResponse(call: Call<List<Doctor>>, response: Response<List<Doctor>>) {
             if (response.isSuccessful) {
