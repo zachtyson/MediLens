@@ -208,14 +208,7 @@ fun ModifyPharmacist(
                                 errorText = "At least one field required!"
                             } else {
                                 val d = Doctor(
-                                    doctor_name = doctorName,
-                                    specialty = specialization,
-                                    email = email,
-                                    office_number = officeNumber,
-                                    office_address = officeAddress,
-                                    emergency_number = emergencyNumber,
-                                    doctor_id = doctor.doctor_id,
-                                    owner_id = doctor.owner_id
+                                    doctor.doctor_id, doctorName, specialization, officeNumber, emergencyNumber, officeAddress, email, doctor.owner_id
                                 )
 
                                 val call = RetrofitClient.apiService.modifyDoctor(token, d)
