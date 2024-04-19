@@ -120,7 +120,17 @@ interface ApiService {
         @Field("password") password: String
         // Returns basic JSON response
     ): Call<Map<String, String>>
+
+    @GET("medicard/user_info")
+    fun getUserInfo(
+        @Header("token") token: String,
+    ): Call<UserInfoResponse>
 }
+
+data class UserInfoResponse(
+    val name: String,
+    val email: String
+)
 
 data class Doctor(
     val doctor_id: Int,
