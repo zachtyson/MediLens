@@ -205,7 +205,7 @@ fun ModifyPharmacist(
                         onClick = {
                             // At least one field has to be not empty
                             if (doctorName.isEmpty() && specialization.isEmpty() && email.isEmpty() && officeNumber.isEmpty() && officeAddress.isEmpty() && emergencyNumber.isEmpty()) {
-                                errorText = "All text fields required!"
+                                errorText = "At least one field required!"
                             } else {
                                 val d = Doctor(
                                     doctor_name = doctorName,
