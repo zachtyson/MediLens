@@ -26,7 +26,7 @@ import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPharmacist(
+fun AddDoctor(
     onNavigateToSettings: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToHomePage: () -> Unit,

@@ -12,13 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
-import com.ztch.medilens_android_app.Medicard.profileImage
 import com.ztch.medilens_android_app.R
 import retrofit2.Call
 import retrofit2.Callback

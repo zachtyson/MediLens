@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -174,7 +173,7 @@ fun MyApp() {
         }
 
         composable("ModifyPharmacist") {
-            ModifyPharmacist(
+            ModifyDoctor(
                 onNavigateToSettings = { navController.navigate("Settings") {} },
                 onNavigateToLogin = { navController.navigate("Login") },
                 onNavigateToHomePage = { navController.navigate("Home") },
@@ -184,7 +183,7 @@ fun MyApp() {
         }
 
         composable("AddPharmacist") {
-            AddPharmacist(
+            AddDoctor(
                 onNavigateToSettings = { navController.navigate("Settings") {} },
                 onNavigateToLogin = { navController.navigate("Login") },
                 onNavigateToHomePage = { navController.navigate("Home") },

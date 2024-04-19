@@ -14,12 +14,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.Doctor
-import com.ztch.medilens_android_app.ApiUtils.MedicationModify
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
-import com.ztch.medilens_android_app.Authenticate.createRandomIV
-import com.ztch.medilens_android_app.Authenticate.encryptData
-import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 import com.ztch.medilens_android_app.R
 import retrofit2.Call
 import retrofit2.Callback
@@ -27,7 +23,7 @@ import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModifyPharmacist(
+fun ModifyDoctor(
     onNavigateToSettings: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToHomePage: () -> Unit,
