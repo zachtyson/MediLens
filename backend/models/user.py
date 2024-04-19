@@ -9,3 +9,4 @@ class User(Base):
     email = Column(String(100), index=True, unique=True)
     hashed_password = Column(String(100))
     created_date = Column(DateTime, default=func.now(), nullable=False)
+    name = Column(String(100), nullable=True)

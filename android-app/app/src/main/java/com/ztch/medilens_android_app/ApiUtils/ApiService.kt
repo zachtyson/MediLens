@@ -31,6 +31,29 @@ interface ApiService {
         @Query("shape") shape: Int
     ): Call<List<PillInfoResponse>>
 
+    @POST("doctor/modify_doctor")
+    fun modifyDoctor(
+        @Header("token") token: String,
+        @Body doctor: Doctor
+    ): Call<Map<String, String>>
+
+    @POST("doctor/add_doctor")
+    fun addDoctor(
+        @Header("token") token: String,
+        @Body doctor: DoctorCreate
+    ): Call<Map<String, String>>
+
+    @POST("doctor/delete_doctor")
+    fun deleteDoctor(
+        @Header("token") token: String,
+        @Body doctor: DoctorDelete
+    ): Call<Map<String, String>>
+
+    @GET("doctor/get_user_doctors")
+    fun getUserDoctors(
+        @Header("token") token: String
+    ): Call<List<Doctor>>
+
     @POST("medication/add_medication")
     fun addMedication(
         @Header("token") token: String,
@@ -97,7 +120,51 @@ interface ApiService {
         @Field("password") password: String
         // Returns basic JSON response
     ): Call<Map<String, String>>
+
+    @GET("medicard/user_info")
+    fun getUserInfo(
+        @Header("token") token: String,
+    ): Call<UserInfoResponse>
 }
+
+data class UserInfoResponse(
+    val name: String,
+    val email: String
+)
+
+data class Doctor(
+    val doctor_id: Int,
+    val doctor_name: String?,
+    val specialty: String?,
+    val office_number: String?,
+    val emergency_number: String?,
+    val office_address: String?,
+    val email: String,
+    val owner_id: Int
+)
+
+data class DoctorCreateResponse(
+    val doctor_id: Int,
+    val doctor_name: String?,
+    val specialty: String?,
+    val office_number: String?,
+    val emergency_number: String?,
+    val office_address: String?,
+    val email: String,
+    val owner_id: Int
+)
+data class DoctorCreate(
+    val doctor_name: String?,
+    val specialty: String?,
+    val office_number: String?,
+    val emergency_number: String?,
+    val office_address: String?,
+    val email: String?
+)
+
+data class DoctorDelete(
+    val doctor_id: Int
+)
 
 data class UserDrugs(
     var drugs: List<String> = listOf(),
@@ -227,6 +294,7 @@ fun convertMillisecondsToHumanReadableTime(milliseconds: Long): String {
 }
 
 data class UserRegistrationCredentials(
+    val name: String,
     val email: String,
     val password: String,
 )

@@ -9,5 +9,17 @@ class Doctor(BaseModel):
     office_number: Optional[str]
     emergency_number:  Optional[str]
     office_address:  Optional[str]
-    email: str
-    user_id: int
+    email: Optional[str]
+    owner_id: int
+
+# same as regular doctor except there's no doctor_id or user_id
+class DoctorCreate(BaseModel):
+    doctor_name:  Optional[str]
+    specialty:  Optional[str]
+    office_number: Optional[str]
+    emergency_number:  Optional[str]
+    office_address:  Optional[str]
+    email: Optional[str]
+
+class DoctorDelete(BaseModel):
+    doctor_id: int

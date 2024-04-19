@@ -11,6 +11,7 @@ class UserBase(BaseModel):
 # Used for creating a new user
 class UserCreate(UserBase):
     password: str
+    name: str
 
 
 # Used for additional db fields, used for retrieving data from db
@@ -19,6 +20,7 @@ class UserInDB(UserBase):
     hashed_password: str
     salt: str
     created_date: datetime
+    name: str
 
     class Config:
         orm_mode = True
@@ -28,12 +30,14 @@ class UserInDB(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
+    name: Optional[str] = None
 
 
 # Used for returning user information with id and created_date, does not include password
 class UserResponse(UserBase):
     id: int
     created_date: datetime
+    name: str
 
     class Config:
         orm_mode = True
