@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Settings
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -89,7 +90,13 @@ fun PharmacyInfo(
                 Spacer(modifier = Modifier.height(16.dp))
                 Column {
                     doctors.value.forEach { doctor ->
-                        DoctorCard(doctor, onNavigateToModifyPharmacist, sharedDoctorModel)
+                        DoctorCard(
+                            doctor,
+                            onNavigateToModifyPharmacist,
+                            sharedDoctorModel,
+                            onNavigateToSettings,
+                            context
+                        )
                     }
                 }
                 Button(
@@ -125,7 +132,7 @@ fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Do
 }
 
 @Composable
-fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit, sharedDoctorModel: SharedDoctorModel) {
+fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit, sharedDoctorModel: SharedDoctorModel, onNavigateToSettings: () -> Unit, context : Context) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,11 +200,29 @@ fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit, sharedD
                     Text("Modify", color = Color.White)
                 }
                 Button(
-                    onClick = {/*TODO*/},
+                    onClick = {
+                        val token = TokenAuth.getLogInToken(context)
+                        val service = RetrofitClient.apiService
+                        val doctorDelete = DoctorDelete(doctor.doctor_id)
+                        service.deleteDoctor(token, doctorDelete).enqueue(object : Callback<Map<String,String>> {
+                            override fun onResponse(call: Call<Map<String,String>>, response: Response<Map<String,String>>) {
+                                if (response.isSuccessful) {
+                                    onNavigateToSettings()
+                                } else {
+                                    Log.e("Doctor", "Failed to delete doctor")
+                                }
+                            }
+
+                            override fun onFailure(call: Call<Map<String,String>>, t: Throwable) {
+                                Log.e("Doctor", "Failed to delete doctor")
+                            }
+                        })
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(id = R.color.DarkBlue),
                         contentColor = Color.White
                     )
+
                 ) {
                     Text("Delete", color = Color.White)
                 }
