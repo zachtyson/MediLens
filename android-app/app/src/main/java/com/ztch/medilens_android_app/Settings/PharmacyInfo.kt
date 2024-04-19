@@ -27,7 +27,7 @@ import retrofit2.Response
 @Preview(showSystemUi = true)
 @Composable
 fun doctorPreview() {
-    PharmacyInfo( onNavigateToSettings = {}, onNavigateToLogin = {})
+    PharmacyInfo( onNavigateToSettings = {}, onNavigateToLogin = {}, onNavigateToAddPharmacist = {}, onNavigateToModifyPharmacist = {}, sharedDoctorModel = SharedDoctorModel())
 }
 
 
@@ -36,7 +36,9 @@ fun doctorPreview() {
 fun PharmacyInfo(
     onNavigateToSettings: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    onNavigateToAddPharmacist: () -> Unit = {},
+    onNavigateToAddPharmacist: () -> Unit,
+    onNavigateToModifyPharmacist: () -> Unit,
+    sharedDoctorModel: SharedDoctorModel
 ) {
     val context = LocalContext.current
     if (!TokenAuth.isLoggedIn(context)) {
@@ -89,7 +91,7 @@ fun PharmacyInfo(
                 Spacer(modifier = Modifier.height(16.dp))
                 Column {
                     doctors.value.forEach { doctor ->
-                        DoctorCard(doctor)
+                        DoctorCard(doctor, onNavigateToModifyPharmacist)
                     }
                 }
                 Button(
@@ -125,7 +127,7 @@ fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Do
 }
 
 @Composable
-fun DoctorCard(doctor: Doctor) {
+fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,6 +177,33 @@ fun DoctorCard(doctor: Doctor) {
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = {
+                        SharedDoctorModel().doctor = doctor
+                        onNavigateToModifyPharmacist()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.DarkBlue),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Modify", color = Color.White)
+                }
+                Button(
+                    onClick = {/*TODO*/},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.DarkBlue),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Delete", color = Color.White)
+                }
+            }
         }
     }
 }

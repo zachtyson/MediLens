@@ -35,7 +35,8 @@ fun LogOutAfterDelete(context: Context, onNavigateToHomePage: () -> Unit) {
 fun Settings (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
-    onNavigateToPharmacyInfo: () -> Unit
+    onNavigateToPharmacyInfo: () -> Unit,
+    sharedDoctorModel: SharedDoctorModel
 ) {
     val service = RetrofitClient.apiService
     Log.d("Cabinet", "Recomposed")
