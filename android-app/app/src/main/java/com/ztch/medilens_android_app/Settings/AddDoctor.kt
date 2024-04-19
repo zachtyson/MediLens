@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Settings
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,33 +13,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ztch.medilens_android_app.ApiUtils.DoctorCreate
+import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.Medicard.profileImage
 import com.ztch.medilens_android_app.R
-@Preview(showSystemUi = true)
-@Composable
-fun doctorPreview() {
-    DoctorScreen( onNavigateToSettings = {}, onNavigateToLogin = {})
-
-}
-
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DoctorScreen(
+fun AddDoctor(
     onNavigateToSettings: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToHomePage: () -> Unit,
+    onNavigateToPharmacyInfo: () -> Unit
 ) {
     val context = LocalContext.current
     if (!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToLogin()
     }
+    val token = TokenAuth.getLogInToken(context)
+    val service = RetrofitClient.apiService
+
 
     var doctorName by remember { mutableStateOf("") }
     var specialization by remember { mutableStateOf("") }
@@ -47,12 +51,8 @@ fun DoctorScreen(
     var officeAddress by remember { mutableStateOf("") }
     var emergencyNumber by remember { mutableStateOf("") }
 
-
-    val onSaveDoctorInfo: () -> Unit = {
-        // save doctor info
-
-
-    }
+    var errorText by remember { mutableStateOf("") }
+    var successText by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -77,17 +77,6 @@ fun DoctorScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = { onSaveDoctorInfo() }
-                    ) {
-                        Icon(
-                            tint = Color.White,
-                            imageVector = Icons.Filled.Save,
-                            contentDescription = "Save"
-                        )
-                    }
-                }
             )
         },
         containerColor = colorResource(R.color.DarkGrey),
@@ -114,8 +103,10 @@ fun DoctorScreen(
 
                         profileImage(imageSize = 50.dp)
                         OutlinedTextField(
-                            value = "", onValueChange = { },
+                            value = doctorName,
+                            onValueChange = { doctorName = it },
                             label = { Text("Doctor Name",color = Color.White) },
+
                             colors = TextFieldDefaults.colors(
                                 unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                                 focusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -137,8 +128,8 @@ fun DoctorScreen(
                     }
 
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = { },
+                        value = specialization,
+                        onValueChange = { specialization = it },
                         label = {
                             Text("Specialization", color = Color.White)
                         },
@@ -165,9 +156,9 @@ fun DoctorScreen(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = { },
-                        label = { Text("doctor@email.com", color = Color.White) },
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Doctor email", color = Color.White) },
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
                             focusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -187,8 +178,8 @@ fun DoctorScreen(
                         }
                     )
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = { },
+                        value = officeNumber,
+                        onValueChange = { officeNumber = it },
                         label = { Text("Office number", color = Color.White) },
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -210,8 +201,8 @@ fun DoctorScreen(
 
                     )
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = { },
+                        value = officeAddress,
+                        onValueChange = { officeAddress = it },
                         label = { Text("Office Address", color = Color.White) },
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -235,8 +226,8 @@ fun DoctorScreen(
                     Spacer(Modifier.height(18.dp))
 
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = { },
+                        value = emergencyNumber,
+                        onValueChange = { emergencyNumber = it },
                         label = { Text("Emergency number", color = Color.White) },
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = colorResource(id = R.color.DarkBlue),
@@ -257,11 +248,69 @@ fun DoctorScreen(
                         }
                     )
 
+                    Button(
+                        onClick = {
+                            // At least one field has to have something in it
+                            if (doctorName.isEmpty() && specialization.isEmpty() && email.isEmpty() && officeNumber.isEmpty() && officeAddress.isEmpty() && emergencyNumber.isEmpty()) {
+                                errorText = "Please fill in at least one field"
+                                return@Button
+                            }
+                            // doctor number and emergency number cannot be more than 20 characters
+                            if (officeNumber.length > 20 || emergencyNumber.length > 20) {
+                                errorText = "Phone numbers cannot be more than 20 characters"
+                                return@Button
+                            }
+                            errorText = ""
+                            // Add doctor api
+                            val doctor = DoctorCreate(
+                                doctor_name = doctorName,
+                                specialty = specialization,
+                                office_number = officeNumber,
+                                emergency_number = emergencyNumber,
+                                office_address = officeAddress,
+                                email = email
+                            )// Call<Map<String, String>>
+                            service.addDoctor(token, doctor).enqueue(object : Callback<Map<String, String>> {
+                                override fun onResponse(
+                                    call: Call<Map<String, String>>,
+                                    response: Response<Map<String, String>>
+                                ) {
+                                    if (response.isSuccessful) {
+                                        successText = "Doctor added successfully"
+                                        onNavigateToPharmacyInfo()
+                                    } else {
+                                        errorText = "Error adding doctor"
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+                                    errorText = "Error adding doctor"
+                                    Log.e("DoctorScreen", "Error adding doctor", t)
+                                }
+                            })
+                        },
+                        colors = ButtonDefaults.buttonColors(colorResource(id = R.color.Purple)),
+                        modifier = Modifier
+                            .size(150.dp, 50.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .testTag("SubmitDoctorButton"),
+                    ) {
+                        Text("Submit")
+                    }
+                    Text(
+                        text = errorText,
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    Text(
+                        text = successText,
+                        color = Color.Green,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+
                 }
             }
+
         }
     )
 }
-
-
-

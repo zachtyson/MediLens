@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -35,8 +34,7 @@ import com.ztch.medilens_android_app.Medicard.MediCardScreen
 
 import com.ztch.medilens_android_app.Notifications.*
 import com.ztch.medilens_android_app.Refill.*
-import com.ztch.medilens_android_app.Settings.DoctorScreen
-import com.ztch.medilens_android_app.Settings.Settings
+import com.ztch.medilens_android_app.Settings.*
 
 // camera permission
 @RequiresApi(Build.VERSION_CODES.S)
@@ -84,6 +82,7 @@ fun MyApp() {
     val alarmViewModel: AlarmViewModel = viewModel()
     val startDestination = if (TokenAuth.isLoggedIn(context)) "Home" else "Login"
     val userMedicationViewModel: UserMedicationViewModel = UserMedicationViewModel()
+    val sharedDoctorModel: SharedDoctorModel = SharedDoctorModel()
 
     NavHost(navController, startDestination = startDestination) {
 
@@ -108,7 +107,7 @@ fun MyApp() {
                 onNavigateToCabinet = {
                     sharedMedicationModel.userIsScheduling = false
                     navController.navigate("Cabinet")
-                                      },
+                },
                 onNavigateToSettings = { navController.navigate("Settings") {} },
                 onNavigateToMediCard = { navController.navigate("MediCard") {} },
                 alarmViewModel = alarmViewModel
@@ -158,14 +157,37 @@ fun MyApp() {
             Settings(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToAlarm = { navController.navigate("Alarm") {} },
-                onNavigateToDoctor = { navController.navigate("Doctor") {} }
+                onNavigateToPharmacyInfo = { navController.navigate("PharmacyInfo") {} },
+                sharedDoctorModel = sharedDoctorModel
             )
         }
 
-        composable("Doctor") {
-            DoctorScreen(
+        composable("PharmacyInfo") {
+            PharmacyInfo(
                 onNavigateToSettings = { navController.navigate("Settings") {} },
-                onNavigateToLogin = { navController.navigate("Login") }
+                onNavigateToLogin = { navController.navigate("Login") },
+                onNavigateToAddPharmacist = { navController.navigate("AddPharmacist") },
+                onNavigateToModifyPharmacist = { navController.navigate("ModifyPharmacist") },
+                sharedDoctorModel = sharedDoctorModel
+            )
+        }
+
+        composable("ModifyPharmacist") {
+            ModifyDoctor(
+                onNavigateToSettings = { navController.navigate("Settings") {} },
+                onNavigateToLogin = { navController.navigate("Login") },
+                onNavigateToHomePage = { navController.navigate("Home") },
+                onNavigateToPharmacyInfo = { navController.navigate("PharmacyInfo") },
+                sharedDoctorModel = sharedDoctorModel
+            )
+        }
+
+        composable("AddPharmacist") {
+            AddDoctor(
+                onNavigateToSettings = { navController.navigate("Settings") {} },
+                onNavigateToLogin = { navController.navigate("Login") },
+                onNavigateToHomePage = { navController.navigate("Home") },
+                onNavigateToPharmacyInfo = { navController.navigate("PharmacyInfo") }
             )
         }
 
@@ -218,6 +240,7 @@ fun MyApp() {
         composable("MediCard") {
             MediCardScreen(
                 onNavigateToHomePage = { navController.navigate("Home") {} },
+                alarmViewModel = alarmViewModel
             )
         }
 
