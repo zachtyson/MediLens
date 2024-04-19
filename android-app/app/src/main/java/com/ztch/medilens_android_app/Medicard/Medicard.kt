@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Medicard
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,7 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -29,10 +30,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+import com.ztch.medilens_android_app.ApiUtils.*
 import com.ztch.medilens_android_app.Notifications.AlarmViewModel
+import com.ztch.medilens_android_app.Notifications.FutureAlarmItem
+import com.ztch.medilens_android_app.Notifications.PastAlarmItem
 import com.ztch.medilens_android_app.R
-
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 @Preview(showSystemUi = false, showBackground = false)
@@ -53,6 +58,20 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit,
         onNavigateToHomePage()
     }
     // call alarmviewmodel function to get past_alarms table and parse it into a readable report
+    val userInfoResponse = remember { mutableStateOf<UserInfoResponse?>(null) }
+    val userDoctors = remember { mutableStateOf<List<Doctor>>(emptyList()) }
+    val allMedications = remember { mutableStateOf<List<Medication>>(emptyList()) }
+    val emptyPastAlarms = remember { listOf<PastAlarmItem>() }
+    val emptyFutureAlarms = remember { listOf<FutureAlarmItem>() }
+    val pastAlarms by alarmViewModel?.past_alarms?.collectAsState(initial = emptyPastAlarms) ?: remember { mutableStateOf(emptyPastAlarms) }
+    val futureAlarms by alarmViewModel?.future_alarms?.collectAsState(initial = emptyFutureAlarms) ?: remember { mutableStateOf(emptyFutureAlarms) }
+    val token = TokenAuth.getLogInToken(context)
+    val service = RetrofitClient.apiService
+    LaunchedEffect(token) {
+        getUserInfo(token, service, userInfoResponse)
+        getDoctors(token, service, userDoctors)
+        getMedications(token, service, allMedications)
+    }
 
     Scaffold(
         topBar = {
@@ -215,4 +234,53 @@ fun MediCardsList(data: List<String>) {
             }
         }
     }
+}
+
+
+private fun getMedications (token: String, service: ApiService, allMedications: MutableState<List<Medication>>) {
+    service.getMedications(token).enqueue(object : Callback<List<Medication>> {
+        override fun onResponse(call: Call<List<Medication>>, response: Response<List<Medication>>) {
+            if (response.isSuccessful) {
+                allMedications.value = response.body() ?: emptyList()
+            } else {
+                Log.e("Medication", "Failed to get medications")
+            }
+        }
+
+        override fun onFailure(call: Call<List<Medication>>, t: Throwable) {
+            Log.e("Medication", "Failed to get medications")
+        }
+    })
+}
+
+private fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Doctor>>) {
+    service.getUserDoctors(token).enqueue(object : Callback<List<Doctor>> {
+        override fun onResponse(call: Call<List<Doctor>>, response: Response<List<Doctor>>) {
+            if (response.isSuccessful) {
+                doctors.value = response.body() ?: emptyList()
+            } else {
+                Log.e("Doctor", "Failed to get doctors")
+            }
+        }
+
+        override fun onFailure(call: Call<List<Doctor>>, t: Throwable) {
+            Log.e("Doctor", "Failed to get doctors")
+        }
+    })
+}
+
+private fun getUserInfo(token: String, service: ApiService, userInfoResponse: MutableState<UserInfoResponse?>) {
+    service.getUserInfo(token).enqueue(object : Callback<UserInfoResponse> {
+        override fun onResponse(call: Call<UserInfoResponse>, response: Response<UserInfoResponse>) {
+            if (response.isSuccessful) {
+                userInfoResponse.value = response.body()
+            } else {
+                Log.e("UserInfo", "Failed to get user info")
+            }
+        }
+
+        override fun onFailure(call: Call<UserInfoResponse>, t: Throwable) {
+            Log.e("UserInfo", "Failed to get user info")
+        }
+    })
 }
