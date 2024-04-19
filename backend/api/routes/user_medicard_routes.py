@@ -17,15 +17,11 @@ def get_db():
         yield db
     finally:
         db.close()
-# get medicard info, token required
-@router.get('/medicard/user_info/{user_id}')
-def get_medicard(user_id: int, db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
-    current_user_id = get_id_from_token(token)
-    if not current_user_id:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    if current_user_id != user_id:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+# returns name and email of user
+@router.get('/medicard/user_info')
+def get_user_basic_medicard(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)):
+    user_id = get_id_from_token(token)
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return user.medicard
+    return {"name": user.name, "email": user.email}
