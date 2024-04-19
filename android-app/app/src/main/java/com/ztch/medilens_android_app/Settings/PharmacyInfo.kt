@@ -20,6 +20,10 @@ import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
 import com.ztch.medilens_android_app.Medicard.profileImage
 import com.ztch.medilens_android_app.R
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+
 @Preview(showSystemUi = true)
 @Composable
 fun doctorPreview() {
@@ -43,48 +47,81 @@ fun PharmacyInfo(
     val service = RetrofitClient.apiService
 
     val doctors = remember { mutableStateOf<List<Doctor>>(emptyList()) }
+    LaunchedEffect(token) {
+        getDoctors(token, service, doctors)
+    }
 
-    // Button that navigates to AddPharmacist
-    Scaffold {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(colorResource(id = R.color.DarkestBlue))
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            TopAppBar(
-                title = { Text("Doctor Profile", color = Color.White) },
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.DarkBlue),
+                    titleContentColor = Color.White
+                ),
+                title = {
+                    Text(
+                        "Add Doctor",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { onNavigateToSettings() }) {
-                        Icon(Icons.Filled.ArrowBackIosNew, contentDescription = "Back")
+                        Icon(
+                            tint = Color.White,
+                            imageVector = Icons.Filled.ArrowBackIosNew,
+                            contentDescription = "backAlert"
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorResource(id = R.color.DarkBlue),
-                    titleContentColor = Color.White
-                )
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Column {
-                doctors.value.forEach { doctor ->
-                    DoctorCard(doctor)
+        },
+        containerColor = colorResource(R.color.DarkGrey),
+        content = { innerPadding ->
+            // Button that navigates to AddPharmacist
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorResource(id = R.color.DarkestBlue))
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Column {
+                    doctors.value.forEach { doctor ->
+                        DoctorCard(doctor)
+                    }
+                }
+                Button(
+                    onClick = { onNavigateToAddPharmacist() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.DarkBlue),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(Icons.Filled.Save, contentDescription = "Add Pharmacist")
+                    Text("Add Doctor", color = Color.White)
                 }
             }
-            Button(
-                onClick = { onNavigateToAddPharmacist() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.DarkBlue),
-                    contentColor = Color.White
-                )
-            ) {
-                Icon(Icons.Filled.Save, contentDescription = "Add Pharmacist")
-                Text("Add Doctor", color = Color.White)
+        }
+    )
+
+}
+
+fun getDoctors(token: String, service: ApiService, doctors: MutableState<List<Doctor>>) {
+    service.getUserDoctors(token).enqueue(object : Callback<List<Doctor>> {
+        override fun onResponse(call: Call<List<Doctor>>, response: Response<List<Doctor>>) {
+            if (response.isSuccessful) {
+                doctors.value = response.body() ?: emptyList()
+            } else {
+                Log.e("Doctor", "Failed to get doctors")
             }
         }
 
-    }
-
+        override fun onFailure(call: Call<List<Doctor>>, t: Throwable) {
+            Log.e("Doctor", "Failed to get doctors")
+        }
+    })
 }
 
 @Composable
@@ -104,37 +141,37 @@ fun DoctorCard(doctor: Doctor) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = doctor.doctor_name ?: "",
+                text = "Doctor: ${doctor.doctor_name}",
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = doctor.specialty ?: "",
+                text = "Specialty: ${doctor.specialty}",
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = doctor.office_number ?: "",
+                text = "Phone: ${doctor.office_number ?: ""}",
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = doctor.emergency_number ?: "",
+                text = "Emergency: ${doctor.emergency_number ?: ""}",
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = doctor.office_address ?: "",
+                text = "Address: ${doctor.office_address ?: ""}",
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = doctor.email,
+                text = "Email: ${doctor.email}",
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )

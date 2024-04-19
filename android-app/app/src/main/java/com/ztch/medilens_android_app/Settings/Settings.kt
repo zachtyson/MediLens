@@ -165,7 +165,7 @@ fun Settings (
                 item {
                     SettingsOptionItem(
                         icon = Icons.Default.LocalPharmacy,
-                        title = "Add Doctor",
+                        title = "Your Doctors",
                         onClick = { onNavigateToPharmacyInfo() }
                     )
                     HorizontalDivider()
