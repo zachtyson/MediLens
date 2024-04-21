@@ -79,12 +79,12 @@ fun HomePage(onNavigateToCamera: () -> Unit,
     val tok = TokenAuth.getLogInToken(context)
     var refreshKey = remember { mutableIntStateOf(0) } // State variable to trigger refresh
 
-    /*
+
     LaunchedEffect(refreshKey) {  // Using Unit as a constant key
         fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel)
     }
 
-     */
+
 
     Scaffold(
         topBar = {
@@ -118,7 +118,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .verticalScroll(rememberScrollState())
             ) {
 
-               // AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
+                AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
                 // Log button that prints all alarms to the logcat
                 Button(
                     onClick = {
@@ -334,7 +334,7 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
                     Icons.Filled.ArrowBackIosNew,
                     contentDescription = "Previous",
                     tint = Color.White,
-                    )
+                )
             }
         }
         items(items = data.visibleDates, key = { it.date }) { date ->
@@ -352,7 +352,7 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
                 Icon(Icons.AutoMirrored.Filled.ArrowForwardIos,
                     contentDescription = "Next",
                     tint = Color.White
-                   )
+                )
             }
         }
 
