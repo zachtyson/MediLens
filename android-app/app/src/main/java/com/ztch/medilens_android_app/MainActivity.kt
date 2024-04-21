@@ -123,7 +123,9 @@ fun MyApp() {
                     sharedMedicationModel.userIsScheduling = true
                     navController.navigate("Cabinet")
                 },
-                sharedMedicationModel = sharedMedicationModel
+                sharedMedicationModel = sharedMedicationModel,
+                alarmViewModel = alarmViewModel,
+                onNavigateToModifyMedication = { navController.navigate("ModifyMedication") {} }
             )
         }
 

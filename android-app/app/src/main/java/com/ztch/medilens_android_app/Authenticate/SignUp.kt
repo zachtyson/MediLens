@@ -80,9 +80,7 @@ fun SignUp(onNavigateToHome: () -> Unit,onNavigateToLogin: () -> Unit) {
                 unfocusedTextColor = Color.White
             ),
             value = email,
-            onValueChange = {
-                email = it.replace(Regex("\\s"), "")
-            },
+            onValueChange = { email = it },
             label = { Text("Email",color = Color.White) },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email

@@ -93,11 +93,8 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                     focusedContainerColor = colorResource(id = R.color.DarkBlue),
                 ),
                 value = email,
-                // disallow whitespace in email (including newlines and tabs)
-                onValueChange = {
-                    email = it.replace(Regex("\\s"), "")
-                },
-                        label = { Text("Email", color = Color.White) },
+                onValueChange = { email = it },
+                label = { Text("Email", color = Color.White) },
                 textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()

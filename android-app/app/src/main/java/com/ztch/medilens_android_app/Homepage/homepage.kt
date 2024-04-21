@@ -135,7 +135,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
 }
 
 @Composable
-fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = RetrofitClient.apiService, tok: String, refreshKey: MutableState<Int>, selectedDate: MutableState<LocalDate>) {
+private fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = RetrofitClient.apiService, tok: String, refreshKey: MutableState<Int>, selectedDate: MutableState<LocalDate>) {
     val alarms by alarmViewModel.alarms.collectAsState()
     val past_alarms by alarmViewModel.past_alarms.collectAsState()
     val future_alarms by alarmViewModel.future_alarms.collectAsState()
@@ -221,7 +221,7 @@ private fun fetchUserAlarmsAndScheduleAlarms(context: Context, alarmViewModel: A
 
 // Start of Header creation
 @Composable
-fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit, selectedDate: MutableState<LocalDate>) {
+private fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.Date) -> Unit, selectedDate: MutableState<LocalDate>) {
     Log.d("header", "Recomposed")
     Column(
         modifier = Modifier
@@ -272,7 +272,7 @@ fun homepageHeader(data: CalendarUiModel,onDateClickListener: (CalendarUiModel.D
 
 
 @Composable
-fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+private fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Date) -> Unit) {
     Log.d("datecard", "Recomposed")
     Card(
         modifier = Modifier
@@ -312,7 +312,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
 }
 
 @Composable
-fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
+private fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date) -> Unit) {
     Log.d("rowofdates", "Recomposed")
     LazyRow {
         // Using the date as a key to optimize recompositions
@@ -355,14 +355,14 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
 }
 
 @Composable
-fun AlarmsList(alarms: List<AlarmItem>, onDeleteClicked: (AlarmItem) -> Unit) {
+private fun AlarmsList(alarms: List<AlarmItem>, onDeleteClicked: (AlarmItem) -> Unit) {
     for (alarm in alarms) {
         AlarmCard(alarm, onDeleteClicked)
     }
 }
 
 @Composable
-fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: MutableState<LocalDate>) {
+private fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: MutableState<LocalDate>) {
     val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
 
     // Recalculate only if selectedDate or zoneId changes
@@ -380,13 +380,13 @@ fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: MutableState<L
     }
 }
 
-fun convertMillisToHumanReadableTime(timeMillis: Long): String {
+private fun convertMillisToHumanReadableTime(timeMillis: Long): String {
     val localDateTime = Instant.ofEpochMilli(timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
     return formatDateTime(localDateTime)
 }
 
 @Composable
-fun PastAlarmCard(alarm: PastAlarmItem) {
+private fun PastAlarmCard(alarm: PastAlarmItem) {
     val humanReadableTime = convertMillisToHumanReadableTime(alarm.timeMillis)
     Card(
         colors = CardDefaults.cardColors(containerColor = if (alarm.response) Color(0xFF81C784) else Color(0xFFE57373)), // Green if taken, red if not
@@ -434,7 +434,7 @@ fun PastAlarmCard(alarm: PastAlarmItem) {
 
 
 @Composable
-fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>, selectedDate: MutableState<LocalDate>) {
+private fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>, selectedDate: MutableState<LocalDate>) {
     val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
 
     // Recalculate only if selectedDate or zoneId changes
@@ -455,7 +455,7 @@ fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>, selectedDate: MutableS
 
 
 @Composable
-fun FutureAlarmCard(alarm: FutureAlarmItem) {
+private fun FutureAlarmCard(alarm: FutureAlarmItem) {
     val timeFormatted = convertMillisToHumanReadableTime(alarm.timeMillis)
     Card(
         colors = CardDefaults.cardColors(
@@ -501,7 +501,7 @@ fun FutureAlarmCard(alarm: FutureAlarmItem) {
 
 
 @Composable
-fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: MutableState<LocalDate>, alarmViewModel: AlarmViewModel) {
+private fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: MutableState<LocalDate>, alarmViewModel: AlarmViewModel) {
     val zoneId = remember { ZoneId.systemDefault() }  // Use remember for stable ZoneId across recompositions
 
     // Recalculate only if selectedDate or zoneId changes
@@ -519,7 +519,7 @@ fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: Mutabl
 }
 
 
-fun convertMillisToLocalDate(timeMillis: Long): LocalDate {
+private fun convertMillisToLocalDate(timeMillis: Long): LocalDate {
     val zoneId = TimeZone.getDefault().toZoneId() // Get the default timezone from the device
     val instant = Instant.ofEpochMilli(timeMillis)
     val zonedDateTime = instant.atZone(zoneId)
@@ -529,7 +529,7 @@ fun convertMillisToLocalDate(timeMillis: Long): LocalDate {
 
 
 @Composable
-fun PendingAlarmCard(alarm: PendingAlarmItem, alarmViewModel: AlarmViewModel) {
+private fun PendingAlarmCard(alarm: PendingAlarmItem, alarmViewModel: AlarmViewModel) {
     val humanReadableTime = convertMillisToHumanReadableTime(alarm.timeMillis)
     Card(
         colors = CardDefaults.cardColors(
@@ -602,7 +602,7 @@ fun PendingAlarmCard(alarm: PendingAlarmItem, alarmViewModel: AlarmViewModel) {
 
 
 @Composable
-fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
+private fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
     val time = alarm.startTimeMillis
     Card(
         colors = CardDefaults.cardColors(
