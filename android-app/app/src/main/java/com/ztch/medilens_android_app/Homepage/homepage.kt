@@ -1,5 +1,6 @@
 package com.ztch.medilens_android_app.Homepage
 
+
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -9,12 +10,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,28 +22,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.ztch.medilens_android_app.ApiUtils.*
-
-import com.ztch.medilens_android_app.R
-import com.ztch.medilens_android_app.appbarBottom
-import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
-
-
 import com.ztch.medilens_android_app.Authenticate.decryptData
 import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
 import com.ztch.medilens_android_app.Notifications.*
+import com.ztch.medilens_android_app.R
+import com.ztch.medilens_android_app.appbarBottom
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Composable
@@ -387,13 +382,11 @@ fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: MutableState<L
 
 @Composable
 fun PastAlarmCard(alarm: PastAlarmItem) {
+    val localDateTime = Instant.ofEpochMilli(alarm.timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.Purple)
-        ),
+        colors = CardDefaults.cardColors(containerColor = if (alarm.response) Color(0xFF81C784) else Color(0xFFE57373)), // Green if taken, red if not
         modifier = Modifier
             .fillMaxWidth()
-            .height(215.dp)
             .padding(16.dp)
     ) {
         Column(
@@ -402,38 +395,38 @@ fun PastAlarmCard(alarm: PastAlarmItem) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Time: ${alarm.timeMillis}",
+                text = "Medication Taken: ${if (alarm.response) "Yes" else "No"}",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-            Row  (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(85.dp)
-                    .padding(8.dp)
-            ){
-                alarm.imageUri?.let { uri ->
-                    Image(
-                        painter = rememberImagePainter(uri),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(75.dp) // Set the width of the image
-                            .height(75.dp) // Set the height of the image
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                }
-
-                Text(
-                    text = "Past Medication: ${alarm.message}",
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+            Text(
+                text = "Medication: ${alarm.message}",
+                fontSize = 16.sp,
+                color = Color.White
+            )
+            Text(
+                //call formatDateTime on local timezone\
+                text = "Time: ${formatDateTime(localDateTime)}",
+                fontSize = 16.sp,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            alarm.imageUri.let { uri ->
+                Image(
+                    painter = rememberImagePainter(uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .height(75.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
                 )
             }
         }
     }
 }
+
 
 @Composable
 fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>, selectedDate: MutableState<LocalDate>) {
