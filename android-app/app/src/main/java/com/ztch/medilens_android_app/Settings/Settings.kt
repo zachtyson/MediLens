@@ -3,6 +3,7 @@ package com.ztch.medilens_android_app.Settings
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -321,7 +322,8 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                         Image(
                             painter = painterResource(id = R.drawable.old_email_icon),
                             contentDescription = "Old Email Icon",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
 
                         )
                     }
@@ -329,7 +331,16 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                 OutlinedTextField(
                     value = newEmail,
                     onValueChange = { newEmail = it },
-                    label = { Text("New Email") }
+                    label = { Text("New Email") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.email_logo),
+                            contentDescription = "Email Icon",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
+
+                        )
+                    }
                 )
                 OutlinedTextField(
                     value = confirmEmail,
@@ -339,7 +350,8 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                         Image(
                             painter = painterResource(id = R.drawable.new_email_icon),
                             contentDescription = "New Email Icon",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
 
                         )
                     }
@@ -352,7 +364,8 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                         Image(
                             painter = painterResource(id = R.drawable.password_lock),
                             contentDescription = "Password Icon",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
 
                         )
                     }

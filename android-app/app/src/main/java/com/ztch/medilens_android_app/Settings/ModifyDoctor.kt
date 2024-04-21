@@ -1,6 +1,7 @@
 package com.ztch.medilens_android_app.Settings
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.Doctor
@@ -109,6 +111,14 @@ fun ModifyDoctor(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Doctor Name", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.face_icon),
+                                contentDescription = "face Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -123,6 +133,14 @@ fun ModifyDoctor(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Specialization", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.job_icon),
+                                contentDescription = "job Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -137,6 +155,14 @@ fun ModifyDoctor(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Email", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.email_logo),
+                                contentDescription = "Email Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -151,6 +177,14 @@ fun ModifyDoctor(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Office Number", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.phone_icon),
+                                contentDescription = "Phone Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -165,6 +199,14 @@ fun ModifyDoctor(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Office Address", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.office_icon),
+                                contentDescription = "office Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -179,6 +221,14 @@ fun ModifyDoctor(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Emergency Number", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.contact_emergency_icon),
+                                contentDescription = "emergency Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
 

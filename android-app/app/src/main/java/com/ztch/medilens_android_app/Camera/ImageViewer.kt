@@ -1,6 +1,5 @@
 package com.ztch.medilens_android_app.Camera
 
-import android.annotation.SuppressLint
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
@@ -22,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.nativeCanvas
@@ -44,10 +42,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ImageViewer(onNavigateToHomePage: () -> Unit,
-                onNavigateToCamera: () -> Unit,
-                onNavigateToPillViewer: () -> Unit,
-                sharedViewModel: SharedViewModel
+fun ImageViewer(
+    onNavigateToHomePage: () -> Unit,
+    onNavigateToCamera: () -> Unit,
+    onNavigateToPillViewer: () -> Unit,
+    onNavigateToAddMedication: (Any?, Any?, Any?, Any?) -> Unit,
+    sharedViewModel: SharedViewModel
 ){
     //class SharedViewModel: ViewModel() {
     //    var imageAndPrediction: ImageAndPrediction? = null
@@ -254,15 +254,15 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit,
                         )
                     }
                 ) {
-                    prediction.value?.predictions?.forEachIndexed { index, _ ->
+                    prediction.value?.predictions?.forEachIndexed { index,pill ->
                         Tab(
                             selected = pagerState.currentPage == index,
                             onClick = {
                                 coroutineScope.launch {
                                     pagerState.animateScrollToPage(index)
                                 }
-                            },
-                            text = { Text("Pill ${index + 1}") },
+                            },//get name
+                            text = { Text(pill.name) },
                             modifier = Modifier.background(color = Color.Transparent)
                         )
                     }
@@ -274,10 +274,6 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit,
                             // Display characteristics
                             else -> {
                                 val confidencePercentage = pill.confidence *100
-
-
-                                Log.d( "ImageViewer: ", "Confidence: ${pill.confidence}")
-
                                 Column(
                                     modifier = Modifier
                                         .padding(16.dp)
@@ -313,12 +309,12 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit,
                                     Row(verticalAlignment = Alignment.CenterVertically) {
 
                                         Text(
-                                            text = "${(confidencePercentage.toDouble())}%",
+                                            text = String.format("%.2f%%", confidencePercentage),
                                             color = Color.White
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         LinearProgressIndicator(
-                                            progress = { confidencePercentage.toFloat() * 100 },
+                                            progress = { (confidencePercentage.toFloat() * 100) },
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .height(8.dp),
@@ -328,12 +324,13 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit,
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
 
-                                    Text(
-                                        text = "Bounding Box: (${pill.x1}, ${pill.y1}) to (${pill.x2}, ${pill.y2})",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White
-                                    )
                                     Spacer(modifier = Modifier.height(16.dp))
+                                    Log.d("ocr", "OCR: ${pill.ocr}")
+                                    Log.d("ocrParsed", "OCR: ${pill.ocrParsed}")
+
+                                    Log.d("get", "OCR: ${pill.getOCRParsed()}")
+
+
 
                                     pill.ocr?.let {
                                         Text(
@@ -341,6 +338,19 @@ fun ImageViewer(onNavigateToHomePage: () -> Unit,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = Color.White
                                         )
+                                    }
+
+
+                                    //add medication
+                                    Button(
+                                        onClick = {
+                                            onNavigateToAddMedication(pill.name, pill.color,pill.ocr?.get(0)!![1], pill.shape)
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp)
+                                    ) {
+                                        Text("Add Medication To Cabinet")
                                     }
                                 }
                             }

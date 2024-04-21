@@ -64,6 +64,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
         // if user is not logged in, navigate to login page
         onNavigateToLogin()
     }
+
+
     val service = RetrofitClient.apiService
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -77,9 +79,12 @@ fun HomePage(onNavigateToCamera: () -> Unit,
     val tok = TokenAuth.getLogInToken(context)
     var refreshKey = remember { mutableIntStateOf(0) } // State variable to trigger refresh
 
+    /*
     LaunchedEffect(refreshKey) {  // Using Unit as a constant key
         fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel)
     }
+
+     */
 
     Scaffold(
         topBar = {
@@ -113,7 +118,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .verticalScroll(rememberScrollState())
             ) {
 
-                AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
+               // AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
                 // Log button that prints all alarms to the logcat
                 Button(
                     onClick = {

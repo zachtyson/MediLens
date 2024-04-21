@@ -32,7 +32,11 @@ fun AddMedication (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToCabinet: () -> Unit,
-    userMedicationViewModel : UserMedicationViewModel
+    userMedicationViewModel : UserMedicationViewModel,
+    medicationNameParam: String = "",
+    colorParam: String = "",
+    imprintParam: String = "",
+    shapeParam: String = "",
 ) {
     // Add Medication
 
@@ -44,11 +48,11 @@ fun AddMedication (
         onNavigateToHomePage()
     }
 
-    var medicationName by remember { mutableStateOf("") }
+    var medicationName by remember { mutableStateOf(medicationNameParam) }
     var description by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf("") }
-    var imprint by remember { mutableStateOf("") }
-    var shape by remember { mutableStateOf("") }
+    var color by remember { mutableStateOf(colorParam) }
+    var imprint by remember { mutableStateOf(imprintParam) }
+    var shape by remember { mutableStateOf(shapeParam) }
     var dosage by remember { mutableStateOf("") }
     var intakeMethod by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }

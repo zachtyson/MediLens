@@ -101,7 +101,7 @@ fun AddDoctor(
                     Row ()
                     {
 
-                        profileImage(imageSize = 50.dp)
+                        profileImage(imageSize = 50.dp,R.drawable.medilens_logo)
                         OutlinedTextField(
                             value = doctorName,
                             onValueChange = { doctorName = it },

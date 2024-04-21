@@ -140,7 +140,38 @@ fun MyApp() {
                 onNavigateToHomePage = { navController.navigate("Home") {} },
                 onNavigateToCamera = { navController.navigate("Camera") },
                 onNavigateToPillViewer = { navController.navigate("PillViewer") },
+                onNavigateToAddMedication = {
+                        medicationName, color, imprint, shape ->
+                    navController.navigate("AddMedication/$medicationName/$color/$imprint/$shape") {}
+                },
                 sharedViewModel = sharedCameraImageViewerModel
+            )
+        }
+
+        composable("AddMedication/{medicationName}/{color}/{imprint}/{shape}") { backStackEntry ->
+            val medicationName = backStackEntry.arguments?.getString("medicationName") ?: ""
+            val color = backStackEntry.arguments?.getString("color") ?: ""
+            val imprint = backStackEntry.arguments?.getString("imprint") ?: ""
+            val shape = backStackEntry.arguments?.getString("shape") ?: ""
+            AddMedication(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                userMedicationViewModel = userMedicationViewModel,
+                medicationNameParam = medicationName,
+                colorParam = color,
+                imprintParam = imprint,
+                shapeParam = shape,
+            )
+        }
+
+
+        composable("AddMedication") {
+            AddMedication(
+                onNavigateToHomePage = { navController.navigate("Home") {} },
+                onNavigateToAlarm = { navController.navigate("Alarm") {} },
+                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
+                userMedicationViewModel = userMedicationViewModel
             )
         }
 
@@ -244,14 +275,6 @@ fun MyApp() {
             )
         }
 
-        composable("AddMedication") {
-            AddMedication(
-                onNavigateToHomePage = { navController.navigate("Home") {} },
-                onNavigateToAlarm = { navController.navigate("Alarm") {} },
-                onNavigateToCabinet = { navController.navigate("Cabinet") {} },
-                userMedicationViewModel = userMedicationViewModel
-            )
-        }
 
         composable("ModifyMedication") {
             ModifyMedication(
