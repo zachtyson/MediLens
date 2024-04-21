@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">medilens-android-app</string>
+    <string name="app_name">MediLens</string>
     <string name="title_activity_home_page">HomePage</string>
-    <string name="Time_To_Take_Pill">Your channel description goes here.</string>
-    <string name="Pill_Reminder">Your channel name goes here.</string>
+    <string name="Time_To_Take_Pill">Time To Take Pill</string>
+    <string name="Pill_Reminder">Pill Reminder</string>
 </resources>
