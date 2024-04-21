@@ -380,9 +380,14 @@ fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: MutableState<L
     }
 }
 
+fun convertMillisToHumanReadableTime(timeMillis: Long): String {
+    val localDateTime = Instant.ofEpochMilli(timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
+    return formatDateTime(localDateTime)
+}
+
 @Composable
 fun PastAlarmCard(alarm: PastAlarmItem) {
-    val localDateTime = Instant.ofEpochMilli(alarm.timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
+    val humanReadableTime = convertMillisToHumanReadableTime(alarm.timeMillis)
     Card(
         colors = CardDefaults.cardColors(containerColor = if (alarm.response) Color(0xFF81C784) else Color(0xFFE57373)), // Green if taken, red if not
         modifier = Modifier
@@ -408,7 +413,7 @@ fun PastAlarmCard(alarm: PastAlarmItem) {
             )
             Text(
                 //call formatDateTime on local timezone\
-                text = "Time: ${formatDateTime(localDateTime)}",
+                text = "Time: ${humanReadableTime}",
                 fontSize = 16.sp,
                 color = Color.White
             )
@@ -525,17 +530,18 @@ fun convertMillisToLocalDate(timeMillis: Long): LocalDate {
     val zonedDateTime = instant.atZone(zoneId)
     return zonedDateTime.toLocalDate()
 }
+
+
+
 @Composable
 fun PendingAlarmCard(alarm: PendingAlarmItem, alarmViewModel: AlarmViewModel) {
-    val localDate = convertMillisToLocalDate(alarm.timeMillis)
-    val date = localDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+    val humanReadableTime = convertMillisToHumanReadableTime(alarm.timeMillis)
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.DarkBlue)
+            containerColor = colorResource(R.color.DarkestBlue)
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(270.dp)
             .padding(16.dp)
     ) {
         Column(
@@ -543,72 +549,62 @@ fun PendingAlarmCard(alarm: PendingAlarmItem, alarmViewModel: AlarmViewModel) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Date: $date",
-                color = Color.White,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(85.dp)
-                    .padding(8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                alarm.imageUri?.let { uri ->
+                alarm.imageUri.let { uri ->
                     Image(
                         painter = rememberImagePainter(uri),
-                        contentDescription = null,
+                        contentDescription = "Medication Image",
                         modifier = Modifier
-                            .width(75.dp) // Set the width of the image
-                            .height(75.dp) // Set the height of the image
+                            .size(75.dp)
                             .clip(RoundedCornerShape(8.dp))
                     )
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "Pending Medication: ${alarm.message}",
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = "Medication: ${alarm.message}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Date: $humanReadableTime",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
             }
-            // Buttons row to accept or reject the medication
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp), // Add padding around the buttons
-                horizontalArrangement = Arrangement.Center // Center the buttons horizontally
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = {
-                        // convert the pending alarm to a past alarm
-                        // and delete the pending alarm
-                        // this will log that the user took the medication at the scheduled time
-                        // and remove the pending alarm from the list
                         alarmViewModel.convertPendingAlarmToPastAlarm(alarm, true)
-                    }
+                    },//
+
+                    //0xFF81C784
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF81C784))
                 ) {
-                    Text(text = "Accept")
+                    Text(text = "Taken")
                 }
-                Spacer(modifier = Modifier.width(16.dp)) // Space between the buttons
                 Button(
                     onClick = {
-                        // convert the pending alarm to a past alarm
-                        // and delete the pending alarm
-                        // this will log that the user did not take the medication at the scheduled time
-                        // and remove the pending alarm from the list
                         alarmViewModel.convertPendingAlarmToPastAlarm(alarm, false)
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 ) {
-                    Text(text = "Reject")
+                    Text(text = "Not Taken")
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun AlarmCard(alarm: AlarmItem, onDeleteClicked: (AlarmItem) -> Unit) {
