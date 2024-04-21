@@ -117,6 +117,102 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit,
                     item {
                         futureAlarmSection("Future Alarms", futureAlarms)
                     }
+
+                    // Button to send email
+                    Button(
+                        onClick = {
+
+                            var to = userDoctors.value.first().email
+                            var subject = "MediCard Information"
+                            var body by remember { mutableStateOf("") }
+                            // Construct the email body
+                            body = buildString {
+                                // Add user information
+                                userInfoResponse.value?.let { userInfo ->
+                                    append("User Information:\n")
+                                    append("Name: ${userInfo.name}\n")
+                                    append("Email: ${userInfo.email}\n\n")
+                                }
+
+                                // Add user doctors
+                                if (userDoctors.value.isNotEmpty()) {
+                                    append("User Doctors:\n")
+                                    userDoctors.value.forEach { doctor ->
+                                        append("Doctor Name: ${doctor.doctor_name}\n")
+                                        append("Specialty: ${doctor.specialty}\n")
+                                        append("Office Number: ${doctor.office_number}\n")
+                                        append("Email: ${doctor.email}\n")
+                                        append("Office Address: ${doctor.office_address}\n\n")
+                                    }
+                                }
+
+                                // Add medications
+                                if (allMedications.value.isNotEmpty()) {
+                                    append("Medications:\n")
+                                    allMedications.value.forEach { medication ->
+                                        append("Medication Name: ${medication.name}\n")
+                                        append("Description: ${medication.description}\n")
+                                        append("Color: ${medication.color}\n")
+                                        append("Imprint: ${medication.imprint}\n")
+                                        append("Shape: ${medication.shape}\n")
+                                        append("Dosage: ${medication.dosage}\n")
+                                        append("Intake Method: ${medication.intake_method}\n\n")
+                                    }
+                                }
+
+                                // Add past alarms
+                                if (pastAlarms.isNotEmpty()) {
+                                    append("Past Alarms:\n")
+                                    pastAlarms.forEach { alarm ->
+                                        append("Medication: ${alarm.message}, Taken at: ${Date(alarm.timeMillis)}\n")
+                                    }
+                                    append("\n")
+                                }
+
+                                // Add future alarms
+                                if (futureAlarms.isNotEmpty()) {
+                                    append("Future Alarms:\n")
+                                    futureAlarms.forEach { alarm ->
+                                        append("Message: ${alarm.message}, Scheduled for: ${Date(alarm.timeMillis)}\n")
+                                    }
+                                    append("\n")
+                                }
+
+                                // Add pending alarms
+                                if (pendingAlarms.isNotEmpty()) {
+                                    append("Pending Alarms:\n")
+                                    pendingAlarms.forEach { alarm ->
+                                        append("Medication: ${alarm.message}, Time: ${Date(alarm.timeMillis)}\n")
+                                        append("Unknown if taken\n")
+                                    }
+                                    append("\n")
+                                }
+                            }
+
+                            val emailRequest = EmailRequest(to, subject, body)
+                            RetrofitClient.apiService.sendEmail(token, emailRequest).enqueue(object : Callback<EmailResponse> {
+                                override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
+                                    if (response.isSuccessful) {
+                                        val emailResponse = response.body()
+                                        // Handle the email response
+                                        emailResponse?.let {
+                                            Log.d("medicard email suc", "Email sent successfully. Message: ${it.message}")
+                                        }
+                                    } else {
+                                        // Error sending email
+                                        Log.e("medicard email error:", "Failed to send email: ${response.code()}")
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<EmailResponse>, t: Throwable) {
+                                    // Network error
+                                    Log.e("medicard email error:", "Failed to send email: ${t.message}")
+                                }
+                            })
+                        }
+                    ) {
+                        Text("Send Email")
+                    }
                 }
             }
         }
