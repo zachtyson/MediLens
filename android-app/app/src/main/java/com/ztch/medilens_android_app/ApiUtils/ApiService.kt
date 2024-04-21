@@ -125,8 +125,20 @@ interface ApiService {
     fun getUserInfo(
         @Header("token") token: String,
     ): Call<UserInfoResponse>
+    @POST("medicard/send-email")
+    fun sendEmail(
+        @Header("token") token: String, // authentication token
+        @Body emailRequest: EmailRequest
+    ): Call<EmailResponse>
 }
-
+data class EmailResponse(
+    val message: String
+)
+data class EmailRequest(
+    val to: String,
+    val subject: String,
+    val body: String
+)
 data class UserInfoResponse(
     val name: String,
     val email: String
