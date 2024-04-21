@@ -212,7 +212,7 @@ fun futureAlarmSection(title: String, alarms: List<FutureAlarmItem>) {
 }
 
 @Composable
-fun profileImage(imageSize: Dp,){ // 135 for big
+fun profileImage(imageSize: Dp, logoId: Int) { // 135 for big
     Surface(
         modifier = Modifier
             .size(imageSize + 17.dp)
@@ -221,17 +221,16 @@ fun profileImage(imageSize: Dp,){ // 135 for big
         border = BorderStroke(0.5.dp, Color.LightGray),
         //elevation = 4.dp,
         color = MaterialTheme.colorScheme.secondary,
-
-        ) {
+    ) {
         Image(
-            painter = painterResource(id = R.drawable.medilens_logo),
+            painter = painterResource(id = logoId),
             contentDescription = "profile image",
             modifier = Modifier.size(imageSize),
             contentScale = ContentScale.Crop
         )
-
     }
 }
+
 
 
 
@@ -251,7 +250,7 @@ fun MediCardsList(data: List<String>) {
                         .background(MaterialTheme.colorScheme.surface)
                         .padding(7.dp)
                 ) {
-                    profileImage(50.dp)
+                    profileImage(50.dp, R.drawable.medilens_logo)
                     Column(modifier = Modifier
                         .padding(7.dp)
                         .align(alignment = CenterVertically))

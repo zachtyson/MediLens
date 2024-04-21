@@ -2,6 +2,7 @@ package com.ztch.medilens_android_app.Refill
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.*
@@ -109,6 +111,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Medication Name", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.pill_icon),
+                                contentDescription = "Pill Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -123,6 +133,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Description", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.prescriptions_logo),
+                                contentDescription = "Prescription Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -137,6 +155,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Color", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.color_icon),
+                                contentDescription = "Color Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -151,6 +177,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Imprint", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.imprint_icon),
+                                contentDescription = "Imprint Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -165,6 +199,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Shape", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.shape_icon),
+                                contentDescription = "Shape Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -179,6 +221,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Dosage", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.dosage_icon),
+                                contentDescription = "Dosage Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -193,6 +243,14 @@ fun ModifyMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Intake Method", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.intake_form_icon),
+                                contentDescription = "Intake Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
 

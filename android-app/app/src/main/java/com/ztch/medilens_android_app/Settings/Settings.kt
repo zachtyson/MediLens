@@ -3,6 +3,7 @@ package com.ztch.medilens_android_app.Settings
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 
 fun LogOutAfterDelete(context: Context, onNavigateToHomePage: () -> Unit) {
@@ -315,22 +317,58 @@ fun ChangeEmailDialog(onDismiss: () -> Unit,
                 OutlinedTextField(
                     value = oldEmail,
                     onValueChange = { oldEmail = it },
-                    label = { Text("Old Email") }
+                    label = { Text("Old Email") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.old_email_icon),
+                            contentDescription = "Old Email Icon",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
+
+                        )
+                    }
                 )
                 OutlinedTextField(
                     value = newEmail,
                     onValueChange = { newEmail = it },
-                    label = { Text("New Email") }
+                    label = { Text("New Email") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.email_logo),
+                            contentDescription = "Email Icon",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
+
+                        )
+                    }
                 )
                 OutlinedTextField(
                     value = confirmEmail,
                     onValueChange = { confirmEmail = it },
-                    label = { Text("Confirm New Email") }
+                    label = { Text("Confirm New Email") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.new_email_icon),
+                            contentDescription = "New Email Icon",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
+
+                        )
+                    }
                 )
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") }
+                    label = { Text("Password") },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.password_lock),
+                            contentDescription = "Password Icon",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
+
+                        )
+                    }
                 )
                 if (error != "") {
                     Text(error, color = Color.Red)

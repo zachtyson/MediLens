@@ -2,6 +2,7 @@ package com.ztch.medilens_android_app.Refill
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -30,7 +32,11 @@ fun AddMedication (
     onNavigateToHomePage: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToCabinet: () -> Unit,
-    userMedicationViewModel : UserMedicationViewModel
+    userMedicationViewModel : UserMedicationViewModel,
+    medicationNameParam: String = "",
+    colorParam: String = "",
+    imprintParam: String = "",
+    shapeParam: String = "",
 ) {
     // Add Medication
 
@@ -42,11 +48,11 @@ fun AddMedication (
         onNavigateToHomePage()
     }
 
-    var medicationName by remember { mutableStateOf("") }
+    var medicationName by remember { mutableStateOf(medicationNameParam) }
     var description by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf("") }
-    var imprint by remember { mutableStateOf("") }
-    var shape by remember { mutableStateOf("") }
+    var color by remember { mutableStateOf(colorParam) }
+    var imprint by remember { mutableStateOf(imprintParam) }
+    var shape by remember { mutableStateOf(shapeParam) }
     var dosage by remember { mutableStateOf("") }
     var intakeMethod by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
@@ -105,6 +111,14 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Medication Name", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.pill_icon),
+                                contentDescription = "Pill Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -119,6 +133,14 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Description", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.prescriptions_logo),
+                                contentDescription = "Prescription Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -133,6 +155,14 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Color", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.color_icon),
+                                contentDescription = "Color Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -147,6 +177,14 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Imprint", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.imprint_icon),
+                                contentDescription = "Imprint Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -161,6 +199,14 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Shape", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.shape_icon),
+                                contentDescription = "Shape Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -175,6 +221,14 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Dosage", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.dosage_icon),
+                                contentDescription = "Dosage Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
                     )
                     OutlinedTextField(
@@ -189,7 +243,16 @@ fun AddMedication (
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(text = "Intake Method", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.intake_form_icon),
+                                contentDescription = "Intake Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
                         }
+
                     )
                     if (errorText.isNotEmpty()) {
                         Snackbar(

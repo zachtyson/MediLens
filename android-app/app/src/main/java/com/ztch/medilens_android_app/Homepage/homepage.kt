@@ -64,6 +64,8 @@ fun HomePage(onNavigateToCamera: () -> Unit,
         // if user is not logged in, navigate to login page
         onNavigateToLogin()
     }
+
+
     val service = RetrofitClient.apiService
     val dataSource = CalendarDataSource()
     // we use `mutableStateOf` and `remember` inside composable function to schedules recomposition
@@ -77,9 +79,12 @@ fun HomePage(onNavigateToCamera: () -> Unit,
     val tok = TokenAuth.getLogInToken(context)
     var refreshKey = remember { mutableIntStateOf(0) } // State variable to trigger refresh
 
+    /*
     LaunchedEffect(refreshKey) {  // Using Unit as a constant key
         fetchUserAlarmsAndScheduleAlarms(context, alarmViewModel)
     }
+
+     */
 
     Scaffold(
         topBar = {
@@ -113,7 +118,7 @@ fun HomePage(onNavigateToCamera: () -> Unit,
                     .verticalScroll(rememberScrollState())
             ) {
 
-                AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
+               // AlarmsListScreen(alarmViewModel = alarmViewModel, service = service, tok = tok, refreshKey = refreshKey, selectedDate = selectedDate)
                 // Log button that prints all alarms to the logcat
                 Button(
                     onClick = {
@@ -276,7 +281,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
     Log.d("datecard", "Recomposed")
     Card(
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 4.dp),
+            .padding(vertical = 4.dp, horizontal = 0.dp),
         onClick = { onDateClickListener(data) },
         colors = CardDefaults.cardColors(
             // background colors of the selected date
@@ -291,7 +296,7 @@ fun DateCard(data: CalendarUiModel.Date,onDateClickListener: (CalendarUiModel.Da
     ) {
         Column(
             modifier = Modifier
-                .width(40.dp)
+                .width(35.dp)
                 .height(48.dp)
                 .padding(4.dp)
         ) {
@@ -318,10 +323,18 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
         // Using the date as a key to optimize recompositions
         // left arrow to shift the visible dates to the left
         item {
-            IconButton(onClick = {
-                data.onLeftArrowClick()
-            }) {
-                Icon(Icons.Filled.ArrowBackIosNew, contentDescription = "Previous")
+            IconButton(
+                onClick = { data.onLeftArrowClick() },
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(30.dp)
+
+            ) {
+                Icon(
+                    Icons.Filled.ArrowBackIosNew,
+                    contentDescription = "Previous",
+                    tint = Color.White,
+                    )
             }
         }
         items(items = data.visibleDates, key = { it.date }) { date ->
@@ -330,10 +343,16 @@ fun RowOfDates(data: CalendarUiModel, onDateClickListener: (CalendarUiModel.Date
         }
         // right arrow to shift the visible dates to the right
         item {
-            IconButton(onClick = {
-                data.onRightArrowClick()
-            }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = "Next")
+            IconButton(
+                onClick = { data.onRightArrowClick() } ,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(30.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = "Next",
+                    tint = Color.White
+                   )
             }
         }
 

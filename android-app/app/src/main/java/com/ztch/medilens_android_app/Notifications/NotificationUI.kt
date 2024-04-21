@@ -27,13 +27,13 @@ fun notificationScreen(onNavigateToHomePage: () -> Unit,
                        onNavigateToUnscheduledMedications: () -> Unit,
                        sharedMedicationModel: SharedMedicationModel
 ) {
-    /*
+
     val context = LocalContext.current
     if(!TokenAuth.isLoggedIn(context)) {
         // if user is not logged in, navigate to home page, which will redirect to login page
         onNavigateToHomePage()
     }
-    */
+
 
 
     val dataSource = CalendarDataSource()

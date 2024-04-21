@@ -1,10 +1,12 @@
 package com.ztch.medilens_android_app.Settings
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.DoctorCreate
@@ -98,7 +101,7 @@ fun AddDoctor(
                     Row ()
                     {
 
-                        profileImage(imageSize = 50.dp)
+                        profileImage(imageSize = 50.dp,R.drawable.medilens_logo)
                         OutlinedTextField(
                             value = doctorName,
                             onValueChange = { doctorName = it },
@@ -112,7 +115,15 @@ fun AddDoctor(
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 0.dp)
+                                .padding(horizontal = 8.dp, vertical = 0.dp),
+                            leadingIcon = {
+                                Image(
+                                    painter = painterResource(id = R.drawable.face_icon),
+                                    contentDescription = "Face Icon",
+                                    modifier = Modifier.size(24.dp)
+
+                                )
+                            }
                         )
                     }
 
@@ -130,7 +141,15 @@ fun AddDoctor(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.job_icon),
+                                contentDescription = "Job Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
                     )
 
                     //include a spacer
@@ -148,7 +167,15 @@ fun AddDoctor(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.email_logo),
+                                contentDescription = "Email Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
                     )
                     OutlinedTextField(
                         value = officeNumber,
@@ -162,7 +189,15 @@ fun AddDoctor(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.phone_icon),
+                                contentDescription = "Phone Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
 
                     )
                     OutlinedTextField(
@@ -177,7 +212,15 @@ fun AddDoctor(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 0.dp)
+                            .padding(horizontal = 8.dp, vertical = 0.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.office_icon),
+                                contentDescription = "Office Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
 
                     )
                     Spacer(Modifier.height(18.dp))
@@ -194,7 +237,15 @@ fun AddDoctor(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
+                            .padding(horizontal = 8.dp),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.contact_emergency_icon),
+                                contentDescription = "Emergency Icon",
+                                modifier = Modifier.size(24.dp)
+
+                            )
+                        }
                     )
 
                     Button(

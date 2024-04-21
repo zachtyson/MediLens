@@ -99,6 +99,14 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.email_logo),
+                        contentDescription = "Email Icon",
+                        modifier = Modifier.size(24.dp)
+
+                    )
+                }
             )
 
             OutlinedTextField(
@@ -116,7 +124,15 @@ fun Login(onNavigateToHomePage: () -> Unit,onNavigateToSignUp: () -> Unit) {
                 textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.dp),
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.password_lock),
+                        contentDescription = "Password Icon",
+                        modifier = Modifier.size(24.dp)
+
+                    )
+                }
             )
 
             Button(

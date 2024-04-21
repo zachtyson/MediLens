@@ -1,147 +1,145 @@
 package com.ztch.medilens_android_app
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.CardMembership
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
-
+@Preview()
+@Composable
+fun DefaultPreview() {
+    appbarBottom(
+        onNavigateToCamera = {},
+        onNavigateToAlarm = {},
+        onNavigateToCabinet = {},
+        onNavigateToSettings = {},
+        onNavigateToMedicard = {},
+    )
+}
 
 @Composable
-fun appbarBottom(onNavigateToCamera: () -> Unit,
-                 onNavigateToAlarm: () -> Unit,
-                 onNavigateToCabinet: () -> Unit,
-                 onNavigateToSettings: () -> Unit,
-                 onNavigateToMedicard: () -> Unit,)
-
-{
-    val colorPurple = colorResource(R.color.Purple)
+fun appbarBottom(
+    onNavigateToCamera: () -> Unit,
+    onNavigateToAlarm: () -> Unit,
+    onNavigateToCabinet: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToMedicard: () -> Unit,
+) {
 
     BottomAppBar(
         containerColor = colorResource(R.color.DarkBlue),
         actions = {
-
-            Column(
-                modifier = Modifier.padding(start = 24.dp)
-
-            )
-            {
-
-                IconButton(
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ActionItem(
                     onClick = { onNavigateToMedicard() },
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.CardMembership,
-                        contentDescription = "medicard",
-                        tint = Color.White,
-                        modifier = Modifier.size(35.dp)
-                    )
-                }
-                Text(text = "MediCard", color = Color.White)
-            }
+                    icon = R.drawable.medicard_logo,
+                    label = "MediCard"
+                )
 
-            Column(
-                modifier = Modifier.padding(start = 24.dp)
-
-            )
-            {
-
-                IconButton(
+                ActionItem(
                     onClick = { onNavigateToAlarm() },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "alerts",
-                        tint = Color.White,
-                        modifier = Modifier.size(35.dp)
-                    )
-                }
-                Text(text = "Alerts", color = Color.White)
-            }
+                    icon = R.drawable.alarm_logo,
+                    label = "Alerts"
+                )
 
-
-            Column(
-
-                modifier = Modifier.padding(start = 24.dp)
-
-            )
-            {
-
-                IconButton(
+                ActionCircleItem(
                     onClick = { onNavigateToCamera() },
-                    modifier = Modifier.drawBehind {
-                        drawCircle(
-                            color = colorPurple,
-                            radius = this.size.maxDimension,
+                    icon = R.drawable.photo_camera_logo,
+                    label = "Camera"
+                )
 
-                            )
-                    }.clickable(onClick = { onNavigateToCamera() })
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "camera",
-                        tint = Color.White,
-                        modifier = Modifier.size(35.dp)
-                    )
-                }
-                Text(text = "")
-            }
-
-            Column(
-                modifier = Modifier.padding(start = 24.dp)
-
-            )
-            {
-
-                IconButton(
+                ActionItem(
                     onClick = { onNavigateToCabinet() },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Medication,
-                        contentDescription = "Cabinet",
-                        tint = Color.White,
-                        modifier = Modifier.size(35.dp)
-                    )
-                }
-                Text(text = "Cabinet", color = Color.White)
+                    icon = R.drawable.prescriptions_logo,
+                    label = "Cabinet"
+                )
+
+                ActionItem(
+                    onClick = { onNavigateToSettings() },
+                    icon = R.drawable.settings_logo,
+                    label = "Settings"
+                )
             }
-
-            Column(
-                modifier = Modifier.padding(start = 24.dp)
-
-            )
-            {
-
-                IconButton(
-                    onClick = { onNavigateToSettings()},
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Reorder,
-                        contentDescription = "settings",
-                        tint = Color.White,
-                        modifier = Modifier.size(35.dp)
-                    )
-                }
-                Text(text = "Settings", color = Color.White)
-            }
-
         },
     )
 }
+
+@Composable
+fun ActionItem(onClick: () -> Unit, @DrawableRes icon: Int, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Image(
+            painter = painterResource(id = icon),
+            contentDescription = label,
+            modifier = Modifier.size(35.dp)
+        )
+        Text(text = label, color = Color.White)
+    }
+}
+
+@Composable
+fun ActionCircleItem(onClick: () -> Unit, @DrawableRes icon: Int, label: String) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp) // Adjust the size of the circle as needed
+                .background(color =  colorResource(R.color.Purple), shape = CircleShape)
+        )
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = label,
+                modifier = Modifier.size(35.dp)
+            )
+            Text(text = label, color = Color.White)
+        }
+    }
+}
+
+
+@Composable
+fun GradientBackground(
+    colors: List<Color>,
+    orientation: GradientOrientation,
+) {
+    val brush = when (orientation) {
+        GradientOrientation.Vertical -> Brush.verticalGradient(colors)
+        GradientOrientation.Horizontal -> Brush.horizontalGradient(colors)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush)
+    )
+}
+enum class GradientOrientation {
+    Vertical,
+    Horizontal
+}
+
