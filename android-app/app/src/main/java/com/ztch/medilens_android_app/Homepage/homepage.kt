@@ -144,24 +144,24 @@ fun AlarmsListScreen(alarmViewModel: AlarmViewModel, service: ApiService = Retro
     Log.d("Future Alarms", future_alarms.toString())
     Log.d("Pending Alarms", pending_alarms.toString())
     Log.d("Alarms", alarms.toString())
-    AlarmsList(alarms = alarms, onDeleteClicked = {
-        alarmViewModel.removeAlarm(it)
-        // callback is Map<String,String>
-        service.removeMedicationSchedule(token = tok, it.dbId, it.dbUserId).enqueue(object : Callback<Map<String,String>> {
-            override fun onResponse(call: Call<Map<String,String>>, response: Response<Map<String,String>>) {
-                if (response.isSuccessful) {
-                    Log.d("HomePage", "Successfully removed alarm")
-                    refreshKey.value += 1
-                } else {
-                    Log.e("HomePage", "Failed to remove alarm")
-                }
-            }
-
-            override fun onFailure(call: Call<Map<String,String>>, t: Throwable) {
-                Log.e("HomePage", "Failed to remove alarm", t)
-            }
-        })
-    })
+//    AlarmsList(alarms = alarms, onDeleteClicked = {
+//        alarmViewModel.removeAlarm(it)
+//        // callback is Map<String,String>
+//        service.removeMedicationSchedule(token = tok, it.dbId, it.dbUserId).enqueue(object : Callback<Map<String,String>> {
+//            override fun onResponse(call: Call<Map<String,String>>, response: Response<Map<String,String>>) {
+//                if (response.isSuccessful) {
+//                    Log.d("HomePage", "Successfully removed alarm")
+//                    refreshKey.value += 1
+//                } else {
+//                    Log.e("HomePage", "Failed to remove alarm")
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<Map<String,String>>, t: Throwable) {
+//                Log.e("HomePage", "Failed to remove alarm", t)
+//            }
+//        })
+//    })
     Spacer(modifier = Modifier.height(16.dp))
     PastAlarmsList(pastAlarms = past_alarms, selectedDate = selectedDate)
     Spacer(modifier = Modifier.height(16.dp))
