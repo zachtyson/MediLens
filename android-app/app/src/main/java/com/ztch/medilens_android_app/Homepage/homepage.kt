@@ -456,54 +456,49 @@ fun FutureAlarmsList(futureAlarms: List<FutureAlarmItem>, selectedDate: MutableS
 
 @Composable
 fun FutureAlarmCard(alarm: FutureAlarmItem) {
+    val timeFormatted = convertMillisToHumanReadableTime(alarm.timeMillis)
     Card(
         colors = CardDefaults.cardColors(
-            // Red
             containerColor = colorResource(R.color.Grey)
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(215.dp)
             .padding(16.dp)
+            .height(150.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Time: ${alarm.timeMillis}",
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-            )
-            Row  (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(85.dp)
-                    .padding(8.dp)
-            ){
-                alarm.imageUri?.let { uri ->
-                    Image(
-                        painter = rememberImagePainter(uri),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(75.dp) // Set the width of the image
-                            .height(75.dp) // Set the height of the image
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                }
-
+            alarm.imageUri.let { uri ->
+                Image(
+                    painter = rememberImagePainter(uri),
+                    contentDescription = "Medication Image",
+                    modifier = Modifier
+                        .size(75.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
                 Text(
-                    text = "Future Medication: ${alarm.message}",
+                    text = "Medication: ${alarm.message}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Scheduled Time: $timeFormatted",
                     fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    color = Color.White
                 )
             }
         }
     }
 }
+
 
 @Composable
 fun PendingAlarmList(pendingAlarms: List<PendingAlarmItem>, selectedDate: MutableState<LocalDate>, alarmViewModel: AlarmViewModel) {
