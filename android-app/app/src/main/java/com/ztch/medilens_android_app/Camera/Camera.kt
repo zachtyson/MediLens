@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
 import com.ztch.medilens_android_app.ApiUtils.PredictionResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
-import com.ztch.medilens_android_app.Medicard.profileImage
 import com.ztch.medilens_android_app.R
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody

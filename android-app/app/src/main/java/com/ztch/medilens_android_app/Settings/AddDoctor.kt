@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.ztch.medilens_android_app.ApiUtils.DoctorCreate
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
-import com.ztch.medilens_android_app.Medicard.profileImage
+//import com.ztch.medilens_android_app.Medicard.profileImage
 import com.ztch.medilens_android_app.R
 import retrofit2.Call
 import retrofit2.Callback
@@ -101,7 +101,7 @@ fun AddDoctor(
                     Row ()
                     {
 
-                        profileImage(imageSize = 50.dp,R.drawable.medilens_logo)
+                        //profileImage(imageSize = 50.dp,R.drawable.medilens_logo)
                         OutlinedTextField(
                             value = doctorName,
                             onValueChange = { doctorName = it },

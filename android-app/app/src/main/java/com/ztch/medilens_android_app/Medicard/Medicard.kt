@@ -91,6 +91,9 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit,
         getDoctors(token, service, userDoctors)
         getMedications(service, context, allMedications, allMedications, userID)
     }
+    var to by remember { mutableStateOf("") }
+    val subject by remember { mutableStateOf("MediCard Information") }
+    var body by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -126,107 +129,141 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit,
                     item {
                         FutureAlarmSection("Future Medications", futureAlarms)
                     }
+                    // Text field for letting user input who to send the email to
+                    item {
+                        Text(
+                            text = "Send Email",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        TextField(
+                            value = to,
+                            onValueChange = {
+                                // do not allow whitspaces
+                                to = it.replace(" ", "")
+                                to = to.replace("\n", "")
+                                to = to.replace("\t", "")
 
-                    // Button to send email
-                    Button(
-                        onClick = {
-
-                            var to = userDoctors.value.first().email
-                            var subject = "MediCard Information"
-                            var body by remember { mutableStateOf("") }
-                            // Construct the email body
-                            body = buildString {
-                                // Add user information
-                                userInfoResponse.value?.let { userInfo ->
-                                    append("User Information:\n")
-                                    append("Name: ${userInfo.name}\n")
-                                    append("Email: ${userInfo.email}\n\n")
-                                }
-
-                                // Add user doctors
-                                if (userDoctors.value.isNotEmpty()) {
-                                    append("User Doctors:\n")
-                                    userDoctors.value.forEach { doctor ->
-                                        append("Doctor Name: ${doctor.doctor_name}\n")
-                                        append("Specialty: ${doctor.specialty}\n")
-                                        append("Office Number: ${doctor.office_number}\n")
-                                        append("Email: ${doctor.email}\n")
-                                        append("Office Address: ${doctor.office_address}\n\n")
-                                    }
-                                }
-
-                                // Add medications
-                                if (allMedications.value.isNotEmpty()) {
-                                    append("Medications:\n")
-                                    allMedications.value.forEach { medication ->
-                                        append("Medication Name: ${medication.name}\n")
-                                        append("Description: ${medication.description}\n")
-                                        append("Color: ${medication.color}\n")
-                                        append("Imprint: ${medication.imprint}\n")
-                                        append("Shape: ${medication.shape}\n")
-                                        append("Dosage: ${medication.dosage}\n")
-                                        append("Intake Method: ${medication.intake_method}\n\n")
-                                    }
-                                }
-
-                                // Add past alarms
-                                if (pastAlarms.isNotEmpty()) {
-                                    append("Past Alarms:\n")
-                                    pastAlarms.forEach { alarm ->
-                                        append("Medication: ${alarm.message}, Taken at: ${Date(alarm.timeMillis)}\n")
-                                    }
-                                    append("\n")
-                                }
-
-                                // Add future alarms
-                                if (futureAlarms.isNotEmpty()) {
-                                    append("Future Alarms:\n")
-                                    futureAlarms.forEach { alarm ->
-                                        append("Message: ${alarm.message}, Scheduled for: ${Date(alarm.timeMillis)}\n")
-                                    }
-                                    append("\n")
-                                }
-
-                                // Add pending alarms
-                                if (pendingAlarms.isNotEmpty()) {
-                                    append("Pending Alarms:\n")
-                                    pendingAlarms.forEach { alarm ->
-                                        append("Medication: ${alarm.message}, Time: ${Date(alarm.timeMillis)}\n")
-                                        append("Unknown if taken\n")
-                                    }
-                                    append("\n")
-                                }
-                            }
-
-                            val emailRequest = EmailRequest(to, subject, body)
-                            RetrofitClient.apiService.sendEmail(token, emailRequest).enqueue(object : Callback<EmailResponse> {
-                                override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
-                                    if (response.isSuccessful) {
-                                        val emailResponse = response.body()
-                                        // Handle the email response
-                                        emailResponse?.let {
-                                            Log.d("medicard email suc", "Email sent successfully. Message: ${it.message}")
-                                        }
-                                    } else {
-                                        // Error sending email
-                                        Log.e("medicard email error:", "Failed to send email: ${response.code()}")
-                                    }
-                                }
-
-                                override fun onFailure(call: Call<EmailResponse>, t: Throwable) {
-                                    // Network error
-                                    Log.e("medicard email error:", "Failed to send email: ${t.message}")
-                                }
-                            })
-                        }
-                    ) {
-                        Text("Send Email")
+                                            },
+                            label = { Text("To:") },
+                            colors = TextFieldDefaults.textFieldColors(
+                                containerColor = Color.DarkGray,
+                                focusedIndicatorColor = Color.White,
+                                unfocusedIndicatorColor = Color.White
+                            ),
+                            // white text
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
                     }
+                    item {
+
+                        // Button to send email
+                        Button(
+                            onClick = {
+                                body = buildString {
+                                    append("<html>\n<head>\n<title>User Information</title>\n</head>\n<body>\n")
+
+                                    // User information section
+                                    append("<h1>User Information:</h1>\n")
+                                    userInfoResponse.value?.let { userInfo ->
+                                        append("<p>Name: ${userInfo.name}</p>\n")
+                                        append("<p>Email: ${userInfo.email}</p>\n\n")
+                                    }
+
+                                    // User doctors section
+                                    if (userDoctors.value.isNotEmpty()) {
+                                        append("<h1>User Doctors:</h1>\n")
+                                        userDoctors.value.forEach { doctor ->
+                                            append("<h2>Doctor Name: ${doctor.doctor_name}</h2>\n")
+                                            append("<p>Specialty: ${doctor.specialty}</p>\n")
+                                            append("<p>Office Number: ${doctor.office_number}</p>\n")
+                                            append("<p>Email: ${doctor.email}</p>\n")
+                                            append("<p>Office Address: ${doctor.office_address}</p>\n\n")
+                                        }
+                                    }
+
+                                    // Medications section
+                                    if (allMedications.value.isNotEmpty()) {
+                                        append("<h1>Medications:</h1>\n")
+                                        allMedications.value.forEach { medication ->
+                                            append("<h2>Medication Name: ${medication.name}</h2>\n")
+                                            append("<p>Description: ${medication.description}</p>\n")
+                                            append("<p>Color: ${medication.color}</p>\n")
+                                            append("<p>Imprint: ${medication.imprint}</p>\n")
+                                            append("<p>Shape: ${medication.shape}</p>\n")
+                                            append("<p>Dosage: ${medication.dosage}</p>\n")
+                                            append("<p>Intake Method: ${medication.intake_method}</p>\n\n")
+                                        }
+                                    }
+
+                                    // Past alarms section
+                                    if (pastAlarms.isNotEmpty()) {
+                                        append("<h1>Past Alarms:</h1>\n")
+                                        pastAlarms.forEach { alarm ->
+                                            append("<p>Medication: ${alarm.message}, Taken at: ${convertMillisToHumanReadableTime(alarm.timeMillis)}</p>\n")
+                                        }
+                                        append("\n")
+                                    }
+
+                                    // Future alarms section
+                                    if (futureAlarms.isNotEmpty()) {
+                                        append("<h1>Future Alarms:</h1>\n")
+                                        futureAlarms.forEach { alarm ->
+                                            append("<p>Message: ${alarm.message}, Scheduled for: ${convertMillisToHumanReadableTime(alarm.timeMillis)}</p>\n")
+                                        }
+                                        append("\n")
+                                    }
+
+                                    // Pending alarms section
+                                    if (pendingAlarms.isNotEmpty()) {
+                                        append("<h1>Pending Alarms:</h1>\n")
+                                        pendingAlarms.forEach { alarm ->
+                                            append("<p>Medication: ${alarm.message}, Time: ${convertMillisToHumanReadableTime(alarm.timeMillis)}</p>\n")
+                                            append("<p>Unknown if taken</p>\n")
+                                        }
+                                        append("\n")
+                                    }
+
+                                    append("</body>\n</html>")
+                                }
+                                val emailRequest = EmailRequest(to, subject, body)
+                                service.sendEmail(token, emailRequest).enqueue(object : Callback<EmailResponse> {
+                                    override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
+                                        if (response.isSuccessful) {
+                                            val emailResponse = response.body()
+                                            // Handle the email response
+                                            emailResponse?.let {
+                                                Log.d("medicard email suc", "Email sent successfully. Message: ${it.message}")
+                                                onNavigateToHomePage()
+                                            }
+                                        } else {
+                                            // Error sending email
+                                            Log.e("medicard email error:", "Failed to send email: ${response.code()}")
+                                        }
+                                    }
+
+                                    override fun onFailure(call: Call<EmailResponse>, t: Throwable) {
+                                        // Network error
+                                        Log.e("medicard email error:", "Failed to send email: ${t.message}")
+                                    }
+                                })
+                            }
+                        ) {
+                            Text("Send Email")
+                        }
+                    }
+
                 }
             }
         }
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopAppBar(title: String, onNavigateToHomePage: () -> Unit) {
