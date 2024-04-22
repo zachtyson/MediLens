@@ -13,6 +13,7 @@ from core.config import MAIL_USERNAME, MAIL_PASSWORD, MAIL_FROM
 
 router = APIRouter()
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -20,12 +21,23 @@ def get_db():
     finally:
         db.close()
 
+
 api_key = os.environ.get('SENDGRID_API_KEY')
 
+
 # Define endpoint to send emails
-@router.post("/send-email/", response_model=EmailResponse)
-async def send_email(request: EmailRequest):
+@router.post("/medicard/send-email", response_model=EmailResponse)
+async def send_email(request: EmailRequest, token: str = Depends(get_token_from_header)):
     # Define email settings
+
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="API key not found"
+        )
+    user_id = get_id_from_token(token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
     message = Mail(
         from_email=MAIL_FROM,
         to_emails=request.to,
