@@ -333,11 +333,19 @@ fun ImageViewer(
 
 
                                     pill.ocr?.let {
-                                        Text(
-                                            text = "OCR: $it",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White
-                                        )
+                                        pill.getOCRParsed()
+                                        pill.ocrParsed?.forEach {
+                                            Text(
+                                                text = "Detected Text:",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White, fontSize = 14.sp
+                                            )
+                                            Text(
+                                                text = it.getText(),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White, fontSize = 14.sp
+                                            )
+                                        }
                                     }
 
 

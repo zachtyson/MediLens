@@ -24,11 +24,13 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.ztch.medilens_android_app.ApiUtils.PillInfoResponse
 import com.ztch.medilens_android_app.ApiUtils.RetrofitClient
 import com.ztch.medilens_android_app.ApiUtils.TokenAuth
+import com.ztch.medilens_android_app.R
 
 //PillViewer(
 //                onNavigateToHomePage = { navController.navigate("Home") {} },
@@ -83,13 +85,6 @@ fun PillViewer(
     val heightOfImage = with(LocalDensity.current) { heightOfImageDp.toPx() }
     var widthOfImagePx = remember { mutableStateOf(0) }
 
-    val textPaint = remember {
-        Paint().apply {
-            color = Color.WHITE
-            textSize = 40f // Adjust text size as needed
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-        }
-    }
 
     // Display current pill's information
     val currentPillInfo = sharedViewModel.currentPillInfo!!
@@ -212,24 +207,43 @@ fun PillViewer(
                 // Column for each pill's info
                 Column {
                     pillInfo.value.forEach {
-                        Text("Imprint: ${it.imprint}")
-                        Text("Color: ${it.color}")
-                        Text("Shape: ${it.shape}")
-                        // Fetch the pill's picture from the image URL
-                        val imageURL = it.imageURL
-                        Image(
-                            painter = rememberImagePainter(imageURL),
-                            contentDescription = "Pill Image",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                        )
+                        pillCard(it)
                     }
-
                 }
 
             }
         }
     }
 
+}
+
+
+@Composable
+private fun pillCard(pillInfo: PillInfoResponse) {
+    val backgroundColor = androidx.compose.ui.graphics.Color.DarkGray
+    // pillcard with dark purple or black background
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(R.color.DarkBlue),
+            contentColor = colorResource(R.color.DarkBlue),
+
+            ),
+    ) {// white text
+        Text("Name: ${pillInfo.pillName}", color = androidx.compose.ui.graphics.Color.White)
+        Text("Imprint: ${pillInfo.imprint}", color = androidx.compose.ui.graphics.Color.White)
+        Text("Color: ${pillInfo.color}", color = androidx.compose.ui.graphics.Color.White)
+        Text("Shape: ${pillInfo.shape}", color = androidx.compose.ui.graphics.Color.White)
+        // Fetch the pill's picture from the image URL
+        val imageURL = pillInfo.imageURL
+        Image(
+            painter = rememberImagePainter(imageURL),
+            contentDescription = "Pill Image",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        )
+    }
 }
