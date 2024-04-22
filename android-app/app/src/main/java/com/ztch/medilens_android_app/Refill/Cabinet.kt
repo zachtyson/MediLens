@@ -483,7 +483,7 @@ fun getImage(size: IntSize): ImageBitmap {
         center = Offset(size.width / 2f, size.height / 2f),
         radius = size.width / 2f,
         paint = Paint().apply {
-            color = Color.Red
+            color = Color.White
         }
     )
 
