@@ -290,7 +290,7 @@ private fun MedicationBox(medication: Medication) {
 }
 
 @Composable
-fun pastAlarmSection(title: String, alarms: List<PastAlarmItem>) {
+private fun PastAlarmSection(title: String, alarms: List<PastAlarmItem>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(title, fontSize = 20.sp, color = Color.White)
         alarms.forEach { alarm ->
@@ -331,7 +331,7 @@ fun pastAlarmSection(title: String, alarms: List<PastAlarmItem>) {
 }
 
 @Composable
-fun pendingAlarmSection(title: String, alarms: List<PendingAlarmItem>) {
+private fun PendingAlarmSection(title: String, alarms: List<PendingAlarmItem>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(title, fontSize = 20.sp, color = Color.White)
         alarms.forEach { alarm ->
@@ -368,7 +368,7 @@ fun pendingAlarmSection(title: String, alarms: List<PendingAlarmItem>) {
 }
 
 @Composable
-fun futureAlarmSection(title: String, alarms: List<FutureAlarmItem>) {
+private fun FutureAlarmSection(title: String, alarms: List<FutureAlarmItem>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(title, fontSize = 20.sp, color = Color.White)
         alarms.forEach { alarm ->
@@ -407,25 +407,25 @@ fun futureAlarmSection(title: String, alarms: List<FutureAlarmItem>) {
     }
 }
 
-@Composable
-fun profileImage(imageSize: Dp, logoId: Int) { // 135 for big
-    Surface(
-        modifier = Modifier
-            .size(imageSize + 17.dp)
-            .padding(5.dp),
-        shape = CircleShape,
-        border = BorderStroke(0.5.dp, Color.LightGray),
-        //elevation = 4.dp,
-        color = MaterialTheme.colorScheme.secondary,
-    ) {
-        Image(
-            painter = painterResource(id = logoId),
-            contentDescription = "profile image",
-            modifier = Modifier.size(imageSize),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
+//@Composable
+//private fun ProfileImage(imageSize: Dp, logoId: Int) { // 135 for big
+//    Surface(
+//        modifier = Modifier
+//            .size(imageSize + 17.dp)
+//            .padding(5.dp),
+//        shape = CircleShape,
+//        border = BorderStroke(0.5.dp, Color.LightGray),
+//        //elevation = 4.dp,
+//        color = MaterialTheme.colorScheme.secondary,
+//    ) {
+//        Image(
+//            painter = painterResource(id = logoId),
+//            contentDescription = "profile image",
+//            modifier = Modifier.size(imageSize),
+//            contentScale = ContentScale.Crop
+//        )
+//    }
+//}
 
 private fun getMedications(
     service: ApiService,
