@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from core.config import MAIL_FROM, MAIL_PASSWORD, MAIL_USERNAME
 
 # add routes from /api/routes
 from api.routes import user_login_routes, user_registration_routes, ml_model_routes, user_setting_routes, user_medicard_routes
