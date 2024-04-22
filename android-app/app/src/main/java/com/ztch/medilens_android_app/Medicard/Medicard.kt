@@ -118,13 +118,13 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit,
                         medicationList(allMedications.value)
                     }
                     item {
-                        pastAlarmSection("Past Medications", pastAlarms)
+                        PastAlarmSection("Past Medications", pastAlarms)
                     }
                     item {
-                        pendingAlarmSection("Pending / Unknown Medications", pendingAlarms)
+                        PendingAlarmSection("Pending / Unknown Medications", pendingAlarms)
                     }
                     item {
-                        futureAlarmSection("Future Medications", futureAlarms)
+                        FutureAlarmSection("Future Medications", futureAlarms)
                     }
                 }
             }
