@@ -5,12 +5,10 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
@@ -19,30 +17,41 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 import com.ztch.medilens_android_app.ApiUtils.*
 import com.ztch.medilens_android_app.Authenticate.decryptData
 import com.ztch.medilens_android_app.Authenticate.getLocalEncryptionKey
+import com.ztch.medilens_android_app.Homepage.convertMillisToHumanReadableTime
 import com.ztch.medilens_android_app.Notifications.AlarmViewModel
 import com.ztch.medilens_android_app.Notifications.FutureAlarmItem
 import com.ztch.medilens_android_app.Notifications.PastAlarmItem
 import com.ztch.medilens_android_app.Notifications.PendingAlarmItem
 import com.ztch.medilens_android_app.R
+import com.ztch.medilens_android_app.Refill.ImageSection
+import com.ztch.medilens_android_app.Refill.InformationSection
+import com.ztch.medilens_android_app.Refill.SharedMedicationModel
+import com.ztch.medilens_android_app.Refill.getImage
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.sql.Date
+import java.time.LocalDate
+import java.time.ZoneId
 
 
 @Preview(showSystemUi = false, showBackground = false)
@@ -109,13 +118,13 @@ fun MediCardScreen(onNavigateToHomePage: () -> Unit,
                         medicationList(allMedications.value)
                     }
                     item {
-                        pastAlarmSection("Past Alarms", pastAlarms)
+                        pastAlarmSection("Past Medications", pastAlarms)
                     }
                     item {
-                        pendingAlarmSection("Pending Alarms", pendingAlarms)
+                        pendingAlarmSection("Pending / Unknown Medications", pendingAlarms)
                     }
                     item {
-                        futureAlarmSection("Future Alarms", futureAlarms)
+                        futureAlarmSection("Future Medications", futureAlarms)
                     }
                 }
             }
@@ -160,22 +169,122 @@ fun doctorsList(doctors: List<Doctor>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Doctors", fontSize = 20.sp, color = Color.White)
         doctors.forEach { doctor ->
-            Text("Name: ${doctor.doctor_name}, Specialty: ${doctor.specialty}", color = Color.White)
-            Text("Email: ${doctor.email}", color = Color.White)
-            Text("Phone: ${doctor.office_number}", color = Color.White)
-            Text("Address: ${doctor.office_address}", color = Color.White)
-            Text("Emergency Contact: ${doctor.emergency_number}", color = Color.White)
+            DoctorCard(doctor)
         }
     }
 }
+
+@Composable
+private fun DoctorCard(
+    doctor: Doctor,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardColors(
+            contentColor = Color.White,
+            containerColor = colorResource(id = R.color.DarkBlue),
+            disabledContentColor = Color.White,
+            disabledContainerColor = colorResource(id = R.color.DarkBlue),
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Doctor: ${doctor.doctor_name}",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Specialty: ${doctor.specialty}",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Phone: ${doctor.office_number ?: ""}",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Emergency: ${doctor.emergency_number ?: ""}",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Address: ${doctor.office_address ?: ""}",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Email: ${doctor.email}",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium
+            )
+        }
+    }
+}
+
 
 @Composable
 fun medicationList(medications: List<Medication>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Medications", fontSize = 20.sp, color = Color.White)
         medications.forEach { medication ->
-            Text("Name: ${medication.name}, Dosage: ${medication.dosage}", color = Color.White)
-            Text("Take every: ${medication.interval_milliseconds?.let { convertMillisecondsToHumanReadableTime(it) }}", color = Color.White)
+            MedicationBox(medication)
+        }
+    }
+}
+
+@Composable
+private fun MedicationBox(medication: Medication) {
+    val scheduleStart = medication.schedule_start?.let { convertToLocalDateTime(it) }
+    val humanReadableScheduleStart = scheduleStart?.let { formatDateTime(it) } ?: "N/A"
+    val humanReadableInterval = medication.interval_milliseconds?.let {
+        "Every ${convertMillisecondsToHumanReadableTime(it)}"
+    } ?: "N/A"
+    Surface(
+        modifier = Modifier
+            .padding(top = 10.dp)
+            .fillMaxWidth(),
+
+        shape = RoundedCornerShape(8.dp),
+        color = colorResource(id = R.color.DarkBlue),
+    ) {
+
+        Card(
+            // Make entire card DarkBlue
+            colors = CardDefaults.cardColors(
+                containerColor = colorResource(R.color.DarkBlue),
+                contentColor = colorResource(R.color.DarkBlue),
+
+                ),
+            modifier = Modifier
+                .fillMaxWidth()
+                // take up as much height as needed
+                .height(IntrinsicSize.Min)
+                .padding(16.dp),
+
+            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
+                InformationSection(
+                    name = medication.name,
+                    description = medication.description ?: "N/A",
+                    color = medication.color ?: "N/A",
+                    imprint = medication.imprint ?: "N/A",
+                    shape = medication.shape ?: "N/A",
+                    dosage = medication.dosage ?: "N/A",
+                    intakeMethod = medication.intake_method ?: "N/A",
+                    scheduleStart = humanReadableScheduleStart,
+                    interval = humanReadableInterval
+                )
+            }
         }
     }
 }
@@ -185,7 +294,38 @@ fun pastAlarmSection(title: String, alarms: List<PastAlarmItem>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(title, fontSize = 20.sp, color = Color.White)
         alarms.forEach { alarm ->
-            Text("Medication: ${alarm.message}, Taken at: ${Date(alarm.timeMillis)}", color = Color.White)
+            val humanReadableTime = convertMillisToHumanReadableTime(alarm.timeMillis)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = if (alarm.response) Color(0xFF81C784) else Color(0xFFE57373)), // Green if taken, red if not
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Medication Taken: ${if (alarm.response) "Yes" else "No"}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = "Medication: ${alarm.message}",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                    Text(
+                        //call formatDateTime on local timezone\
+                        text = "Time: ${humanReadableTime}",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
 }
@@ -195,8 +335,34 @@ fun pendingAlarmSection(title: String, alarms: List<PendingAlarmItem>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(title, fontSize = 20.sp, color = Color.White)
         alarms.forEach { alarm ->
-            Text("Medication: ${alarm.message}, Time: ${Date(alarm.timeMillis)}", color = Color.White)
-            Text("Unknown if taken", color = Color.White)
+            val humanReadableTime = convertMillisToHumanReadableTime(alarm.timeMillis)
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colorResource(R.color.DarkestBlue)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Medication: ${alarm.message}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Date: $humanReadableTime",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
 }
@@ -206,7 +372,37 @@ fun futureAlarmSection(title: String, alarms: List<FutureAlarmItem>) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(title, fontSize = 20.sp, color = Color.White)
         alarms.forEach { alarm ->
-            Text("Message: ${alarm.message}, Scheduled for: ${Date(alarm.timeMillis)}", color = Color.White)
+            val timeFormatted = convertMillisToHumanReadableTime(alarm.timeMillis)
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colorResource(R.color.Grey)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(150.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Medication: ${alarm.message}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Scheduled Time: $timeFormatted",
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -230,43 +426,6 @@ fun profileImage(imageSize: Dp, logoId: Int) { // 135 for big
         )
     }
 }
-
-
-
-
-@Composable
-fun MediCardsList(data: List<String>) {
-    LazyColumn {
-        items(data) { item ->
-            Card(
-                modifier = Modifier
-                    .padding(13.dp)
-                    .fillMaxWidth(),
-                shape = RectangleShape,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(7.dp)
-                ) {
-                    profileImage(50.dp, R.drawable.medilens_logo)
-                    Column(modifier = Modifier
-                        .padding(7.dp)
-                        .align(alignment = CenterVertically))
-                    {
-                        Text(
-                            text = item,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 
 private fun getMedications(
     service: ApiService,

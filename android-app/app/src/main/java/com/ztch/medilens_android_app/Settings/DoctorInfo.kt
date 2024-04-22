@@ -132,7 +132,7 @@ private fun getDoctors(token: String, service: ApiService, doctors: MutableState
 }
 
 @Composable
-fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit, sharedDoctorModel: SharedDoctorModel, onNavigateToSettings: () -> Unit, context : Context) {
+private fun DoctorCard(doctor: Doctor, onNavigateToModifyPharmacist: () -> Unit, sharedDoctorModel: SharedDoctorModel, onNavigateToSettings: () -> Unit, context : Context) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

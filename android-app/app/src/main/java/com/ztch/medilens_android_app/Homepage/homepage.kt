@@ -380,7 +380,7 @@ private fun PastAlarmsList(pastAlarms: List<PastAlarmItem>, selectedDate: Mutabl
     }
 }
 
-private fun convertMillisToHumanReadableTime(timeMillis: Long): String {
+fun convertMillisToHumanReadableTime(timeMillis: Long): String {
     val localDateTime = Instant.ofEpochMilli(timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
     return formatDateTime(localDateTime)
 }
